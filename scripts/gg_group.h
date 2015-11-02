@@ -1,0 +1,31 @@
+#include "gg_common.h"
+
+void add_edge(struct conf*c,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk);
+void calc_rflod_simple(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,double*_lod,double*_rf);
+void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,unsigned*_cxr_flag);
+void build_elist(struct conf*c);
+int ecomp_func(const void*_p1, const void*_p2);
+int ecomp_mapdist_nonhk(const void*_p1, const void*_p2);
+void sort_elist(struct conf*c);
+struct marker*find_group(struct marker*m);
+unsigned union_groups(struct marker*m1,struct marker*m2);
+void form_groups(struct conf*c);
+void phase_markers(struct conf*c,unsigned lg,unsigned x);
+void dfs_phase(struct conf*c,struct marker*m,unsigned phase,unsigned x);
+void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned nedge,struct edge**elist,unsigned x);
+void dfs_assign(struct marker*m,double pos,unsigned x);
+void dfs_order(struct conf*c,struct marker*m,double dist);
+struct marker*other(struct edgelist*p,struct marker*m);
+void append_edge(struct edgelist**list,struct edgelist*p);
+void split_into_lgs(struct conf*c);
+void split_edges(struct conf*c);
+int mcomp_func(const void*_m1, const void*_m2);
+void split_markers(struct conf*c);
+void save_markers(struct conf*c,const char*fname);
+void check_phase(struct conf*c);
+void sort_by_dist(struct conf*c,unsigned lg);
+void impute_missing(struct conf*c,unsigned nmark,struct marker**array,unsigned nedge,struct edge**elist);
+void update_data(struct conf*c,unsigned nmark,struct marker**array);
+double impute_est_rf(struct conf*c,struct marker*m1,struct marker*m2,unsigned x);
+void append_knn(struct conf*c,struct missing*z,VARTYPE val,double rf);
+void impute_alloc(struct conf*c,unsigned nmark,struct marker**array);

@@ -1,0 +1,1297 @@
+#include "gg_group.h"
+#include "gg_utils.h"
+
+/*
+imputing missing genotype calls using kNN method
+*/
+void impute_missing(struct conf*c,unsigned nmark,struct marker**array,unsigned nedge,struct edge**elist)
+{
+    struct marker*m=NULL;
+    struct marker*m1=NULL;
+    struct marker*m2=NULL;
+    struct edge*e=NULL;
+    unsigned i,j,k,x;
+    double rf,dval;
+    
+    //update m->data/mask/bits to reflect phasing
+    update_data(c,nmark,array);
+
+    //create missing value imputation data structures
+    impute_alloc(c,nmark,array);
+    
+    //scan edge list (ie list of significant marker-marker linkages)
+    //update m->miss info
+    for(i=0; i<nedge; i++)
+    {
+        e = elist[i];
+        m1 = e->m1;
+        m2 = e->m2;
+        
+        for(x=0; x<2; x++)
+        {
+            if(!m1->orig[x] || !m2->orig[x]) continue;
+            
+            rf = NO_RFLOD;
+            
+            for(j=0; j<c->nind; j++)
+            {
+                //impute m1 from m2
+                if(m1->orig[x][j] == MISSING && m2->data[x][j] != MISSING)
+                {
+                    if(rf == NO_RFLOD)
+                    {
+                        rf = impute_est_rf(c,m1,m2,x);
+                        if(rf == NO_RFLOD) break;      //no usable info
+                    }
+                    
+                    append_knn(c,&(m1->miss[x][j]),m2->data[x][j],rf);
+                }
+
+                //impute m2 from m1
+                if(m2->orig[x][j] == MISSING && m1->data[x][j] != MISSING)
+                {
+                    if(rf == NO_RFLOD)
+                    {
+                        rf = impute_est_rf(c,m1,m2,x);
+                        if(rf == NO_RFLOD) break;      //no usable info
+                    }
+                    
+                    append_knn(c,&(m2->miss[x][j]),m1->data[x][j],rf);
+                }
+            }
+        }
+    }
+    
+    //assign values to missing data
+    for(i=0; i<nmark; i++)
+    {
+        m = array[i];
+        
+        for(x=0; x<2; x++)
+        {
+            if(!m->orig[x]) continue;
+            
+            for(j=0; j<c->nind; j++)
+            {
+                if(m->orig[x][j] != MISSING) continue;
+                
+                //DEBUG
+                //printf("name=%s x=%u j=%u %u\n",m->name,x,j,m->miss[x][j].n);
+                
+                if(m->miss[x][j].n > 0)
+                {
+                    //find the average neighbouring value
+                    dval = 0.0;
+                    for(k=0; k<m->miss[x][j].n; k++)
+                    {
+                        dval += (double)m->miss[x][j].val[k];
+                        //printf(" %u",m->miss[x][j].val[k]);
+                    }
+                    dval /= m->miss[x][j].n;
+                }
+                else
+                {
+                    //no neighbours available, pick randomly
+                    dval = drand48();
+                }
+
+                //printf(" %f\n",dval);
+                
+                if(dval > 0.5) m->data[x][j] = 1;
+                else           m->data[x][j] = 0;
+                
+                //infer the original, unphased value
+                m->orig[x][j] = XOR(m->data[x][j],m->phase[x]);
+            }
+        }
+    }
+}
+
+/*
+allocate data structures for imputing missing values
+*/
+void impute_alloc(struct conf*c,unsigned nmark,struct marker**array)
+{
+    unsigned i,j,x;
+    struct marker*m=NULL;
+    
+    for(i=0; i<nmark; i++)
+    {
+        m = array[i];
+        
+        for(x=0; x<2; x++)
+        {
+            if(!m->orig[x]) continue;
+            
+            assert(m->miss[x] = calloc(c->nind,sizeof(struct missing)));
+            
+            for(j=0; j<c->nind; j++)
+            {
+                if(m->orig[x][j] != MISSING) continue;
+                
+                assert(m->miss[x][j].val = calloc(c->grp_knn+1,sizeof(VARTYPE)));
+                assert(m->miss[x][j].rf = calloc(c->grp_knn+1,sizeof(double)));
+            }
+        }
+    }
+}
+
+void append_knn(struct conf*c,struct missing*z,VARTYPE val,double rf)
+{
+    unsigned i;
+    VARTYPE vtmp;
+    double dtmp;
+    
+    //append value to end of list
+    z->val[z->n] = val;
+    z->rf[z->n] = rf;
+    
+    //bubble the value up until sorted by rf value
+    for(i=z->n; i>0; i--)
+    {
+        if(z->rf[i] >= z->rf[i-1]) break; //correct position found
+        SWAP(z->rf[i],z->rf[i-1],dtmp);
+        SWAP(z->val[i],z->val[i-1],vtmp);
+    }
+    
+    //retain at most grp_knn items
+    if(z->n < c->grp_knn) z->n += 1;
+}
+
+double impute_est_rf(struct conf*c,struct marker*m1,struct marker*m2,unsigned x)
+{
+    unsigned R,N;
+    
+    calc_RN_simple(c,m1,m2,x,&R,&N);
+    
+    if(N == 0) return NO_RFLOD; //no usable information between m1 and m2
+    
+    //estimate rf assuming missing values are different with prob 0.5
+    //to avoid underestimating the distance
+    return ((double)R + 0.5 * (c->nind - N)) / c->nind;
+}
+
+/*
+update m->data and bit strings to reflect marker phases
+*/
+void update_data(struct conf*c,unsigned nmark,struct marker**array)
+{
+    struct marker*m=NULL;
+    unsigned i,j,x;
+    
+    for(i=0; i<nmark; i++)
+    {
+        m = array[i];
+        
+        for(j=0; j<c->nind; j++)
+        {
+            if(m->type == HKTYPE)
+            {
+                //treat hk calls as missing
+                if(m->code[j] == HK_CALL)
+                {
+                    m->data[0][j] = MISSING;
+                    m->data[1][j] = MISSING;
+                    continue;
+                }
+            }
+            
+            for(x=0; x<2; x++)
+            {
+                if(!m->orig[x]) continue;
+
+                if(m->orig[x][j] == MISSING) m->data[x][j] = MISSING;
+                else                         m->data[x][j] = XOR(m->orig[x][j],m->phase[x]);
+            }
+        }
+    }
+    
+    compress_to_bitstrings(c,nmark,array);
+}
+
+void add_edge(struct conf*c,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk)
+{
+    struct edge*p=NULL;
+    
+    //expand the array if required
+    if(c->nedge == c->nedgemax)
+    {
+        c->nedgemax *= 2;
+        assert(c->elist = realloc(c->elist,c->nedgemax*sizeof(struct edge*)));
+    }
+    
+    assert(p = calloc(1,sizeof(struct edge)));
+    c->elist[c->nedge] = p;
+    c->nedge += 1;
+    
+    p->lod = lod;
+    p->rf = rf;
+    p->cxr_flag = cxr_flag;
+    p->m1 = m1;
+    p->m2 = m2;
+    p->cm = cm;
+    p->nonhk = nonhk;
+}
+
+/*
+calculate the two-point rf and lod between two markers for the given parental information only
+x=0 => maternal information only
+x=1 => paternal information only
+the following comparisons are supported:
+lm - lm
+lm - hk
+np - np
+np - hk
+
+calculate rf assuming coupling phase even though m->data contains unphased information
+later on repulsion phase rf will be converted to the correct value
+*/
+void calc_rflod_simple(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,double*_lod,double*_rf)
+{
+    unsigned R,S,N;
+    double r,s,lod;
+    
+    //count number of recombinants and total non-missing genotype pairs
+    calc_RN_simple(c,m1,m2,x,&R,&N);
+    
+    if(N == 0)
+    {
+        //rf and lod are undefined
+        *_rf = NO_RFLOD;
+        *_lod = NO_RFLOD;
+        return;
+    }
+    
+    r = (double)R / N;
+    
+    //calculate linkage LOD
+    s = 1.0 - r;
+    S = N - R;
+    
+    lod = 0.0;
+    if(s > 0.0) lod += S * LOG10(2.0*s);
+    if(r > 0.0) lod += R * LOG10(2.0*r);
+
+    *_rf = r;
+    *_lod = lod;
+}
+
+//calculate rf and LOD using 2pt methods from Maliepaard
+//this method implicitly deduces phase as far as possible
+//and should not be used between two markers where the phasing is already known
+//with possibly higher certainty
+void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,unsigned*_cxr_flag)
+{
+    unsigned i,j,N;
+    unsigned n[9] = {0,0,0,0,0,0,0,0,0};
+    double r,s,val,sum1,sum2,sum3;
+    double lod_cxr,lod_cxc,rf_cxr,rf_cxc;
+    
+    N = 0;
+    for(i=0; i<c->nind; i++)
+    {
+        if(m1[i] == MISSING || m2[i] == MISSING) continue;
+        N += 1;
+        j = 3* m1[i] + m2[i];
+        n[j] += 1;
+    }
+    
+    if(N == 0)
+    {
+        //rf and lod are undefined
+        *_rf = NO_RFLOD;
+        *_lod = NO_RFLOD;
+        return;
+    }
+    
+    //calc ML estimate of rf assuming cxr or rxc phasing
+    //see Maliepaard et al. (1997) Table 2.3, case No. 7
+    
+    sum1 = n[0] + n[2] + n[4] + n[6] + n[8]; //n[0] ...n[8] correspond to n1...n9 in Table 2.3
+    sum2 = n[1] + n[3] + n[5] + n[7];
+    val = 0.25 - sum1 / (2.0 * (double)N);   //val e [-1/4, 1/4]
+    
+    lod_cxr = NO_RFLOD;
+    rf_cxr = NO_RFLOD;
+    
+    if(val >= 0.0)
+    {
+        //rf_cxr is real
+        rf_cxr = 0.5 - sqrt(val);      //r e [0,1/2]
+        if(rf_cxr < 0.0) rf_cxr = 0.0; //incase rounding errors make rf less than zero
+        
+        s = 1.0 - rf_cxr;
+        lod_cxr = 0.0;
+        val = 4.0 * rf_cxr * s;                     //e [0,1]
+        if(val > 0.0) lod_cxr += sum1 * LOG10(val); //val==0 only if sum1==0 therefore lod+=0 in this case
+        val = 2.0 - 4.0 * rf_cxr * s;               //e[1,2]
+        assert(val > 0.0);
+        lod_cxr += sum2 * LOG10(val);
+    }
+    //else rf_cxr is imaginary
+    
+    //calc ML estimate assuming cxc phasing
+    //using EM
+    lod_cxc = NO_RFLOD;
+    rf_cxc = 0.25;
+    s = 1.0 - rf_cxc;
+
+    sum3 = sum2 + 2.0 * ((double)n[2] + n[6]);
+    
+    for(i=0; i<c->grp_em_maxit; i++)
+    {
+        r = (sum3 + 2.0*(double)n[4]*rf_cxc*rf_cxc
+                    / (1.0 - 2.0*rf_cxc*s))          // >= 0.5
+            / (2.0 * (double)N);
+        
+        val = fabs(r - rf_cxc);
+        rf_cxc = r;
+        s = 1.0 - rf_cxc;
+        
+        if(val < c->grp_em_tol) break;
+    }
+    
+    if(i >= c->grp_em_maxit || rf_cxc < -0.0001 || rf_cxc > 1.0001)
+    {
+        //rf_cxc failed to converge on a sensible value
+        //cannot be cxc linkage
+        *_rf = rf_cxr;
+        *_lod = lod_cxr;
+        *_cxr_flag = 1;
+        return;
+    }
+    
+    if(rf_cxc < 0.0) rf_cxc = 0.0;
+    else if(rf_cxc > 1.0) rf_cxc = 1.0;
+    
+    s = 1.0 - rf_cxc;
+    
+    lod_cxc = 0.0;
+    val = 2.0 * s; //e [0,1]
+                                  //non recomb counts
+    if(val > 0.0) lod_cxc += 2.0*((double)n[0] + n[8]) * LOG10(val);
+    
+    val = 4.0 * rf_cxc * s; //e [0,1]
+    
+                             //1 recomb counts
+    if(val > 0.0) lod_cxc += sum2 * LOG10(val);
+    
+                                     //2 recomb counts
+    if(rf_cxc > 0.0) lod_cxc += 2.0*((double)n[2] + n[6]) * LOG10(2.0 * rf_cxc);
+    
+    val = 2.0 - 4.0 * rf_cxc * s; //e [1,2]
+    assert(val > 0.0);
+                       //two or zero recomb count
+    lod_cxc += (double)n[4] * LOG10(val);
+    
+    if(lod_cxc > lod_cxr)
+    {
+        //treat as cxc / rxr phase
+        *_lod = lod_cxc;
+        *_rf = rf_cxc;
+        *_cxr_flag = 0;
+    }
+    else
+    {
+        //treat as cxr / rxc phase
+        *_lod = lod_cxr;
+        *_rf = rf_cxr;
+        *_cxr_flag = 1;
+    }
+}
+
+/*
+build a list of all lod values above the threshold
+by scanning all-vs-all markers
+*/
+void build_elist(struct conf*c)
+{
+    unsigned i,j;
+    double lod,rf;
+    unsigned cxr_flag,nonhk;
+    struct marker*m1=NULL;
+    struct marker*m2=NULL;
+    
+    for(i=0; i<c->nmarkers-1; i++)
+    {
+        m1 = c->array[i];
+        
+        for(j=i+1; j<c->nmarkers; j++)
+        {
+            m2 = c->array[j];
+            
+            lod = NO_RFLOD;
+            rf = NO_RFLOD;
+            cxr_flag = 0;
+            
+            //is either marker an hk?
+            if(m1->type == HKTYPE || m2->type == HKTYPE) nonhk = 0;
+            else                                         nonhk = 1;
+            
+            //HK vs HK marker
+            if(m1->type == HKTYPE && m2->type == HKTYPE)
+            {
+                calc_rflod_hk(c,m1->code,m2->code,&lod,&rf,&cxr_flag);
+            }
+            //LM vs LM or HK
+            else if(m1->data[0] && m2->data[0])
+            {
+                calc_rflod_simple(c,m1,m2,0,&lod,&rf);
+            }
+            //NP vs NP or HK
+            else if(m1->data[1] && m2->data[1])
+            {
+                calc_rflod_simple(c,m1,m2,1,&lod,&rf);
+            }
+            
+            //DEBUG
+            //printf("%s -> %s lod=%f rf=%f cxrflag=%u\n",m1->name,m2->name,lod,rf,cxr_flag);
+
+            if(lod < c->grp_min_lod || lod == NO_RFLOD) continue;
+            
+            add_edge(c,m1,m2,lod,rf,cxr_flag,0.0,nonhk);
+        }
+    }
+    
+    if(c->flog) fprintf(c->flog,"#%u edges added\n",c->nedge);
+}
+
+/*
+used by qsort to sort the list into descending order by lod
+*/
+int ecomp_func(const void*_p1, const void*_p2)
+{
+    struct edge*p1=NULL;
+    struct edge*p2=NULL;
+    
+    p1 = *((struct edge**)_p1);
+    p2 = *((struct edge**)_p2);
+    
+    if(p1->lod < p2->lod) return 1;
+    if(p1->lod > p2->lod) return -1;
+    return 0;
+}
+
+//sort edges into ascending order by map distance
+//but give first priorty to non-hk edges
+int ecomp_mapdist_nonhk(const void*_p1, const void*_p2)
+{
+    struct edge*p1=NULL;
+    struct edge*p2=NULL;
+    
+    p1 = *((struct edge**)_p1);
+    p2 = *((struct edge**)_p2);
+    
+    //prioritise nonhk
+    if(p1->nonhk && !p2->nonhk) return -1;
+    if(!p1->nonhk && p2->nonhk) return 1;
+    
+    //prioritise shorter map distance
+    if(p1->cm < p2->cm) return -1;
+    if(p1->cm > p2->cm) return 1;
+    return 0;
+}
+
+/*sort edges so that largest lod is at the top*/
+void sort_elist(struct conf*c)
+{
+    
+    qsort(c->elist,c->nedge,sizeof(struct edge*),ecomp_func);
+
+    //unsigned i;
+    //for(i=0; i<c->nedge; i++) printf("%f\n",c->elist[i]->lod);
+}
+
+//find func of union-find
+struct marker*find_group(struct marker*m)
+{
+    while(m->uf_parent != m) m = m->uf_parent;
+    return m;
+}
+
+//union func of union-find
+unsigned union_groups(struct marker*m1,struct marker*m2)
+{
+    struct marker*p1=NULL;
+    struct marker*p2=NULL;
+    
+    p1 = find_group(m1);
+    p2 = find_group(m2);
+    
+    if(p1 == p2) return 0;   //already in same group
+    
+    //merge groups
+    if(p1->uf_rank < p2->uf_rank)
+    {
+        p1->uf_parent = p2;
+        p2->uf_rank += p1->uf_rank;
+        return 1; //m1's group merged into m2's group
+    }
+    else
+    {
+        p2->uf_parent = p1;
+        p1->uf_rank += p2->uf_rank;
+        return 2; //m2's group merged into m1's group
+    }
+}
+
+/*
+form linkage groups using edges in order of decreasing lod
+use all edges (including cxr/rxc edges)
+no phasing is performed, just grouping
+*/
+void form_groups(struct conf*c)
+{
+    unsigned i;
+    double min_lod_used=-1.0;
+    struct edge*e=NULL;
+    struct marker*m=NULL;
+    
+    c->nlgs = c->nmarkers;
+    
+    //initialise union-find variables to a disconnected forest
+    for(i=0; i<c->nmarkers; i++)
+    {
+        m = c->array[i];
+        m->uf_parent = m;
+        m->uf_rank = 1;
+    }
+    
+    //perform unions between groups until the requested number of linkage groups are formed
+    //or until no more (lod-filtered) edges are left
+    for(i=0; i<c->nedge && c->nlgs>c->grp_min_lgs; i++)
+    {
+        e = c->elist[i];
+        
+        if(union_groups(e->m1,e->m2))
+        {
+            c->nlgs -= 1;
+            min_lod_used = e->lod;
+            
+            //printf("union %s %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
+        }
+    }
+    
+    if(c->flog) fprintf(c->flog,"#formed %u linkage groups with a min lod of %f\n",c->nlgs,min_lod_used);
+}
+
+/*
+build LOD-MST per LG ignoring cxr / rxc linkage
+use this to phase all markers
+deal with maternal and paternal phases separately
+x=0 => maternal
+x=1 => paternal
+*/
+void phase_markers(struct conf*c,unsigned lg,unsigned x)
+{
+    struct marker*m=NULL;
+    struct marker*m_start=NULL;
+    struct edge*e=NULL;
+    struct edgelist*p1=NULL;
+    struct edgelist*p2=NULL;
+    unsigned i,ntrees,ret;
+    
+    //ensure edges are still sorted by decreasing lod
+    qsort(c->lg_edges[lg],c->lg_nedges[lg],sizeof(struct edge*),ecomp_func);
+    
+    //printf("phase_markers x=%u\n",x);
+    /*for(i=0; i<c->lg_nedges[lg]; i++)
+    {
+        e = c->lg_edges[lg][i];
+        printf("%s %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
+    }*/
+
+    //initialise to disconnected forest
+    ntrees = 0;
+    for(i=0; i<c->lg_nmarkers[lg]; i++)
+    {
+        m = c->lg_markers[lg][i];
+        
+        /*
+        each marker begins in its own group with no attached edges
+        */
+        m->uf_parent = m;
+        m->uf_rank = 1;
+        m->adj_list = NULL;
+        m->dfs_marked = 0;
+        if(m->data[x]) ntrees += 1;
+    }
+    
+    /*
+    alloc more edgelists if required
+    max MST edges required is approx 2*lg_nmarkers[lg] because
+    each edge appears on both marker's adjacency lists
+    */
+    c->nepool = 0;
+    if(c->nepoolmax < 2 * c->lg_nmarkers[lg])
+    {
+        assert(c->epool = realloc(c->epool,2*c->lg_nmarkers[lg]*sizeof(struct edgelist)));
+        c->nepoolmax = 2 * c->lg_nmarkers[lg];
+    }
+    
+    //printf("initial trees %u\n",ntrees);
+
+    /*
+    union-find into an MST ignoring cxr linkage between hk's
+    build MST with Kruskal's algorithm:
+    perform unions by decreasing edge lod until one tree results
+    or until no more edges (ie phasing fails to complete)
+    store MST using adjacency lists (the tree is very sparse)
+    */
+    for(i=0; i<c->lg_nedges[lg] && ntrees>1; i++)
+    {
+        e = c->lg_edges[lg][i];
+        
+        //ignore if edge involves information from the wrong parent
+        if(e->m1->data[x] == NULL || e->m2->data[x] == NULL) continue;
+        
+        if(m_start == NULL) m_start = e->m1; //retain link to any suitable marker as start of dfs
+        
+        //ignore cxr / rxc hk-hk linkage
+        if(e->cxr_flag) continue;
+        
+        //check lod is sensible
+        assert(e->lod > 0.0);
+        
+        //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
+        
+        ret = union_groups(e->m1,e->m2);
+        
+        if(ret == 0) continue; //no union
+        
+        //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
+
+        /*
+        MST: link the two markers
+        */
+        
+        //store the edge in both marker's adjacency lists
+        p1 = &c->epool[c->nepool++];
+        p2 = &c->epool[c->nepool++];
+        assert(c->nepool <= c->nepoolmax);
+        
+        p1->e = e;
+        p2->e = e;
+        p1->next = NULL;
+        p2->next = NULL;
+
+        append_edge(&e->m1->adj_list,p1);
+        append_edge(&e->m2->adj_list,p2);
+        
+        //printf("%s => %s lod=%f rf=%f\n",e->m1->name,e->m2->name,e->lod,e->rf);
+        
+        ntrees -= 1;
+    }
+    
+    /*
+    warn if phasing failed to complete for whole lg
+    in which case we should probably split the lg into sub-lgs
+    */
+    if(ntrees > 1 && c->flog) fprintf(c->flog,"#phasing lg %u failed to complete: phasing resolved into %u subgroups\n",lg,ntrees);
+    
+    if(ntrees == 0) return; //no markers to phase
+    
+    /*for(i=0; i<c->lg_nmarkers[lg]; i++)
+    {
+        p1 = c->lg_markers[lg][i]->adj_list;
+        printf("marker %s\n",c->lg_markers[lg][i]->name);
+        while(p1)
+        {
+            printf("%s\n",other(p1,c->lg_markers[lg][i])->name);
+            p1 = p1->next;
+        }
+    }*/
+
+    /*
+    do a depth-first search
+    setting phase values
+    */
+    assert(m_start);
+    dfs_phase(c,m_start,0,x);
+}
+
+/*
+depth-first search used to phase markers
+*/
+void dfs_phase(struct conf*c,struct marker*m,unsigned phase,unsigned x)
+{
+    struct edgelist*p=NULL;
+    struct marker*m2=NULL;
+    
+    //mark this node as visited
+    assert(!m->dfs_marked);
+    m->dfs_marked = 1;
+    m->phase[x] = phase;
+    
+    //visit all unmarked adjacent nodes
+    p = m->adj_list;
+    
+    while(p)
+    {
+        m2 = other(p,m);
+        
+        if(!m2->dfs_marked)
+        {
+            if(p->e->rf < 0.5) dfs_phase(c,m2,phase,x); //coupling
+            else               dfs_phase(c,m2,!phase,x); //repulsion
+        }
+        
+        p = p->next;
+    }
+}
+
+//calc map distance associated with each edge then sort by map distance
+//here we assume phase was worked out using the best available information
+//which could be an indirect route ie not be the direct marker-marker edge itself
+//therefore we look at m->phase[] not the info in the edge itself
+void sort_by_dist(struct conf*c,unsigned lg)
+{
+    struct edge*e=NULL;
+    struct marker*m1=NULL;
+    struct marker*m2=NULL;
+    double rf;
+    unsigned i;
+    
+    for(i=0; i<c->lg_nedges[lg]; i++)
+    {
+        e = c->lg_edges[lg][i];
+        m1 = e->m1;
+        m2 = e->m2;
+        
+        rf = NO_RFLOD;
+        
+        //determine the phase relationship between the two markers
+        if(m1->type == HKTYPE && m2->type == HKTYPE) //HK vs HK
+        {
+            if(m1->phase[0] != m2->phase[0] && m1->phase[1] != m2->phase[1]) rf = 1.0 - e->rf; //rxr
+            else                                                             rf = e->rf;       //cxc,cxr or rxc
+        }
+        else if(m1->data[0] && m2->data[0]) //LM vs LM or HK
+        {
+            if(m1->phase[0] == m2->phase[0]) rf = e->rf;       //coupling
+            else                             rf = 1.0 - e->rf; //repulsion
+        }
+        else if(m1->data[1] && m2->data[1]) //NP vs NP or HK
+        {
+            if(m1->phase[1] == m2->phase[1]) rf = e->rf;       //coupling
+            else                             rf = 1.0 - e->rf; //repulsion
+        }
+        
+        assert(rf != NO_RFLOD);
+        
+        if(rf < 0.0) rf = 0.0;
+        else if(rf > MAX_RF) rf = MAX_RF;
+        
+        e->cm = c->map_func(rf);
+        
+        //printf("%s %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
+    }
+
+    //sort edges into ascending cM
+    qsort(c->lg_edges[lg],c->lg_nedges[lg],sizeof(struct edge*),ecomp_mapdist_nonhk);
+}
+
+/*
+build centimorgan-minimising MST per LG including cxr / rxc linkage
+deal with maternal and paternal phases separately
+x=0 => maternal
+x=1 => paternal
+*/
+void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned nedge,struct edge**elist,unsigned x)
+{
+    struct marker*m=NULL;
+    struct marker*m_start=NULL;
+    struct marker*m_end=NULL;
+    struct edge*e=NULL;
+    struct edgelist*p1=NULL;
+    struct edgelist*p2=NULL;
+    unsigned i,ntrees,ret;
+    double dist;
+    
+    //printf("phase_markers x=%u\n",x);
+    /*for(i=0; i<c->lg_nedges[lg]; i++)
+    {
+        e = c->lg_edges[lg][i];
+        printf("%s %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
+    }*/
+
+    //initialise to disconnected forest
+    ntrees = 0;
+    for(i=0; i<nmark; i++)
+    {
+        m = c->array[i];
+        
+        //each marker begins in its own group with no attached edges
+        m->uf_parent = m;
+        m->uf_rank = 1;
+        m->adj_list = NULL;
+        m->dfs_marked = 0;
+        m->dfs_parent = NULL;
+        if(m->data[x]) ntrees += 1;
+    }
+    
+    if(ntrees == 0) return; //no markers to order
+    
+    //alloc more edgelists if required
+    //max MST edges required is approx 2*lg_nmarkers[lg] because
+    //each edge appears on both marker's adjacency lists
+    c->nepool = 0;
+    if(c->nepoolmax < 2 * nmark)
+    {
+        assert(c->epool = realloc(c->epool,2*nmark*sizeof(struct edgelist)));
+        c->nepoolmax = 2 * nmark;
+    }
+    
+    //printf("initial trees %u\n",ntrees);
+
+    //union-find into an MST including cxr linkage
+    //build MST with Kruskal's algorithm:
+    //perform unions by increasing edge cM (map distance) until one tree results
+    //or until no more edges
+    //store MST using adjacency lists
+    for(i=0; i<nedge && ntrees>1; i++)
+    {
+        e = elist[i];
+        
+        //ignore if edge involves information from the wrong parent
+        if(e->m1->data[x] == NULL || e->m2->data[x] == NULL) continue;
+        
+        if(m_start == NULL) m_start = e->m1; //retain link to any suitable marker as start of dfs
+        
+        //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
+        
+        //see if the edge joins two separate trees into one
+        ret = union_groups(e->m1,e->m2);
+        
+        if(ret == 0) continue; //no union
+        
+        //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
+
+        //MST: link the two markers
+        
+        //store the edge in both marker's adjacency lists
+        p1 = &c->epool[c->nepool++];
+        p2 = &c->epool[c->nepool++];
+        assert(c->nepool <= c->nepoolmax);
+        
+        p1->e = e;
+        p2->e = e;
+        p1->next = NULL;
+        p2->next = NULL;
+
+        append_edge(&e->m1->adj_list,p1);
+        append_edge(&e->m2->adj_list,p2);
+        
+        //printf("%s => %s lod=%f rf=%f\n",e->m1->name,e->m2->name,e->lod,e->rf);
+        
+        ntrees -= 1;
+    }
+    
+    assert(ntrees == 1);
+    
+    /*for(i=0; i<c->lg_nmarkers[lg]; i++)
+    {
+        p1 = c->lg_markers[lg][i]->adj_list;
+        printf("marker %s\n",c->lg_markers[lg][i]->name);
+        while(p1)
+        {
+            printf("%s\n",other(p1,c->lg_markers[lg][i])->name);
+            p1 = p1->next;
+        }
+    }*/
+
+    //prepare for dfs
+    for(i=0; i<nmark; i++)
+    {
+        m = array[i];
+        m->dfs_marked = 0;
+        m->dfs_parent = NULL;
+    }
+
+    //do first depth-first search
+    //find the furthest vertex from the source
+    assert(m_start);
+    c->dfs_maxdist = -1.0;
+    c->dfs_maxmarker = NULL;
+    dfs_order(c,m_start,0.0);
+    
+    //prepare for dfs
+    for(i=0; i<nmark; i++)
+    {
+        m = array[i];
+        m->dfs_marked = 0;
+        m->dfs_parent = NULL;
+    }
+
+    //printf("maxdist=%f\n",c->dfs_maxdist);
+
+    //do second depth-first search
+    //find the furthest vertex from the new source
+    m_start = c->dfs_maxmarker;
+    c->dfs_maxdist = -1.0;
+    dfs_order(c,m_start,0.0);
+    m_end = c->dfs_maxmarker;
+    
+    //printf("maxdist=%f\n",c->dfs_maxdist);
+
+    //assign map positions along the longest path
+    for(i=0; i<nmark; i++)
+    {
+        m = array[i];
+        m->dfs_marked = 0;
+        m->pos[x] = NO_POSN;           //no map position defined yet
+    }
+    
+    //trace path back from last marker
+    unsigned count=0;
+    dist = 0.0;
+    m = m_end;
+    while(1)
+    {
+        m->pos[x] = dist;
+        m->dfs_marked = 1; //mark as already visited
+        count += 1;        //count markers in the longest path
+        
+        //output just the backbone positions
+        //printf("%s %u %f\n",m->name,x,m->pos[x]);
+        
+        if(m->dfs_parent == NULL) break;
+        dist += m->dfs_parent->e->cm;
+        m = other(m->dfs_parent,m);
+    }
+    
+    if(c->flog)
+    {
+        if(x == 0) fprintf(c->flog,"#%u markers on maternal map backbone\n",count);
+        else       fprintf(c->flog,"#%u markers on paternal map backbone\n",count);
+    }
+    
+    //for any markers not on the longest path
+    //assign position of nearest marker that is on the path
+    for(i=0; i<nmark; i++)
+    {
+        m = array[i];
+        if(m->dfs_marked) dfs_assign(m,m->pos[x],x);
+    }
+    
+    /*for(i=0; i<c->lg_nmarkers[lg]; i++)
+    {
+        m = c->lg_markers[lg][i];
+        printf("%s %u %f\n",m->name,x,m->pos[x]);
+    }*/
+}
+
+//assign position of nearest positioned marker to unpositioned markers
+void dfs_assign(struct marker*m,double pos,unsigned x)
+{
+    struct edgelist*p=NULL;
+    struct marker*m2=NULL;
+    
+    //mark this node as visited, assign position
+    m->dfs_marked = 1;
+    m->pos[x] = pos;
+    
+    //visit all unmarked adjacent nodes
+    p = m->adj_list;
+    
+    while(p)
+    {
+        m2 = other(p,m);
+        
+        if(!m2->dfs_marked)
+        {
+            dfs_assign(m2, pos, x);
+        }
+        
+        p = p->next;
+    }
+}
+
+//depth-first search used to order markers
+void dfs_order(struct conf*c,struct marker*m,double dist)
+{
+    struct edgelist*p=NULL;
+    struct marker*m2=NULL;
+    
+    //mark this node as visited
+    assert(!m->dfs_marked);
+    m->dfs_marked = 1;
+    
+    //check if this is a new maximum distance from the root node
+    if(dist > c->dfs_maxdist)
+    {
+        c->dfs_maxdist = dist;
+        c->dfs_maxmarker = m;
+    }
+    
+    //visit all unmarked adjacent nodes
+    p = m->adj_list;
+    
+    while(p)
+    {
+        m2 = other(p,m);
+        
+        if(!m2->dfs_marked)
+        {
+            m2->dfs_parent = p;
+            dfs_order(c, m2, dist + p->e->cm);
+        }
+        
+        p = p->next;
+    }
+}
+
+//return the other marker (ie not m)
+struct marker*other(struct edgelist*p,struct marker*m)
+{
+    if(p->e->m1 == m) return p->e->m2;
+    return p->e->m1;
+}
+
+void append_edge(struct edgelist**list,struct edgelist*p)
+{
+    //move to end of linked list
+    while(*list != NULL) list = &((*list)->next);
+    
+    //append new item
+    *list = p;
+}
+
+void split_into_lgs(struct conf*c)
+{
+    //sort and split markers by linkage group
+    split_markers(c);
+    
+    //sort and split edges by linkage groups
+    split_edges(c);
+}
+
+/*
+split edges by linkage group
+*/
+void split_edges(struct conf*c)
+{
+    unsigned i;
+    struct edge*e=NULL;
+    
+    //count edges per lg, ignore edges which bridge two lgs
+    assert(c->lg_nedges = calloc(c->nlgs,sizeof(unsigned)));
+    for(i=0; i<c->nedge; i++)
+    {
+        e = c->elist[i];
+        if(e->m1->lg != e->m2->lg) continue; //ignore edge if bridges two lgs
+        c->lg_nedges[e->m1->lg] += 1; //count egdes per lg
+    }
+    
+    //for(i=0; i<c->nlgs; i++) printf("lg %u has %u edges\n",i,c->lg_nedges[i]);
+    
+    //split edges into their own array per lg
+    assert(c->lg_edges = calloc(c->nlgs,sizeof(struct edge**)));
+    for(i=0; i<c->nlgs; i++) assert(c->lg_edges[i] = calloc(c->lg_nedges[i],sizeof(struct edge*)));
+    for(i=0; i<c->nlgs; i++) c->lg_nedges[i] = 0;
+    
+    //copy edge pointers into new arrays
+    for(i=0; i<c->nedge; i++)
+    {
+        e = c->elist[i];
+        if(e->m1->lg != e->m2->lg) continue; //ignore if bridges two lgs
+        c->lg_edges[e->m1->lg][c->lg_nedges[e->m1->lg]] = e;
+        c->lg_nedges[e->m1->lg] += 1;
+    }
+
+    //unsigned j;
+    //for(i=0; i<c->nlgs; i++) for(j=0; j<c->lg_nedges[i]; j++) printf("lg %u edges %u %s %s\n",i,j,c->lg_edges[i][j]->m1->name,c->lg_edges[i][j]->m2->name);
+}
+
+//sort the markers by linkage group
+int mcomp_func(const void*_m1, const void*_m2)
+{
+    struct marker*m1=NULL;
+    struct marker*m2=NULL;
+    struct marker*p1=NULL;
+    struct marker*p2=NULL;
+    
+    m1 = *((struct marker**)_m1);
+    m2 = *((struct marker**)_m2);
+    
+    p1 = find_group(m1);
+    p2 = find_group(m2);
+    
+    if(p1->uid < p2->uid) return -1;
+    if(p1->uid > p2->uid) return 1;
+    return 0;
+}
+
+/*
+sort markers by linkage group
+set their lg property
+split into separate arrays
+*/
+void split_markers(struct conf*c)
+{
+    unsigned i,ctr,lg;
+    int prev;
+    struct marker*m=NULL;
+    
+    //sort markers by lg
+    qsort(c->array,c->nmarkers,sizeof(struct marker*),mcomp_func);
+    
+    //for(i=0; i<c->nmarkers; i++) printf("%p\n",(void*)find_group(c->array[i]));
+    
+    //assign sequential lg numbers
+    prev = -1;
+    ctr = 0;
+    for(i=0; i<c->nmarkers; i++)
+    {
+        m = find_group(c->array[i]);
+        if((int)m->uid != prev)
+        {
+            ctr += 1;
+            prev = m->uid;
+        }
+        
+        c->array[i]->lg = ctr-1;
+    }
+    
+    assert(ctr == c->nlgs);
+    
+    //printf("nlgs=%u\n",c->nlgs);
+    //for(i=0; i<c->nmarkers; i++) printf("%s %u\n",c->array[i]->name,c->array[i]->lg);
+
+    //count markers per lg
+    assert(c->lg_nmarkers = calloc(c->nlgs,sizeof(unsigned)));       //for lg sizes
+    for(i=0; i<c->nmarkers; i++) c->lg_nmarkers[c->array[i]->lg] += 1;
+
+    //for(i=0; i<c->nlgs; i++) printf("lg %u has %u markers\n",i,c->lg_nmarkers[i]);
+
+    //split markers into their own array per lg
+    assert(c->lg_markers = calloc(c->nlgs,sizeof(struct marker**))); //for lg markers
+    for(i=0; i<c->nlgs; i++) assert(c->lg_markers[i] = calloc(c->lg_nmarkers[i],sizeof(struct marker*)));
+    for(i=0; i<c->nlgs; i++)  c->lg_nmarkers[i] = 0;
+    
+    for(i=0; i<c->nmarkers; i++)
+    {
+        m = c->array[i];
+        lg = m->lg;
+        c->lg_markers[lg][c->lg_nmarkers[lg]] = m;
+        c->lg_nmarkers[lg] += 1;
+    }
+    
+    //unsigned j;
+    //for(i=0; i<c->nlgs; i++) for(j=0; j<c->lg_nmarkers[i]; j++) printf("lg %u marker %u %s\n",i,j,c->lg_markers[i][j]->name);
+}
+
+//save the grouped markers to file
+void save_markers(struct conf*c,const char*fname)
+{
+    FILE*f=NULL;
+    struct marker*m=NULL;
+    unsigned i,j,k;
+    
+    assert(f = fopen(fname,"wb"));
+    
+    fprintf(f,"name = POPNAME\n");
+    fprintf(f,"popt = CP\n");
+    fprintf(f,"nloc = %u\n",c->nmarkers);
+    fprintf(f,"nind = %u\n",c->nind);
+    
+    for(i=0; i<c->nlgs; i++)
+    {
+        fprintf(f,"; group %03u markers %u\n",i,c->lg_nmarkers[i]);
+        for(j=0; j<c->lg_nmarkers[i]; j++)
+        {
+            m = c->lg_markers[i][j];
+        
+            fprintf(f,"%s ",m->name);
+            switch(m->type)
+            {
+                case LMTYPE:
+                    fprintf(f,"<lmxll> ");
+                    if(m->phase[0]) fprintf(f,"{1-}");
+                    else            fprintf(f,"{0-}");
+                    for(k=0; k<c->nind; k++)
+                    {
+                        if(m->orig[0][k] == MISSING)       fprintf(f," --");
+                        else if(m->orig[0][k])             fprintf(f," lm");
+                        else                               fprintf(f," ll");
+                    }
+                    break;
+                case NPTYPE:
+                    fprintf(f,"<nnxnp> ");
+                    if(m->phase[1]) fprintf(f,"{-1}");
+                    else            fprintf(f,"{-0}");
+                    for(k=0; k<c->nind; k++)
+                    {
+                        if(m->orig[1][k] == MISSING)       fprintf(f," --");
+                        else if(m->orig[1][k])             fprintf(f," np");
+                        else                               fprintf(f," nn");
+                    }
+                    break;
+                case HKTYPE:
+                    fprintf(f,"<hkxhk> ");
+                    if(m->phase[0]) fprintf(f,"{1");
+                    else            fprintf(f,"{0");
+                    if(m->phase[1]) fprintf(f,"1}");
+                    else            fprintf(f,"0}");
+                    for(k=0; k<c->nind; k++)
+                    {
+                        if(m->orig[0][k] == MISSING || m->orig[1][k] == MISSING)
+                        {
+                            fprintf(f," --");
+                            continue;
+                        }
+                        
+                        if(m->orig[0][k]) fprintf(f," k");
+                        else              fprintf(f," h");
+                        if(m->orig[1][k]) fprintf(f,"k");
+                        else              fprintf(f,"h");
+                    }
+                    break;
+                default:
+                    assert(0);
+            }
+            fprintf(f,"\n");
+        }
+    }
+    
+    fclose(f);
+}
+
+/*
+for phase-known test data, checking phasing for errors
+*/
+void check_phase(struct conf*c)
+{
+    struct marker*m=NULL;
+    unsigned i,j,x,total_errors,total_count;
+    int errors,count;
+    
+    total_errors = 0;
+    total_count = 0;
+    
+    //per linkage group
+    for(i=0; i<c->nlgs; i++)
+    {
+        for(x=0; x<2; x++)
+        {
+            errors = 0;
+            count = 0;
+            
+            for(j=0; j<c->lg_nmarkers[i]; j++)
+            {
+                m = c->lg_markers[i][j];
+                if(!m->data[x]) continue;
+                count += 1;
+                if(m->phase[x] != m->oldphase[x]) errors += 1;
+            }
+            
+            if(errors > count / 2) total_errors += count - errors; //treat as antiphase
+            else                   total_errors += errors;
+            
+            total_count += count;
+        }
+    }
+    
+    fprintf(c->flog,"#phasing errors %u %f\n",total_errors, (double)total_errors/total_count);
+}
+
