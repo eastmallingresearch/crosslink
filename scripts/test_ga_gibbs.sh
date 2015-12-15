@@ -13,7 +13,7 @@ SEED=$1
 #create map options
 LGS=1
 LGSIZE=50
-MARKERS=1000
+MARKERS=100
 PROB_HK=0.333
 PROB_LM=0.5
 
@@ -30,14 +30,14 @@ MIN_LGS=${LGS}
 KNN=5
 
 #gg_map options
-CYCLES=6
+CYCLES=5
 GG_RAND_ORDER=0
 
 #ga options
 SKIP_ORDER1=1
 GA_ITERS=2000000
 OPTIMISE_DIST=0
-GA_MST=5
+GA_MST=999
 GA_MINLOD=3.0
 GA_NONHK=1
 
@@ -51,32 +51,25 @@ MAX_MOVEDIST=0.1
 PROB_INV=0.5
 MAX_SEG=0.05
 
-#mutations of any size
-#PROB_MOVE=0.5
-#MAX_MOVESEG=1.0
-#MAX_MOVEDIST=1.0
-#PROB_INV=0.5
-#MAX_SEG=1.0
-
 #gibbs options
-SAMPLES=300
+SAMPLES=200
 BURNIN=10
 PERIOD=1
-PROB_SEQUENTIAL=0.5
-PROB_UNIDIR=0.5
+PROB_SEQUENTIAL=0.75
+PROB_UNIDIR=0.75
 MIN_PROB_1=0.1
 MIN_PROB_2=0.0
-TWOPT_1=0.5
+TWOPT_1=0.1
 TWOPT_2=0.0
 MIN_CTR=0
 
 rm -f ./testdata/${FNAME}.ga_log ./testdata/${FNAME}.log2 ./testdata/${FNAME}.gibbs_log
 
 echo make
-./scripts2/make.sh
+./scripts/make.sh
 
 echo create_map
-./scripts2/create_map --out ./testdata/${FNAME}.map\
+./scripts/create_map --out ./testdata/${FNAME}.map\
                       --nmarkers ${MARKERS}\
                       --nlgs ${LGS}\
                       --prng_seed ${SEED}\
@@ -85,7 +78,7 @@ echo create_map
                       --prob_lm ${PROB_LM}
 
 echo sample_map
-./scripts2/sample_map --inp ./testdata/${FNAME}.map\
+./scripts/sample_map --inp ./testdata/${FNAME}.map\
                       --out ./testdata/${FNAME}.loc\
                       --orig ./testdata/${FNAME}.origloc\
                       --nind ${POPSIZE}\
@@ -101,11 +94,11 @@ tail -n +6 ./testdata/${FNAME}.loc\
     | sed 's/ {..}//g'\
     | sed 's/kh/hk/g'\
     | sort -R\
-    | ./scripts2/reverse_marker_posn.py\
+    | ./scripts/reverse_marker_posn.py\
     >> ./testdata/${FNAME}_joinmap.loc
 
 echo gg_group
-./scripts2/gg_group --inp ./testdata/${FNAME}.loc\
+./scripts/gg_group --inp ./testdata/${FNAME}.loc\
                     --out ./testdata/${FNAME}.outloc\
                     --map ./testdata/${FNAME}.outmap\
                     --log ./testdata/${FNAME}.log\
@@ -124,7 +117,7 @@ cat ./testdata/${FNAME}.origloc | grep '^m0' | sort > ./testdata/${FNAME}.imploc
 cat ./testdata/${FNAME}.loc     | grep '^m0' | sort > ./testdata/${FNAME}.imploc2   #with missing and errors
 cat ./testdata/${FNAME}.outloc  | grep '^m0' | sort > ./testdata/${FNAME}.imploc3   #missing imputed
 
-./scripts2/check_imputing.py ./testdata/${FNAME}.imploc1\
+./scripts/check_imputing.py ./testdata/${FNAME}.imploc1\
                              ./testdata/${FNAME}.imploc2\
                              ./testdata/${FNAME}.imploc3
                              #> /dev/null
@@ -135,8 +128,7 @@ echo gg_map
 
 #gdb --args
 
-<<COMM
-./scripts2/gg_map --inp ./testdata/${FNAME}.outloc\
+./scripts/gg_map --inp ./testdata/${FNAME}.outloc\
                   --out ./testdata/${FNAME}.outloc2\
                   --log ./testdata/${FNAME}.log2\
                   --map ./testdata/${FNAME}.outmap2\
@@ -180,20 +172,19 @@ echo gg_map
                   --gibbs_min_prob_2 ${MIN_PROB_2}\
                   --gibbs_twopt_1 ${TWOPT_1}\
                   --gibbs_twopt_2 ${TWOPT_2}
-COMM
         
-#cat ./testdata/${FNAME}.log2 | grep -e 'final number of hk errors' -e 'final pearson' -e 'still set to missing'
-#cat ./testdata/${FNAME}.log2 | awk 'NF==3{print}' > ./testdata/${FNAME}.ga_log
-#cat ./testdata/${FNAME}.log2 | awk 'NF==4{print}' > ./testdata/${FNAME}.gibbs_log
+cat ./testdata/${FNAME}.log2 | grep -e 'final number of hk errors' -e 'final pearson' -e 'still set to missing'
+cat ./testdata/${FNAME}.log2 | awk 'NF==3{print}' > ./testdata/${FNAME}.ga_log
+cat ./testdata/${FNAME}.log2 | awk 'NF==4{print}' > ./testdata/${FNAME}.gibbs_log
 
-#cat ./testdata/${FNAME}.outloc | grep '^m0' | awk '{print substr($1,6)}' > ./testdata/${FNAME}.cmploc
-#tail -n +2 ./testdata/${FNAME}.outmap | awk '{print substr($1,6),$4}' > ./testdata/${FNAME}.cmpmap
-#cat ./testdata/${FNAME}.outmap2 | grep '^m0' | awk '{print $1,$4}' > ./testdata/${FNAME}.outmap3
+cat ./testdata/${FNAME}.outloc | grep '^m0' | awk '{print substr($1,6)}' > ./testdata/${FNAME}.cmploc
+tail -n +2 ./testdata/${FNAME}.outmap | awk '{print substr($1,6),$4}' > ./testdata/${FNAME}.cmpmap
+cat ./testdata/${FNAME}.outmap2 | grep '^m0' | awk '{print $1,$4}' > ./testdata/${FNAME}.outmap3
 
 
-#./scripts2/check_map_order.py --inp ./testdata/test_ga_gibbs.outmap --maptype map
-#./scripts2/check_map_order.py --inp ./testdata/test_ga_gibbs.outmap2 --maptype map
-#./scripts2/check_map_order.py --inp ./testdata/test_ga_gibbs.mstmap2 --maptype map
+#./scripts/check_map_order.py --inp ./testdata/test_ga_gibbs.outmap --maptype map
+#./scripts/check_map_order.py --inp ./testdata/test_ga_gibbs.outmap2 --maptype map
+#./scripts/check_map_order.py --inp ./testdata/test_ga_gibbs.mstmap2 --maptype map
 
 #convert joinmap map file into more compact form and unreverse marker names
 <<COMM
@@ -201,7 +192,7 @@ FNAME=test_ga_gibbs
 cat ./testdata/${FNAME}_joinmap.map \
     | awk 'length($0)>2{print}' \
     | tail -n +3 \
-    | ./scripts2/reverse_marker_posn.py\
+    | ./scripts/reverse_marker_posn.py\
     > ./testdata/${FNAME}_joinmap.map2
 COMM
-#./scripts2/check_map_order.py --inp ./testdata/test_ga_gibbs_joinmap.map2 --maptype map2
+#./scripts/check_map_order.py --inp ./testdata/test_ga_gibbs_joinmap.map2 --maptype map2

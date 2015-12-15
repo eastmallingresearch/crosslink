@@ -294,7 +294,7 @@ unsigned count64(uint64_t val)
 find total combined map distance of mat and pat maps
 by scanning the whole map
 */
-unsigned calc_events(struct conf*c,struct marker**array)
+unsigned calc_events(struct conf*c,struct marker**marray)
 {
     unsigned i,j,x,total_dist;
     
@@ -305,11 +305,11 @@ unsigned calc_events(struct conf*c,struct marker**array)
         for(x=0; x<2; x++)
         {
             /*count maternal/paternal events between i (if not null) and next non null (if any)*/
-            if(array[i]->data[x])
+            if(marray[i]->data[x])
             {
-                for(j=i+1; j<c->nmarkers; j++) if(array[j]->data[x]) break;
+                for(j=i+1; j<c->nmarkers; j++) if(marray[j]->data[x]) break;
 
-                if(j < c->nmarkers) total_dist += c->lookup(c,array[i],array[j],x);
+                if(j < c->nmarkers) total_dist += c->lookup(c,marray[i],marray[j],x);
             }
         }
     }
@@ -321,7 +321,7 @@ unsigned calc_events(struct conf*c,struct marker**array)
 //consider only parent x 0=mat 1=pat
 //brk[i] => break between marker brk[i] and brk[i]+1
 //brk must be sorted into ascending order
-unsigned local_events2(struct conf*c,struct marker**array,unsigned x,const int*_brk,int nbrk)
+unsigned local_events2(struct conf*c,struct marker**marray,unsigned x,const int*_brk,int nbrk)
 {
     int i,j,k,l,min,max,events;
     int brk[10];
@@ -340,7 +340,7 @@ unsigned local_events2(struct conf*c,struct marker**array,unsigned x,const int*_
         if(brk[i] > max) break;
         
         //find first non-missing data before the break
-        for(j=brk[i]; j>=min; j--) if(array[j]->data[x]) break;
+        for(j=brk[i]; j>=min; j--) if(marray[j]->data[x]) break;
         
         //if hit start of map, this break will not produce any events
         if(j < min)
@@ -350,7 +350,7 @@ unsigned local_events2(struct conf*c,struct marker**array,unsigned x,const int*_
         }
         
         //find first non-missing data after the break
-        for(k=brk[i]+1; k<=max; k++) if(array[k]->data[x]) break;
+        for(k=brk[i]+1; k<=max; k++) if(marray[k]->data[x]) break;
         
         //if hit reached end of map, this and all subsequent breaks will not produce any events
         if(k > max) break;
@@ -368,7 +368,7 @@ unsigned local_events2(struct conf*c,struct marker**array,unsigned x,const int*_
             nbrk -= 1;
         }
         
-        events += c->lookup(c,array[j],array[k],x);
+        events += c->lookup(c,marray[j],marray[k],x);
     }
 
     return events;

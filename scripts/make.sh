@@ -6,67 +6,65 @@
 
 set -eu
 
-TYPE="-Wall -Wextra -g"
+TYPE="-Wall -Wextra -O3"
 
 #build create_map
-<<COMM
 gcc ${TYPE}\
-    -o ./scripts2/create_map\
-    ./scripts2/create_map_main.c\
-    ./scripts2/create_map.c\
+    -o ./scripts/create_map\
+    ./scripts/create_map_main.c\
+    ./scripts/create_map.c\
     /home/vicker/git_repos/rjvbio/rjv_cutils.c\
     -lm
-COMM
 
 #build sample_map
 gcc ${TYPE}\
-    -o ./scripts2/sample_map\
-    ./scripts2/sample_map_main.c\
-    ./scripts2/sample_map.c\
+    -o ./scripts/sample_map\
+    ./scripts/sample_map_main.c\
+    ./scripts/sample_map.c\
     /home/vicker/git_repos/rjvbio/rjv_cutils.c\
     -lm
 
 #build gg source
 for FNAME in gg_utils gg_ga gg_gibbs gg_group
 do
-    gcc ${TYPE} -c ./scripts2/${FNAME}.c -o ./scripts2/${FNAME}.o
+    gcc ${TYPE} -c ./scripts/${FNAME}.c -o ./scripts/${FNAME}.o
 done
 
 #build gg_group
 gcc ${TYPE}\
-    -o ./scripts2/gg_group\
-    ./scripts2/gg_group.o\
-    ./scripts2/gg_utils.o\
-    ./scripts2/gg_group_main.c\
+    -o ./scripts/gg_group\
+    ./scripts/gg_group.o\
+    ./scripts/gg_utils.o\
+    ./scripts/gg_group_main.c\
     /home/vicker/git_repos/rjvbio/rjv_cutils.c\
     -lm
 
     
 #build main executable
 gcc ${TYPE}\
-    -o ./scripts2/gg_map\
-    ./scripts2/gg_main.c\
-    ./scripts2/gg_utils.o\
-    ./scripts2/gg_ga.o\
-    ./scripts2/gg_group.o\
-    ./scripts2/gg_gibbs.o\
+    -o ./scripts/gg_map\
+    ./scripts/gg_main.c\
+    ./scripts/gg_utils.o\
+    ./scripts/gg_ga.o\
+    ./scripts/gg_group.o\
+    ./scripts/gg_gibbs.o\
     /home/vicker/git_repos/rjvbio/rjv_cutils.c\
     -lm
 
 #build tests
 <<COMM
 gcc ${TYPE}\
-    -o ./scripts2/test_ga\
-    ./scripts2/test_ga.c\
-    ./scripts2/gg_utils.o\
-    ./scripts2/gg_ga.o\
-    ./scripts2/gg_gibbs.o\
+    -o ./scripts/test_ga\
+    ./scripts/test_ga.c\
+    ./scripts/gg_utils.o\
+    ./scripts/gg_ga.o\
+    ./scripts/gg_gibbs.o\
     /home/vicker/git_repos/rjvbio/rjv_cutils.c\
     -lm
 
 gcc ${TYPE}\
-    -o ./scripts2/test_group\
-    ./scripts2/gg_group.c\
-    ./scripts2/test_group.c\
+    -o ./scripts/test_group\
+    ./scripts/gg_group.c\
+    ./scripts/test_group.c\
     -lm
 COMM

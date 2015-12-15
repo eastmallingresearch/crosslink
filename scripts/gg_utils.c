@@ -493,7 +493,7 @@ void show_pearson_all(struct conf*c)
 
 //calculate magnitude of Pearson correlation coefficient
 //between current and true order
-double calc_pearson(unsigned n,struct marker**array)
+double calc_pearson(unsigned n,struct marker**marray)
 {
     unsigned i;
     struct marker*m=NULL;
@@ -503,7 +503,7 @@ double calc_pearson(unsigned n,struct marker**array)
     
     for(i=0; i<n; i++)
     {
-        m = array[i];
+        m = marray[i];
         cov += ((double)i - mean) * ((double)m->true_posn - mean);
         xsd += ((double)i - mean) * ((double)i - mean);
         ysd += ((double)m->true_posn - mean) * ((double)m->true_posn - mean);
@@ -528,14 +528,14 @@ int mpos_comp(const void*p1,const void*p2)
 
 //extract presumed true map position from alphabetical ordering of marker names
 //to enable calculation of the Pearson correlation coefficient during map ordering
-void set_true_positions(unsigned n,struct marker**array)
+void set_true_positions(unsigned n,struct marker**marray)
 {
     unsigned i;
     struct marker**atmp=NULL;
     
     //make temporary array of marker pointers
     assert(atmp = calloc(n,sizeof(struct marker*)));
-    memcpy((void*)atmp,(void*)array, n*sizeof(struct marker*));
+    memcpy((void*)atmp,(void*)marray, n*sizeof(struct marker*));
     
     //sort alphabetically by name
     qsort(atmp,n,sizeof(struct marker*),mpos_comp);
@@ -551,7 +551,7 @@ void set_true_positions(unsigned n,struct marker**array)
 
 //assign unique, random uids
 //not related to true position or file position
-void assign_uids(unsigned n,struct marker**array)
+void assign_uids(unsigned n,struct marker**marray)
 {
     unsigned i,j;
     struct marker**atmp=NULL;
@@ -559,7 +559,7 @@ void assign_uids(unsigned n,struct marker**array)
     
     //make temporary array of marker pointers
     assert(atmp = calloc(n,sizeof(struct marker*)));
-    memcpy((void*)atmp,(void*)array, n*sizeof(struct marker*));
+    memcpy((void*)atmp,(void*)marray, n*sizeof(struct marker*));
     
     //shuffle into random order
     for(i=0; i<n; i++)
@@ -644,7 +644,7 @@ void create_random_map(struct conf*c)
 /*
 print the ordered linkage group to stdout
 */
-void print_order(struct conf*c,struct marker**array,FILE*f)
+void print_order(struct conf*c,struct marker**marray,FILE*f)
 {
     struct marker*m=NULL;
     unsigned i,j;
@@ -652,7 +652,7 @@ void print_order(struct conf*c,struct marker**array,FILE*f)
     fprintf(f,"; group %s markers %u\n",c->lg,c->nmarkers);
     for(i=0; i<c->nmarkers; i++)
     {
-        m = array[i];
+        m = marray[i];
         fprintf(f,"%s ",m->name);
         switch(m->type)
         {
@@ -724,7 +724,7 @@ void utils_count_events(struct conf*c,VARTYPE*d1,VARTYPE*d2,unsigned*R,unsigned*
 }
 
 //produce maternal / paternal map positions from the current marker order
-void indiv_map_positions(struct conf*c,struct marker**array,unsigned x)
+void indiv_map_positions(struct conf*c,struct marker**marray,unsigned x)
 {
     struct marker*m=NULL;
     unsigned i,R,N;
@@ -735,7 +735,7 @@ void indiv_map_positions(struct conf*c,struct marker**array,unsigned x)
     prev = -1;
     for(i=0; i<c->nmarkers; i++)
     {
-        m = array[i];
+        m = marray[i];
         if(m->data[x] == NULL)
         {
             m->pos[x] = NO_POSN;
@@ -745,7 +745,7 @@ void indiv_map_positions(struct conf*c,struct marker**array,unsigned x)
         if(prev != -1)
         {
             //find distance to previous marker
-            calc_RN_simple(c,array[prev],array[i],x,&R,&N);
+            calc_RN_simple(c,marray[prev],marray[i],x,&R,&N);
             assert(N != 0);
             rf = (double)R / N;
             if(rf > MAX_RF) rf = MAX_RF;
@@ -759,7 +759,7 @@ void indiv_map_positions(struct conf*c,struct marker**array,unsigned x)
 
 //if covariance between maternal and paternal positions is negative
 //invert order of paternal positions
-void check_invert_paternal(unsigned n,struct marker**array)
+void check_invert_paternal(unsigned n,struct marker**marray)
 {
     struct marker*m=NULL;
     unsigned count[2] = {0,0};
@@ -772,7 +772,7 @@ void check_invert_paternal(unsigned n,struct marker**array)
     {
         for(i=0; i<n; i++)
         {
-            m = array[i];
+            m = marray[i];
             if(m->type != HKTYPE) continue;
             mean[x] += m->pos[x];
             count[x] += 1;
@@ -786,7 +786,7 @@ void check_invert_paternal(unsigned n,struct marker**array)
     
     for(i=0; i<n; i++)
     {
-        m = array[i];
+        m = marray[i];
         
         //find max pat map positions
         if(m->data[1]) if(m->pos[1] > maxpat) maxpat = m->pos[1];
@@ -799,14 +799,14 @@ void check_invert_paternal(unsigned n,struct marker**array)
     {
         for(i=0; i<n; i++)
         {
-            m = array[i];
+            m = marray[i];
             if(m->data[1]) m->pos[1] = maxpat - m->pos[1];
         }
     }
 }
 
 //combine maternal and paternal map positions to give final estimated order
-void comb_map_positions(struct conf*c,unsigned n,struct marker**array,unsigned lg,unsigned flip_check)
+void comb_map_positions(struct conf*c,unsigned n,struct marker**marray,unsigned lg,unsigned flip_check)
 {
     struct marker*m=NULL;
     unsigned i,nhk;
@@ -815,7 +815,7 @@ void comb_map_positions(struct conf*c,unsigned n,struct marker**array,unsigned l
     nhk = 0;
     for(i=0; i<n; i++)
     {
-        m = array[i];
+        m = marray[i];
         m->pos[2] = NO_POSN;
         if(m->type == HKTYPE) nhk += 1;
     }
@@ -828,10 +828,10 @@ void comb_map_positions(struct conf*c,unsigned n,struct marker**array,unsigned l
     
     //flip paternal map positions if reversed wrt maternal
     //does nothing if less than two hk markers in this lg
-    if(flip_check) check_invert_paternal(n,array);
+    if(flip_check) check_invert_paternal(n,marray);
     
     //interpolate / extrapolate lm/np positions from averaged hk positions
-    combine_maps(n,array);
+    combine_maps(n,marray);
 }
 
 //sort markers by maternal map position
@@ -877,7 +877,7 @@ int mcomp_patpos(const void*_m1, const void*_m2)
 }
 
 //combine maternal and paternal map positions to give final estimated order
-void combine_maps(unsigned n,struct marker**array)
+void combine_maps(unsigned n,struct marker**marray)
 {
     struct marker*m=NULL;
     struct marker*m2=NULL;
@@ -891,7 +891,7 @@ void combine_maps(unsigned n,struct marker**array)
     nhk = 0;
     for(i=0; i<n; i++)
     {
-        m = array[i];
+        m = marray[i];
         if(m->type != HKTYPE) continue;
         m->pos[2] = (m->pos[0] + m->pos[1]) / 2.0;
         nhk += 1;
@@ -907,12 +907,12 @@ void combine_maps(unsigned n,struct marker**array)
         if(x == 0)
         {
             //sort by maternal order
-            qsort(array,n,sizeof(struct marker*),mcomp_matpos);
+            qsort(marray,n,sizeof(struct marker*),mcomp_matpos);
         }
         else
         {
             //sort by paternal order
-            qsort(array,n,sizeof(struct marker*),mcomp_patpos);
+            qsort(marray,n,sizeof(struct marker*),mcomp_patpos);
         }
         
         prevhk = NULL;
@@ -921,7 +921,7 @@ void combine_maps(unsigned n,struct marker**array)
         //find last hk in the lg
         for(i=n-1; i<n; i--) //relying on underflow of an unsigned should be portable
         {
-            m = array[i];
+            m = marray[i];
             if(m->type == HKTYPE)
             {
                 lasthk = m;
@@ -933,7 +933,7 @@ void combine_maps(unsigned n,struct marker**array)
         
         for(i=0; i<n; i++)
         {
-            m = array[i];
+            m = marray[i];
             if(!m->data[x]) continue;//ignore markers of wrong type
             
             if(m->type == HKTYPE)
@@ -950,7 +950,7 @@ void combine_maps(unsigned n,struct marker**array)
             {
                 for(j=i+1; j<n; j++)
                 {
-                    m2 = array[j];
+                    m2 = marray[j];
                     if(m2->type == HKTYPE)
                     {
                         nexthk = m2;
@@ -989,26 +989,26 @@ void combine_maps(unsigned n,struct marker**array)
     }
     
     //sort by combined map position
-    qsort(array,n,sizeof(struct marker*),mcomp_combpos);
-    offset = array[0]->pos[2];
+    qsort(marray,n,sizeof(struct marker*),mcomp_combpos);
+    offset = marray[0]->pos[2];
     
     //ensure first position is zero
     for(i=0; i<n; i++)
     {
-        m = array[i];
+        m = marray[i];
         m->pos[2] -= offset;
     }
 
     /*char *labels[] = {"","<lmxll>","<nnxnp>","<hkxhk>"};
     for(i=0; i<n; i++)
     {
-        m = array[i];
+        m = marray[i];
         printf("%s %s %f\n",m->name,labels[m->type],m->pos[2]);
     }*/
 }
 
 //calculate and print the final map positions
-void print_map(unsigned n,struct marker**array,FILE*f,unsigned lg_numb,const char*lg_name)
+void print_map(unsigned n,struct marker**marray,FILE*f,unsigned lg_numb,const char*lg_name)
 {
     struct marker*m=NULL;
     unsigned i,x;
@@ -1018,7 +1018,7 @@ void print_map(unsigned n,struct marker**array,FILE*f,unsigned lg_numb,const cha
     
     for(i=0; i<n; i++)
     {
-        m = array[i];
+        m = marray[i];
         fprintf(f,"%s",m->name);
         for(x=0; x<3; x++)
         {
@@ -1032,7 +1032,7 @@ void print_map(unsigned n,struct marker**array,FILE*f,unsigned lg_numb,const cha
 
 #if 0
 //old version
-void print_map(struct conf*c,struct marker**array,FILE*f)
+void print_map(struct conf*c,struct marker**marray,FILE*f)
 {
     struct marker*m=NULL;
     unsigned i,x,R,N,j,k;
@@ -1047,7 +1047,7 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
         prev = -1;
         for(i=0; i<c->nmarkers && prev==-1; i++)
         {
-            m = array[i];
+            m = marray[i];
             if(m->data[x] == NULL)
             {
                 m->pos[x] = NO_POSN;
@@ -1061,15 +1061,15 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
         /*deal with subsequent markers*/
         for( ; i<c->nmarkers; i++)
         {
-            m = array[i];
+            m = marray[i];
             if(m->data[x] == NULL)
             {
                 m->pos[x] = NO_POSN;
                 continue;
             }
             
-            //R = utils_count_events(c,array[prev]->data[x],array[i]->data[x]);
-            utils_count_events(c,array[prev]->data[x],array[i]->data[x],&R,&N);
+            //R = utils_count_events(c,marray[prev]->data[x],marray[i]->data[x]);
+            utils_count_events(c,marray[prev]->data[x],marray[i]->data[x],&R,&N);
             assert(N != 0);
             rf = (double)R / (double)N;
             
@@ -1077,7 +1077,7 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
             
             dist = c->map_func(rf);
 
-            m->pos[x] = array[prev]->pos[x] + dist;
+            m->pos[x] = marray[prev]->pos[x] + dist;
             prev = i;
         }
     }
@@ -1088,7 +1088,7 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
     */
     for(i=0; i<c->nmarkers; i++)
     {
-        m = array[i];
+        m = marray[i];
         if(m->type != HKTYPE)
         {
             m->pos[2] = NO_POSN;
@@ -1104,7 +1104,7 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
     */
     for(i=0; i<c->nmarkers; i++)
     {
-        if(array[i]->type == HKTYPE) break;
+        if(marray[i]->type == HKTYPE) break;
     }
     
     j = i;
@@ -1114,11 +1114,11 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
     */
     for(i=0; i<j && j<c->nmarkers; i++)
     {
-        m = array[i];
+        m = marray[i];
         for(x=0; x<2; x++)
         {
             if(!m->data[x]) continue;
-            m->pos[2] = array[j]->pos[2] - (array[j]->pos[x] - m->pos[x]);
+            m->pos[2] = marray[j]->pos[2] - (marray[j]->pos[x] - m->pos[x]);
         }
     }
     
@@ -1127,7 +1127,7 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
     */
     for(y=c->nmarkers-1; y>0; y--)
     {
-        if(array[y]->type == HKTYPE) break;
+        if(marray[y]->type == HKTYPE) break;
     }
     
     z = y;
@@ -1137,11 +1137,11 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
     */
     for(y=c->nmarkers-1; y>z && z>0; y--)
     {
-        m = array[y];
+        m = marray[y];
         for(x=0; x<2; x++)
         {
             if(!m->data[x]) continue;
-            m->pos[2] = array[z]->pos[2] + m->pos[x] - array[z]->pos[x];
+            m->pos[2] = marray[z]->pos[2] + m->pos[x] - marray[z]->pos[x];
         }
     }
     
@@ -1154,36 +1154,36 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
         /*find first hk*/
         for(; i<c->nmarkers; i++)
         {
-            if(array[i]->type == HKTYPE) break;
+            if(marray[i]->type == HKTYPE) break;
         }
         if(i >= c->nmarkers) break;//end of map
 
         /*find next hk*/
         for(j=i+1; j<c->nmarkers; j++)
         {
-            if(array[j]->type == HKTYPE) break;
+            if(marray[j]->type == HKTYPE) break;
         }
         if(j >= c->nmarkers) break;//end of map
         
         /*interpolate intervening markers*/
         for(k=i+1; k<j; k++)
         {
-            m = array[k];
+            m = marray[k];
             for(x=0; x<2; x++)
             {
                 if(!m->data[x]) continue;
-                if(m->pos[x] - array[i]->pos[x] <= 0.0)
+                if(m->pos[x] - marray[i]->pos[x] <= 0.0)
                 {
                     m->pos[2] = 0.0;
                 }
                 else
                 {
-                    m->pos[2] = (m->pos[x] - array[i]->pos[x])
-                              / (array[j]->pos[x] - array[i]->pos[x]);
+                    m->pos[2] = (m->pos[x] - marray[i]->pos[x])
+                              / (marray[j]->pos[x] - marray[i]->pos[x]);
                 }
                 
-                m->pos[2] *= array[j]->pos[2] - array[i]->pos[2];
-                m->pos[2] += array[i]->pos[2];
+                m->pos[2] *= marray[j]->pos[2] - marray[i]->pos[2];
+                m->pos[2] += marray[i]->pos[2];
             }
         }
         
@@ -1192,18 +1192,18 @@ void print_map(struct conf*c,struct marker**array,FILE*f)
     }
     
     //sort markers by position in combined map
-    qsort(array,c->nmarkers,sizeof(struct marker*),mpos_printorder);
+    qsort(marray,c->nmarkers,sizeof(struct marker*),mpos_printorder);
     
     for(i=1; i<c->nmarkers-1; i++)
     {
-        array[i]->pos[2] -= array[0]->pos[2];
+        marray[i]->pos[2] -= marray[0]->pos[2];
     }
-    array[0]->pos[2] = 0.0;
+    marray[0]->pos[2] = 0.0;
     
     fprintf(f,"group %s ; markers %u\n",c->lg,c->nmarkers);
     for(i=0; i<c->nmarkers; i++)
     {
-        m = array[i];
+        m = marray[i];
         fprintf(f,"%s",m->name);
         for(x=0; x<3; x++)
         {
@@ -1241,7 +1241,7 @@ double haldane(double r)
 }
 
 //shuffle markers into random order
-void randomise_order(unsigned n,struct marker**array)
+void randomise_order(unsigned n,struct marker**marray)
 {
     unsigned i,j;
     struct marker*mtmp=NULL;
@@ -1249,18 +1249,18 @@ void randomise_order(unsigned n,struct marker**array)
     for(i=0; i<n; i++)
     {
         j = rand() % n;
-        SWAP(array[i],array[j],mtmp);
+        SWAP(marray[i],marray[j],mtmp);
     }
 }
 
-void print_bits_inner(struct conf*c,struct marker**array)
+void print_bits_inner(struct conf*c,struct marker**marray)
 {
     unsigned i,j,x,flag;
     struct marker*m=NULL;
     
     for(i=0; i<c->nmarkers && i<c->gg_show_height; i++)
     {
-        m = array[i];
+        m = marray[i];
         
         for(j=0; j<c->nind && j<c->gg_show_width; j++)
         {
@@ -1303,13 +1303,13 @@ void print_bits_inner(struct conf*c,struct marker**array)
 /*
 show the raw bit states as a block
 */
-void print_bits(struct conf*c,struct marker**array,unsigned pause)
+void print_bits(struct conf*c,struct marker**marray,unsigned pause)
 {
     char buff[100];
     struct termios t1, t2;
     
     //show bits
-    print_bits_inner(c,array);
+    print_bits_inner(c,marray);
     
     if(pause)
     {
@@ -1326,14 +1326,14 @@ void print_bits(struct conf*c,struct marker**array,unsigned pause)
 /*
 convert data into bitstring representation
 */
-void compress_to_bitstrings(struct conf*c,unsigned n,struct marker**array)
+void compress_to_bitstrings(struct conf*c,unsigned n,struct marker**marray)
 {
     struct marker*m=NULL;
     unsigned i,x;
     
     for(i=0; i<n; i++)
     {
-        m = array[i];
+        m = marray[i];
         
         for(x=0; x<2; x++)
         {

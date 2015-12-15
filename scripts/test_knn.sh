@@ -73,13 +73,13 @@ MIN_CTR=0
 rm -f ./testdata/${FNAME}.ga_log ./testdata/${FNAME}.log2 ./testdata/${FNAME}.gibbs_log
 
 echo make
-./scripts2/make.sh
+./scripts/make.sh
 
 echo test knn ${FNAME} gg_group
 
 #gdb --args \
 
-./scripts2/gg_group --inp ./testdata/${FNAME}.loc\
+./scripts/gg_group --inp ./testdata/${FNAME}.loc\
                     --out ./testdata/${FNAME}.outloc\
                     --map ./testdata/${FNAME}.outmap\
                     --log ./testdata/${FNAME}.log\
@@ -99,7 +99,7 @@ cat ./testdata/${FNAME}.loc     | grep '^m' | sort > ./testdata/${FNAME}.imploc2
 cat ./testdata/${FNAME}.outloc  | grep '^m' | sort > ./testdata/${FNAME}.imploc3   #missing imputed
 
 echo check imputing ${FNAME}
-./scripts2/check_imputing.py ./testdata/${FNAME}.imploc1\
+./scripts/check_imputing.py ./testdata/${FNAME}.imploc1\
                              ./testdata/${FNAME}.imploc2\
                              ./testdata/${FNAME}.imploc3
                              #> /dev/null

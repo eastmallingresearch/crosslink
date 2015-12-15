@@ -150,7 +150,7 @@ int main(int argc,char*argv[])
     {
         c->cycle_ctr = i;
 
-        printf("cycle %u\n",c->cycle_ctr);
+        //printf("cycle %u\n",c->cycle_ctr);
         
         if(c->flog) fprintf(c->flog,"#starting ga-gibbs cycle %u / %u\n",i+1,c->ga_gibbs_cycles);
         

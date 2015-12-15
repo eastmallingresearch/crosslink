@@ -14,6 +14,7 @@ int main(int argc,char*argv[])
     parsedbl(argc,argv,"lg_size",&c->lg_size,1,100.0);
     parsedbl(argc,argv,"prob_hk",&c->prob_hk,1,0.3333);
     parsedbl(argc,argv,"prob_lm",&c->prob_lm,1,0.5);
+    parseuns(argc,argv,"hideposn",&c->hideposn,1,0);
     parseend(argc,argv);
     
     //seed random number generator(s)

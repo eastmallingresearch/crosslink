@@ -36,12 +36,12 @@ int main(int argc,char*argv[])
     
     if(c->randomise_order) random_order(c);
 
-    if(c->hide_hk_inheritance) hide_hk(c);
-
     if(c->orig) save_data(c,c->orig);
 
     apply_errors(c);
     
+    if(c->hide_hk_inheritance) hide_hk(c);
+
     save_data(c,c->out);
     
     return 0;

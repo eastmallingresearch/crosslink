@@ -1,5 +1,7 @@
 #include "create_map.h"
 
+#include <ctype.h>
+
 //qsort compare function
 int comp_func(const void*_p1, const void*_p2)
 {
@@ -74,7 +76,18 @@ void save_map(struct conf*c)
     for(i=0; i<c->nmarkers; i++)
     {
         m = c->map[i];
-        sprintf(buff,c->marker_fmt,m->lg,m->pos,m->type_str[1]);
+        
+        if(c->hideposn == 0)
+        {
+            //marker name contains true lg and position
+            sprintf(buff,c->marker_fmt,m->lg,m->pos,m->type_str[1]);
+        }
+        else
+        {
+            //give marker a random name to make sure true position is hidden
+            //include only marker type
+            sprintf(buff,"M%06u%06u%c",rand()%1000000,rand()%1000000,toupper(m->type_str[1]));
+        }
         fprintf(f,"%s %s {%c%c} %3u %8.3f\n",buff,m->type_str,m->phase[0],m->phase[1],m->lg,m->pos);
     }
     

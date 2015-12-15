@@ -4,7 +4,7 @@
 /*
 imputing missing genotype calls using kNN method
 */
-void impute_missing(struct conf*c,unsigned nmark,struct marker**array,unsigned nedge,struct edge**elist)
+void impute_missing(struct conf*c,unsigned nmark,struct marker**marray,unsigned nedge,struct edge**elist)
 {
     struct marker*m=NULL;
     struct marker*m1=NULL;
@@ -14,10 +14,10 @@ void impute_missing(struct conf*c,unsigned nmark,struct marker**array,unsigned n
     double rf,dval;
     
     //update m->data/mask/bits to reflect phasing
-    update_data(c,nmark,array);
+    update_data(c,nmark,marray);
 
     //create missing value imputation data structures
-    impute_alloc(c,nmark,array);
+    impute_alloc(c,nmark,marray);
     
     //scan edge list (ie list of significant marker-marker linkages)
     //update m->miss info
@@ -65,7 +65,7 @@ void impute_missing(struct conf*c,unsigned nmark,struct marker**array,unsigned n
     //assign values to missing data
     for(i=0; i<nmark; i++)
     {
-        m = array[i];
+        m = marray[i];
         
         for(x=0; x<2; x++)
         {
@@ -110,14 +110,14 @@ void impute_missing(struct conf*c,unsigned nmark,struct marker**array,unsigned n
 /*
 allocate data structures for imputing missing values
 */
-void impute_alloc(struct conf*c,unsigned nmark,struct marker**array)
+void impute_alloc(struct conf*c,unsigned nmark,struct marker**marray)
 {
     unsigned i,j,x;
     struct marker*m=NULL;
     
     for(i=0; i<nmark; i++)
     {
-        m = array[i];
+        m = marray[i];
         
         for(x=0; x<2; x++)
         {
@@ -174,14 +174,14 @@ double impute_est_rf(struct conf*c,struct marker*m1,struct marker*m2,unsigned x)
 /*
 update m->data and bit strings to reflect marker phases
 */
-void update_data(struct conf*c,unsigned nmark,struct marker**array)
+void update_data(struct conf*c,unsigned nmark,struct marker**marray)
 {
     struct marker*m=NULL;
     unsigned i,j,x;
     
     for(i=0; i<nmark; i++)
     {
-        m = array[i];
+        m = marray[i];
         
         for(j=0; j<c->nind; j++)
         {
@@ -206,7 +206,7 @@ void update_data(struct conf*c,unsigned nmark,struct marker**array)
         }
     }
     
-    compress_to_bitstrings(c,nmark,array);
+    compress_to_bitstrings(c,nmark,marray);
 }
 
 void add_edge(struct conf*c,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk)
@@ -614,7 +614,11 @@ void phase_markers(struct conf*c,unsigned lg,unsigned x)
         m->uf_rank = 1;
         m->adj_list = NULL;
         m->dfs_marked = 0;
-        if(m->data[x]) ntrees += 1;
+        if(m->data[x])
+        {
+            ntrees += 1;
+            if(m_start == NULL) m_start = m; //a suitable marker for start of dfs
+        }
     }
     
     /*
@@ -644,8 +648,6 @@ void phase_markers(struct conf*c,unsigned lg,unsigned x)
         
         //ignore if edge involves information from the wrong parent
         if(e->m1->data[x] == NULL || e->m2->data[x] == NULL) continue;
-        
-        if(m_start == NULL) m_start = e->m1; //retain link to any suitable marker as start of dfs
         
         //ignore cxr / rxc hk-hk linkage
         if(e->cxr_flag) continue;
@@ -702,11 +704,15 @@ void phase_markers(struct conf*c,unsigned lg,unsigned x)
         }
     }*/
 
+    //DEBUG
+    //printf("lg_nmarkers=%u\n",c->lg_nmarkers[lg]);
+
     /*
     do a depth-first search
     setting phase values
     */
     assert(m_start);
+    
     dfs_phase(c,m_start,0,x);
 }
 
@@ -744,6 +750,7 @@ void dfs_phase(struct conf*c,struct marker*m,unsigned phase,unsigned x)
 //here we assume phase was worked out using the best available information
 //which could be an indirect route ie not be the direct marker-marker edge itself
 //therefore we look at m->phase[] not the info in the edge itself
+//edges are sorted to give priority to nonhk markers
 void sort_by_dist(struct conf*c,unsigned lg)
 {
     struct edge*e=NULL;
@@ -797,9 +804,10 @@ deal with maternal and paternal phases separately
 x=0 => maternal
 x=1 => paternal
 */
-void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned nedge,struct edge**elist,unsigned x)
+void order_markers(struct conf*c,unsigned nmark,struct marker**marray,unsigned nedge,struct edge**elist,unsigned x)
 {
     struct marker*m=NULL;
+    //struct marker*mtmp=NULL;
     struct marker*m_start=NULL;
     struct marker*m_end=NULL;
     struct edge*e=NULL;
@@ -819,7 +827,7 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned ne
     ntrees = 0;
     for(i=0; i<nmark; i++)
     {
-        m = c->array[i];
+        m = marray[i];
         
         //each marker begins in its own group with no attached edges
         m->uf_parent = m;
@@ -827,10 +835,18 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned ne
         m->adj_list = NULL;
         m->dfs_marked = 0;
         m->dfs_parent = NULL;
-        if(m->data[x]) ntrees += 1;
+        
+        if(m->data[x])
+        {
+            ntrees += 1;
+            if(m_start == NULL) m_start = m; //a suitable marker for start of dfs
+        }
     }
     
     if(ntrees == 0) return; //no markers to order
+    
+    //DEBUG
+    //printf("initial trees= %u\n",ntrees);
     
     //alloc more edgelists if required
     //max MST edges required is approx 2*lg_nmarkers[lg] because
@@ -856,8 +872,6 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned ne
         //ignore if edge involves information from the wrong parent
         if(e->m1->data[x] == NULL || e->m2->data[x] == NULL) continue;
         
-        if(m_start == NULL) m_start = e->m1; //retain link to any suitable marker as start of dfs
-        
         //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
         
         //see if the edge joins two separate trees into one
@@ -882,10 +896,26 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned ne
         append_edge(&e->m1->adj_list,p1);
         append_edge(&e->m2->adj_list,p2);
         
-        //printf("%s => %s lod=%f rf=%f\n",e->m1->name,e->m2->name,e->lod,e->rf);
         
         ntrees -= 1;
+        
+        //DEBUG
+        /*printf("order_marker %s(type=%u,lg=%u,rank=%u) => %s(%u,%u,rank=%u) lod=%f rf=%f ntrees=%u %u/%u\n",
+               e->m1->name,e->m1->type,e->m1->lg,find_group(e->m1)->uf_rank,
+               e->m2->name,e->m2->type,e->m2->lg,find_group(e->m1)->uf_rank,
+               e->lod,e->rf,ntrees,i,nedge);*/
     }
+    
+    /*if(ntrees != 1)
+    {
+        //DEBUG
+        for(i=0; i<nmark; i++)
+        {
+            m = marray[i];
+            mtmp = find_group(m);
+            printf("%s %p treesize=%u\n",m->name,mtmp,mtmp->uf_rank);
+        }
+    }*/
     
     assert(ntrees == 1);
     
@@ -903,7 +933,7 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned ne
     //prepare for dfs
     for(i=0; i<nmark; i++)
     {
-        m = array[i];
+        m = marray[i];
         m->dfs_marked = 0;
         m->dfs_parent = NULL;
     }
@@ -918,7 +948,7 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned ne
     //prepare for dfs
     for(i=0; i<nmark; i++)
     {
-        m = array[i];
+        m = marray[i];
         m->dfs_marked = 0;
         m->dfs_parent = NULL;
     }
@@ -937,7 +967,7 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned ne
     //assign map positions along the longest path
     for(i=0; i<nmark; i++)
     {
-        m = array[i];
+        m = marray[i];
         m->dfs_marked = 0;
         m->pos[x] = NO_POSN;           //no map position defined yet
     }
@@ -970,7 +1000,7 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**array,unsigned ne
     //assign position of nearest marker that is on the path
     for(i=0; i<nmark; i++)
     {
-        m = array[i];
+        m = marray[i];
         if(m->dfs_marked) dfs_assign(m,m->pos[x],x);
     }
     

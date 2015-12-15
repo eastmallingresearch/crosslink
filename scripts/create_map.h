@@ -43,6 +43,8 @@ struct conf
     double prob_hk;       /*prob marker is hk*/
     double prob_lm;       /*prob marker is lm given it's not an hk*/
 
+    unsigned hideposn;    //if true do not put true position in marker name
+
     struct marker**map;   /*list of markers*/
     unsigned*nmark;       /*how many markers per lg*/
 };

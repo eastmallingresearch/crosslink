@@ -29,7 +29,7 @@ while True:
         total += 1
         
         if tok3[i] != tok1[i]:
-            print tok1[i],'-->',tok3[i]
+            #print tok1[i],'-->',tok3[i]
             errors += 1
             
 print '#imputing errors', errors, float(errors)/total
