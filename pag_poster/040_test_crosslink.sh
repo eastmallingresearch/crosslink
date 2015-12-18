@@ -10,19 +10,19 @@ export PATH=${PATH}:/home/vicker/git_repos/crosslink/pag_poster
 set -eu
 
 SCRIPTDIR=/home/vicker/git_repos/crosslink/pag_poster
-OUTDIR=compare_progs
+OUTDIR=compare_crosslink
 
 mkdir -p ${OUTDIR}
 mkdir -p stats
 mkdir -p tmp
 
-for DENSITY in 0.1 1.0 10.0              #markers per centimorgan
+for DENSITY in 0.1 1.0 10.0                   #markers per centimorgan
 do
-    for ERATE in 0.00 0.01 0.05 0.1      #error/missing rate
+    for ERATE in 0.00 0.01 0.05 0.1                 #error/missing rate
     do
-        for NMARKERS in 20 60 100        #total markers (one per centimorgan)
+        for NMARKERS in 50 100 500 1000 5000 10000  #total markers (one per centimorgan)
         do
-            for REP in $(seq 1 40)       #replicates
+            for REP in $(seq 1 40)                  #replicates
             do
                 TESTMAP=${OUTDIR}/compare_${ERATE}_${NMARKERS}_${DENSITY}_${REP}
                 
@@ -32,18 +32,19 @@ do
                     create_test_map.sh ${TESTMAP} ${ERATE} ${NMARKERS} ${REP} ${DENSITY}
                 fi
             
-                #test each program
-                for PROG in crosslink lepmap onemap tmap optimal
+                #test only crosslink
+                for PROG in crosslink optimal
                 do
                     while true
                     do
                         NJOBS=$(qstat | wc --lines)
                         echo ${NJOBS}
                         
-                        if [ "${NJOBS}" -lt "100" ]
+                        if [ "${NJOBS}" -lt "45" ]
                         then
                             break
                         fi
+                        
                         sleep 1
                     done
                 

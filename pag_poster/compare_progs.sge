@@ -1,8 +1,9 @@
 #$ -S /bin/bash
-#$ -l h_vmem=2.0G
-#$ -l mem_free=2.0G
-#$ -l virtual_free=2.0G
+#$ -l h_vmem=1.1G
+#$ -l mem_free=1.1G
+#$ -l virtual_free=1.1G
 #$ -l h_rt=999:00:00
+#$ -l h=blacklace02.blacklace|blacklace05.blacklace|blacklace06.blacklace|blacklace03.blacklace|blacklace04.blacklace|blacklace01.blacklace
 ###$ -pe smp 4
 
 set -eu
@@ -27,6 +28,11 @@ TIMEFORMAT='%R %U %S'
 touch ${TESTMAP}_${PROG}_stats
 
 case ${PROG} in
+    optimal)
+        { time run_optimal_1lg.sh ${TESTMAP} ${PROG}\
+            2> ${TESTMAP}_${PROG}_err > ${TESTMAP}_${PROG}_out ; }\
+            2> ${TESTMAP}_${PROG}_time
+        ;;
     crosslink)
         { time run_crosslink_1lg.sh ${TESTMAP} ${PROG}\
             2> ${TESTMAP}_${PROG}_err > ${TESTMAP}_${PROG}_out ; }\

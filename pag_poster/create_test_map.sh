@@ -17,7 +17,8 @@ NMARKERS=$3
 REP=$4
 DENSITY=$5 #markers per centimorgan
 
-LGSIZE=$(python -c "print ${NMARKERS}*${DENSITY}") 
+LGSIZE=$(python -c "print float(${NMARKERS})/${DENSITY}")   #correct
+#LGSIZE=$(python -c "print float(${NMARKERS})*${DENSITY}")    #incorrect
 POPSIZE=200
 
 #create map with randomly placed markers

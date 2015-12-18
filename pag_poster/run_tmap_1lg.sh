@@ -20,7 +20,7 @@ FNAME=${TESTMAP}_${PROG}
 LOD=1.0
 
 #phase markers
-phasing ${TESTMAP}.loc.tmap ${FNAME}.tmap.phased ${LOD} > /dev/null
+phasing ${TESTMAP}.loc.tmap ${FNAME}.tmap.phased ${LOD}
 
 #order markers
 tail -n +3 ${TESTMAP}.loc.tmap\

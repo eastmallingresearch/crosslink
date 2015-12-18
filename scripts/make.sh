@@ -38,12 +38,24 @@ gcc ${TYPE}\
     ./scripts/gg_group_main.c\
     /home/vicker/git_repos/rjvbio/rjv_cutils.c\
     -lm
-
     
 #build main executable
+<<COMM
 gcc ${TYPE}\
     -o ./scripts/gg_map\
     ./scripts/gg_main.c\
+    ./scripts/gg_utils.o\
+    ./scripts/gg_ga.o\
+    ./scripts/gg_group.o\
+    ./scripts/gg_gibbs.o\
+    /home/vicker/git_repos/rjvbio/rjv_cutils.c\
+    -lm
+COMM
+
+#build map distance utility
+gcc ${TYPE}\
+    -o ./scripts/gg_calc_dist\
+    ./scripts/gg_calc_dist.c\
     ./scripts/gg_utils.o\
     ./scripts/gg_ga.o\
     ./scripts/gg_group.o\
