@@ -35,22 +35,34 @@ do
                 #test each program
                 for PROG in crosslink lepmap onemap tmap optimal
                 do
+                    #if [ -e ${TESTMAP}_${PROG}_stats ]
+                    #then
+                    #    echo skip
+                    #    continue
+                    #fi
+                    
                     while true
                     do
                         NJOBS=$(qstat | wc --lines)
                         echo ${NJOBS}
                         
-                        if [ "${NJOBS}" -lt "100" ]
+                        if [ "${NJOBS}" -lt "60" ]
                         then
                             break
                         fi
+                        
                         sleep 1
                     done
                 
                     if [ ! -e ${TESTMAP}_${PROG}_stats ]
                     then
+                        #run mapping program
                         echo myqsub.sh ${SCRIPTDIR}/compare_progs.sge ${OUTDIR} ${TESTMAP} ${ERATE} ${NMARKERS} ${PROG} ${REP} ${DENSITY}
                         myqsub.sh ${SCRIPTDIR}/compare_progs.sge ${OUTDIR} ${TESTMAP} ${ERATE} ${NMARKERS} ${PROG} ${REP} ${DENSITY}
+                    else
+                        #recalculate stats
+                        echo myqsub.sh ${SCRIPTDIR}/compare_progs_recalc_stats.sge ${OUTDIR} ${TESTMAP} ${ERATE} ${NMARKERS} ${PROG} ${REP} ${DENSITY}
+                        myqsub.sh ${SCRIPTDIR}/compare_progs_recalc_stats.sge ${OUTDIR} ${TESTMAP} ${ERATE} ${NMARKERS} ${PROG} ${REP} ${DENSITY}
                     fi
                 done
             done

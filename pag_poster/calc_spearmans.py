@@ -18,16 +18,25 @@ order1 = sys.argv[1]
 order2 = sys.argv[2]
 
 #file columns: marker name, cm position
+#true map positions
 f = open(order1)
 list1 = [line.strip().split() for line in f]
 f.close()
 
+true_length = max([float(x[1]) for x in list1])
+
+#reconstructed map positions
 f = open(order2)
 list2 = [line.strip().split() for line in f]
 f.close()
 
-marker = {}
+est_length = max([float(x[1]) for x in list2])
+if true_length > 0.0:
+    expansion = est_length / true_length
+else:
+    expansion = 'NA'
 
+marker = {}
 for i,x in enumerate(list1): marker[x[0]] = [x[1],None]
 for i,x in enumerate(list2):
     if not x[0] in marker: continue
@@ -46,4 +55,4 @@ sp = abs(spearmanr(sharedlist)[0]) * prop
 #pearsons score
 pe = abs(pearsonr([x[0] for x in sharedlist],[x[1] for x in sharedlist])[0]) * prop
 
-print sp,pe,prop
+print sp,pe,prop,expansion

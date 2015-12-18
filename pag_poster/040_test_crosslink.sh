@@ -16,7 +16,7 @@ mkdir -p ${OUTDIR}
 mkdir -p stats
 mkdir -p tmp
 
-for DENSITY in 0.1 1.0 10.0                   #markers per centimorgan
+for DENSITY in 0.1 1.0 10.0                         #markers per centimorgan
 do
     for ERATE in 0.00 0.01 0.05 0.1                 #error/missing rate
     do
@@ -31,16 +31,22 @@ do
                 then
                     create_test_map.sh ${TESTMAP} ${ERATE} ${NMARKERS} ${REP} ${DENSITY}
                 fi
-            
+                
                 #test only crosslink
                 for PROG in crosslink optimal
                 do
+                    #if [ -e ${TESTMAP}_${PROG}_stats ]
+                    #then
+                    #    echo skip
+                    #    continue
+                    #fi
+                
                     while true
                     do
                         NJOBS=$(qstat | wc --lines)
-                        echo ${NJOBS}
+                        echo qstat ${NJOBS}
                         
-                        if [ "${NJOBS}" -lt "45" ]
+                        if [ "${NJOBS}" -lt "60" ]
                         then
                             break
                         fi
@@ -52,6 +58,9 @@ do
                     then
                         echo myqsub.sh ${SCRIPTDIR}/compare_progs.sge ${OUTDIR} ${TESTMAP} ${ERATE} ${NMARKERS} ${PROG} ${REP} ${DENSITY}
                         myqsub.sh ${SCRIPTDIR}/compare_progs.sge ${OUTDIR} ${TESTMAP} ${ERATE} ${NMARKERS} ${PROG} ${REP} ${DENSITY}
+                    else
+                        echo myqsub.sh ${SCRIPTDIR}/compare_progs_recalc_stats.sge ${OUTDIR} ${TESTMAP} ${ERATE} ${NMARKERS} ${PROG} ${REP} ${DENSITY}
+                        myqsub.sh ${SCRIPTDIR}/compare_progs_recalc_stats.sge ${OUTDIR} ${TESTMAP} ${ERATE} ${NMARKERS} ${PROG} ${REP} ${DENSITY}
                     fi
                 done
             done
