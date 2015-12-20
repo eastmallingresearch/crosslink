@@ -12,7 +12,7 @@ dat$score = 1.0 - dat$pearson
 
 give.n1 = function(dat)
 {
-  return(c(y = 1.0, label = length(dat))) 
+  return(c(y = 0.0, label = length(dat))) 
 }
 
 give.n2 = function(dat)
@@ -20,24 +20,27 @@ give.n2 = function(dat)
   return(c(y = 70000.0, label = length(dat))) 
 }
 
+#change order of programs
+dat$program <- factor(dat$program, levels = dat$program[order(c(2,3,4,1,5))])
+
 for (den in c(0.1,1,10))
 {
     #pearson - map colinearity
-    ggplot(dat[dat$density == den,], aes(x = program, y = 1-pearson, fill = program)) +
+    ggplot(dat[dat$density == den,], aes(x = program, y = pearson, fill = program)) +
         geom_boxplot() +
-        stat_summary(fun.data = give.n1, geom = "text", fun.y = 1.0, size = 3) +
+        stat_summary(fun.data = give.n1, geom = "text", fun.y = 0.0, size = 3) +
         facet_grid(markers ~ error) +
         #scale_y_log10() +
         theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.title.x = element_blank()) +
         #guides(fill=guide_legend(title="mapping program\n.markers per cM")) +
-        ylab("mapping error")
+        ylab("|Pearson correlation|")
     ggsave(file=sprintf("figs/compare_pearson_%.1f.png",den))
 
     #map expansion
     ggplot(dat[dat$density == den,], aes(x = program, y = expansion, fill = program)) +
         geom_boxplot() +
         facet_grid(markers ~ error) +
-        #scale_y_log10() +
+        scale_y_log10() +
         theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.title.x = element_blank()) +
         #guides(fill=guide_legend(title="mapping program\n.markers per cM")) +
         ylab("map expansion")
