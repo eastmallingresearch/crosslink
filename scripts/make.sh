@@ -2,81 +2,84 @@
 
 #
 # build create_map, sample_map and gg_map
+# run from the same directory as the source files
 #
 
 set -eu
 
 TYPE="-Wall -Wextra -O3"
 
+RJVUTILS=/home/vicker/git_repos/rjvbio/rjv_cutils.c
+
 #build create_map
 gcc ${TYPE}\
-    -o ./scripts/create_map\
-    ./scripts/create_map_main.c\
-    ./scripts/create_map.c\
-    /home/vicker/git_repos/rjvbio/rjv_cutils.c\
+    -o create_map\
+    create_map_main.c\
+    create_map.c\
+    ${RJVUTILS}\
     -lm
 
 #build sample_map
 gcc ${TYPE}\
-    -o ./scripts/sample_map\
-    ./scripts/sample_map_main.c\
-    ./scripts/sample_map.c\
-    /home/vicker/git_repos/rjvbio/rjv_cutils.c\
+    -o sample_map\
+    sample_map_main.c\
+    sample_map.c\
+    ${RJVUTILS}\
     -lm
 
 #build gg source
 for FNAME in gg_utils gg_ga gg_gibbs gg_group
 do
-    gcc ${TYPE} -c ./scripts/${FNAME}.c -o ./scripts/${FNAME}.o
+    gcc ${TYPE} -c ${FNAME}.c -o ${FNAME}.o
 done
 
 #build gg_group
 gcc ${TYPE}\
-    -o ./scripts/gg_group\
-    ./scripts/gg_group.o\
-    ./scripts/gg_utils.o\
-    ./scripts/gg_group_main.c\
-    /home/vicker/git_repos/rjvbio/rjv_cutils.c\
+    -o gg_group\
+    gg_group.o\
+    gg_utils.o\
+    gg_group_main.c\
+    ${RJVUTILS}\
     -lm
     
 #build main executable
 <<COMM
 gcc ${TYPE}\
-    -o ./scripts/gg_map\
-    ./scripts/gg_main.c\
-    ./scripts/gg_utils.o\
-    ./scripts/gg_ga.o\
-    ./scripts/gg_group.o\
-    ./scripts/gg_gibbs.o\
-    /home/vicker/git_repos/rjvbio/rjv_cutils.c\
+    -o gg_map\
+    gg_main.c\
+    gg_utils.o\
+    gg_ga.o\
+    gg_group.o\
+    gg_gibbs.o\
+    ${RJVUTILS}\
     -lm
 COMM
 
 #build map distance utility
 gcc ${TYPE}\
-    -o ./scripts/gg_calc_dist\
-    ./scripts/gg_calc_dist.c\
-    ./scripts/gg_utils.o\
-    ./scripts/gg_ga.o\
-    ./scripts/gg_group.o\
-    ./scripts/gg_gibbs.o\
-    /home/vicker/git_repos/rjvbio/rjv_cutils.c\
+    -o gg_calc_dist\
+    gg_calc_dist.c\
+    gg_utils.o\
+    gg_ga.o\
+    gg_group.o\
+    gg_gibbs.o\
+    ${RJVUTILS}\
     -lm
 
 #build tests
 <<COMM
 gcc ${TYPE}\
-    -o ./scripts/test_ga\
-    ./scripts/test_ga.c\
-    ./scripts/gg_utils.o\
-    ./scripts/gg_ga.o\
-    ./scripts/gg_gibbs.o\
-    /home/vicker/git_repos/rjvbio/rjv_cutils.c\
+    -o test_ga\
+    test_ga.c\
+    gg_utils.o\
+    gg_ga.o\
+    gg_gibbs.o\
+    ${RJVUTILS}\
     -lm
 
 gcc ${TYPE}\
-    -o ./scripts/test_group\
-    ./scripts/gg_group.c\
-    ./scripts/test_group.c\
+    -o test_group\
+    gg_group.c\
+    test_group.c\
     -lm
 COMM

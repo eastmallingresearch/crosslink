@@ -276,10 +276,12 @@ void calc_rflod_simple(struct conf*c,struct marker*m1,struct marker*m2,unsigned 
     *_lod = lod;
 }
 
-//calculate rf and LOD using 2pt methods from Maliepaard
-//this method implicitly deduces phase as far as possible
-//and should not be used between two markers where the phasing is already known
-//with possibly higher certainty
+/*
+calculate rf and LOD using 2pt methods from Maliepaard
+this method implicitly deduces phase as far as possible
+and should not be used between two markers where the phasing is already known
+with possibly higher certainty through indirect means
+*/
 void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,unsigned*_cxr_flag)
 {
     unsigned i,j,N;
@@ -292,7 +294,7 @@ void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,un
     {
         if(m1[i] == MISSING || m2[i] == MISSING) continue;
         N += 1;
-        j = 3* m1[i] + m2[i];
+        j = 3 * m1[i] + m2[i];
         n[j] += 1;
     }
     

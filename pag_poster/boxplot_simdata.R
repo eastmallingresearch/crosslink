@@ -1,10 +1,8 @@
 #!/usr/bin/Rscript
 
-#source("/home/vicker/git_repos/crosslink/pag_poster/boxplot.R")
-
 library(ggplot2)
 
-system("cat ./compare_progs/compare_*_stats | awk 'NF==12' > ./compare_progs/all_stats")
+#system("cat ./compare_progs/compare_*_stats | awk 'NF==12' > ./compare_progs/all_stats")
 
 # ====== comparison between crosslink and tmap and onemap: small map
 dat = read.table("./compare_progs/all_stats",col.names=c("program","error","markers","density","replicate","spearman","pearson","proportion","real","user","system","expansion"))
@@ -17,7 +15,7 @@ give.n1 = function(dat)
 
 give.n2 = function(dat)
 {
-  return(c(y = 70000.0, label = length(dat))) 
+  return(c(y = 0.5, label = length(dat))) 
 }
 
 #change order of programs
@@ -31,36 +29,45 @@ for (den in c(0.1,1,10))
         stat_summary(fun.data = give.n1, geom = "text", fun.y = 0.0, size = 3) +
         facet_grid(markers ~ error) +
         #scale_y_log10() +
+        scale_fill_manual(values = c("grey","pink","green","cyan","purple")) +
         theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.title.x = element_blank()) +
-        #guides(fill=guide_legend(title="mapping program\n.markers per cM")) +
+        theme(axis.text.y = element_text(colour="black")) +
+        guides(fill=guide_legend(title="Program")) +
         ylab("|Pearson correlation|")
-    ggsave(file=sprintf("figs/compare_pearson_%.1f.png",den))
+    ggsave(file=sprintf("figs/compare_pearson_%.1f.png",den),dpi=600)
 
     #map expansion
     ggplot(dat[dat$density == den,], aes(x = program, y = expansion, fill = program)) +
         geom_boxplot() +
+        stat_summary(fun.data = give.n2, geom = "text", fun.y = 0.0, size = 3) +
         facet_grid(markers ~ error) +
+        scale_fill_manual(values = c("grey","pink","green","cyan","purple")) +
         scale_y_log10() +
         theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.title.x = element_blank()) +
-        #guides(fill=guide_legend(title="mapping program\n.markers per cM")) +
-        ylab("map expansion")
-    ggsave(file=sprintf("figs/compare_expansion_%.1f.png",den))
+        theme(axis.text.y = element_text(colour="black")) +
+        guides(fill=guide_legend(title="Program")) +
+        ylab("Map expansion")
+    ggsave(file=sprintf("figs/compare_expansion_%.1f.png",den),dpi=600)
 }
 
 #missing markers
 ggplot(dat, aes(x = program, y = proportion, fill = program)) +
     geom_boxplot() +
     facet_grid(markers ~ error) +
+    scale_fill_manual(values = c("grey","pink","green","cyan","purple")) +
+    theme(axis.text.y = element_text(colour="black")) +
     theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.title.x = element_blank())
-ggsave(file="figs/compare_prop.png")
+ggsave(file="figs/compare_prop.png",dpi=600)
 
 #run time
-ggplot(dat[dat$program != "optimal",], aes(x = program, y = user+system, fill = program)) +
+ggplot(dat[dat$program != "optimal",], aes(x = program, y = (user+system)/3600, fill = program)) +
     geom_boxplot() +
     #stat_summary(fun.data = give.n2, geom = "text", fun.y = 70000.0, size = 3) +
-    facet_grid(markers ~ error) + #,scales="free"
-    scale_y_log10() +
+    facet_grid(markers ~ error,scales="free") + #,scales="free"
+    scale_fill_manual(values = c("pink","green","cyan","purple")) +
+    #scale_y_log10() +
+    guides(fill=guide_legend(title="Program")) +
     theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.title.x = element_blank()) +
-    ylab("time (secs)")
-
-ggsave(file="figs/compare_time.png")
+    theme(axis.text.y = element_text(colour="black")) +
+    ylab("Time (hours)")
+ggsave(file="figs/compare_time.png",dpi=600)
