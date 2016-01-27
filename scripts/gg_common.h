@@ -222,6 +222,9 @@ struct conf
     double   gibbs_twopt_2;          //_1 used at start of burningm changes linearly to _2 by end of burnin
     double   gibbs_twopt;            //_2 used throughout sampling
     unsigned gibbs_min_ctr;          //set hk state to missing if counter mag less than threshold
+    
+    unsigned view_winsize;           //width and height of SDL window (pixels)
+    unsigned view_phased;            //whether to treat loaded data as phased or unphased
 
     unsigned nmarkers;     //number of markers
     unsigned nind;         //number of individuals in population
@@ -249,7 +252,7 @@ struct conf
     struct marker**mutant; //array of markers
     struct hk**hklist;     //list of hk/kh allele positions
     
-    //markers and edge split into separate linkage groups
+    //markers and edges split into separate linkage groups
     unsigned*lg_nmarkers;
     unsigned*lg_nedges;
     

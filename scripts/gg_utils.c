@@ -395,6 +395,69 @@ void load_phased_lg(struct conf*c,const char*fname,const char*lg)
     
 }
 
+/*
+load all linkage groups
+treat as phased and fully imputed
+*/
+void load_phased_all(struct conf*c,const char*fname)
+{
+    FILE*f=NULL;
+    char buff[BUFFER];
+    unsigned i;
+    int lg;
+
+    /*open input file*/
+    assert(f = fopen(fname,"rb"));
+
+    /*skip name, pop type and nloc*/
+    assert(fgets(buff,BUFFER,f));
+    assert(fgets(buff,BUFFER,f));
+
+    /*read nloc (total number of markers)*/
+    assert(fgets(buff,BUFFER,f));
+    assert(sscanf(buff,"%*s %*s %u",&c->nmarkers) == 1);
+    
+    /*read nind (number of individuals)*/
+    assert(fgets(buff,BUFFER,f));
+    assert(sscanf(buff,"%*s %*s %u",&c->nind) == 1);
+    
+    /*calculate how many BITTYPE variables needed to contain this number of bits*/
+    c->nvar = (c->nind + BITSIZE - 1) / BITSIZE;
+    
+    assert(c->array = calloc(c->nmarkers,sizeof(struct marker*)));
+    
+    lg=-1;
+    
+    /*read all markers*/
+    for(i=0; i<c->nmarkers; i++)
+    {
+        while(1)
+        {
+            /*read next line*/
+            assert(fgets(buff,BUFFER,f));
+            
+            if(buff[0] == ';')
+            {
+                /*treat as start of next lg*/
+                lg+=1;
+                continue;
+            }
+            
+            break;
+        }
+        
+        assert(strlen(buff) < BUFFER-1);
+
+        /*create marker*/
+        c->array[i] = create_marker_phased(c,buff);
+        c->array[i]->lg = lg;
+    }
+    
+    compress_to_bitstrings(c,c->nmarkers,c->array);
+    
+    fclose(f);
+}
+
 //count hk genotypes and allocate data structures for them
 void alloc_hks(struct conf*c)
 {
@@ -452,8 +515,8 @@ void calc_RN_simple(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,u
         {
             mask = m1->mask[x][i] & m2->mask[x][i];  //set bit if both values are non-missing
             bits = m1->bits[x][i] ^ m2->bits[x][i];  //set bit if values differ
-            *N += POPCNT(mask);                       //count number of non-missing values
-            *R += POPCNT(bits & mask);                //count bits which differ and are non-missing
+            *N += POPCNT(mask);                      //count number of non-missing values
+            *R += POPCNT(bits & mask);               //count bits which differ and are non-missing
         }
     }
     else
@@ -1318,7 +1381,7 @@ void print_bits(struct conf*c,struct marker**marray,unsigned pause)
         t2 = t1;
         t1.c_lflag &= ~ECHO;
         tcsetattr(STDIN_FILENO, TCSAFLUSH, &t1);
-        fgets(buff,98,stdin);
+        if(fgets(buff,98,stdin)){};
         tcsetattr(STDIN_FILENO, TCSANOW, &t2);
     }
 }

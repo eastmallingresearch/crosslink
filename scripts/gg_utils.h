@@ -34,3 +34,4 @@ int mcomp_matpos(const void*_m1, const void*_m2);
 int mcomp_combpos(const void*_m1, const void*_m2);
 int mcomp_patpos(const void*_m1, const void*_m2);
 void comb_map_positions(struct conf*c,unsigned n,struct marker**array,unsigned lg,unsigned flip_check);
+void load_phased_all(struct conf*c,const char*fname);
