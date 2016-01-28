@@ -20,7 +20,8 @@ int main(int argc,char*argv[])
     SDL_Texture* tex = NULL;
     SDL_Event eve;
     SDL_Rect src;
-    unsigned size,i,j,x,R,N,S,val[3],val2[3];
+    unsigned size,i,j,x,R,N,S,val[3],val2[3],tmpval;
+    unsigned hardware;
     struct marker*m1=NULL;
     struct marker*m2=NULL;
     double rf,s,lod,minlod;
@@ -36,7 +37,8 @@ int main(int argc,char*argv[])
     parseuns(argc,argv,"window_size",&size,1,500);
     parsedbl(argc,argv,"minlod",&minlod,1,3.0);
     parseuns(argc,argv,"phased",&c->view_phased,1,1);
-    parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,0);
+    parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
+    parseuns(argc,argv,"hardware_accel",&hardware,1,1);
     parseend(argc,argv);
     
     //precalc bitmasks for every possible bit position
@@ -59,43 +61,89 @@ int main(int argc,char*argv[])
             m2 = c->array[j];
             
             val[2] = 0;
-            for(x=0; x<2; x++)
+            
+            //generate checkerboard pattern denoting linkage group boundaries
+            //in the blue channel of the "LOD" part of the graph
+            if((m1->lg & 0x1) ^ (m2->lg & 0x1)) val2[2] = 64;
+            else                                val2[2] = 0;
+            
+            //for LM vs NP comparisions, compare the information anyway
+            //strong linkage will indicate we likely have an error in the marker typing
+            //display as yellow (otherwise it's just always black)
+            if((m1->type == LMTYPE && m2->type == NPTYPE) || (m1->type == NPTYPE && m2->type == LMTYPE))
             {
-                val[x] = 0;
-                val2[x] = 0;
-                if(m1->data[x] && m2->data[x])
+                if(m1->type == LMTYPE) calc_RN_simple2(c,m1,m2,0,1,&R,&N);
+                else                   calc_RN_simple2(c,m1,m2,1,0,&R,&N);
+
+                val[0] = val[1] = 0;
+                val2[0] = val2[1] = 0;
+                if(N > 0)
                 {
-                    calc_RN_simple(c,m1,m2,x,&R,&N);
-                    if(N > 0)
+                    rf = (double)R / N;
+                    if(rf <= 0.5)
                     {
-                        rf = (double)R / N;
-                        if(rf <= 0.5)
+                        //coupling linkage, yellow
+                        val[0] = val[1] = (0.5 - rf) * 2.0 * 255.999;
+                    }
+                    else
+                    {
+                        //repulsion linkage, blue
+                        val[2] = (rf - 0.5) * 2.0 * 255.999;
+                    }
+                    
+                    //calculate linkage LOD
+                    s = 1.0 - rf;
+                    S = N - R;
+                    
+                    lod = 0.0;
+                    if(s > 0.0) lod += S * log10(2.0*s);
+                    if(rf > 0.0) lod += R * log10(2.0*rf);
+                    
+                    if(lod >= minlod) val2[0] = val2[1] = tanh(lod/50.0) * 255.999;
+                }
+            }
+            else
+            {
+                for(x=0; x<2; x++)
+                {
+                    val[x] = 0;
+                    val2[x] = 0;
+                    if(m1->data[x] && m2->data[x])
+                    {
+                        calc_RN_simple(c,m1,m2,x,&R,&N);
+                        if(N > 0)
                         {
-                            //coupling linkage
-                            val[x] = (0.5 - rf) * 2.0 * 255.999;
+                            rf = (double)R / N;
+                            if(rf <= 0.5)
+                            {
+                                //coupling linkage, red or green
+                                val[x] = (0.5 - rf) * 2.0 * 255.999;
+                            }
+                            else
+                            {
+                                //repulsion linkage, blue
+                                //indicate the strongest repulsion value of the two
+                                tmpval = (rf - 0.5) * 2.0 * 255.999;
+                                if(val[2] < tmpval) val[2] = tmpval;
+                            }
+                            
+                            //calculate linkage LOD
+                            s = 1.0 - rf;
+                            S = N - R;
+                            
+                            lod = 0.0;
+                            if(s > 0.0) lod += S * log10(2.0*s);
+                            if(rf > 0.0) lod += R * log10(2.0*rf);
+                            
+                            if(lod >= minlod) val2[x] = tanh(lod/50.0) * 255.999;
                         }
-                        else
-                        {
-                            //repulsion linkage
-                            val[2] += (rf - 0.5) * 255.999;
-                        }
-                        
-                        //calculate linkage LOD
-                        s = 1.0 - rf;
-                        S = N - R;
-                        
-                        lod = 0.0;
-                        if(s > 0.0) lod += S * log10(2.0*s);
-                        if(rf > 0.0) lod += R * log10(2.0*rf);
-                        
-                        if(lod >= minlod) val2[x] = tanh(lod/50.0) * 255.999;
                     }
                 }
             }
             
             //buff[y*width+x] = (r<<16)+(g<<8)+b;
-            setpixelrgb(buff,i,j,c->nmarkers,val[0],val[1],val[2]);
-            if(i!=j) setpixelrgb(buff,j,i,c->nmarkers,val2[0],val2[1],0);
+            setpixelrgb(buff,i,j,c->nmarkers,val[0],val[1],val[2]);//rf
+            if(i!=j) setpixelrgb(buff,j,i,c->nmarkers,val2[0],val2[1],val2[2]);//lod
         }
     }
     
@@ -106,7 +154,9 @@ int main(int argc,char*argv[])
     }
     
     assert(win = SDL_CreateWindow("rflod viewer",0,0,size,size,SDL_WINDOW_SHOWN));
-    assert(ren = SDL_CreateRenderer(win, -1, 0));
+    
+    if(hardware) assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED));
+    else         assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE));
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest"); //"linear" or "nearest"
     assert(tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING, c->nmarkers, c->nmarkers));
     
@@ -129,7 +179,7 @@ int main(int argc,char*argv[])
         if(eve.type == SDL_KEYDOWN)
         {
             if(eve.key.keysym.sym == SDLK_q) break;
-            if(eve.key.keysym.sym == SDLK_ESCAPE) break;
+            if(eve.key.keysym.sym == SDLK_ESCAPE) exit(1);
         }
 
         //show whole map

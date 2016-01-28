@@ -403,52 +403,74 @@ void load_phased_all(struct conf*c,const char*fname)
 {
     FILE*f=NULL;
     char buff[BUFFER];
-    unsigned i;
+    char*pch=NULL;
+    unsigned i,narray;
     int lg;
 
     /*open input file*/
     assert(f = fopen(fname,"rb"));
 
-    /*skip name, pop type and nloc*/
-    assert(fgets(buff,BUFFER,f));
+    /*read first line*/
     assert(fgets(buff,BUFFER,f));
 
-    /*read nloc (total number of markers)*/
-    assert(fgets(buff,BUFFER,f));
-    assert(sscanf(buff,"%*s %*s %u",&c->nmarkers) == 1);
-    
-    /*read nind (number of individuals)*/
-    assert(fgets(buff,BUFFER,f));
-    assert(sscanf(buff,"%*s %*s %u",&c->nind) == 1);
+    /*skip joinmap header if present*/
+    if(strncmp(buff,"name",4) == 0)
+    {
+        assert(fgets(buff,BUFFER,f));
+        assert(fgets(buff,BUFFER,f));
+        assert(fgets(buff,BUFFER,f));
+    }
+    else
+    {
+        rewind(f); /*if no header, return to start of file*/
+    }
     
     /*calculate how many BITTYPE variables needed to contain this number of bits*/
-    c->nvar = (c->nind + BITSIZE - 1) / BITSIZE;
+    //c->nvar = (c->nind + BITSIZE - 1) / BITSIZE;
+    c->nvar = 0; //work this value out after loading the first marker
+    c->nind = 0;
+    c->nmarkers = 0;
     
-    assert(c->array = calloc(c->nmarkers,sizeof(struct marker*)));
+    /*prealloc some space*/
+    narray = 10;
+    assert(c->array = calloc(narray,sizeof(struct marker*)));
     
     lg=-1;
     
     /*read all markers*/
-    for(i=0; i<c->nmarkers; i++)
+    while(1)
     {
-        while(1)
+        /*read next line*/
+        if(fgets(buff,BUFFER,f) == NULL) break; //end of file
+        
+        if(buff[0] == ';')
         {
-            /*read next line*/
-            assert(fgets(buff,BUFFER,f));
-            
-            if(buff[0] == ';')
-            {
-                /*treat as start of next lg*/
-                lg+=1;
-                continue;
-            }
-            
-            break;
+            /*treat as start of next lg*/
+            lg+=1;
+            continue;
         }
         
         assert(strlen(buff) < BUFFER-1);
+        
+        /*count number of individuals from the first marker encountered*/
+        if(c->nvar == 0)
+        {
+            assert(pch = strchr(buff,'}')); //find end of phasing info
+            c->nind = (strlen(buff) - (pch - buff) - 2) / 3;//calc number of individuals
+            c->nvar = (c->nind + BITSIZE - 1) / BITSIZE;
+            //printf("%ld => nind = %d\n",strlen(buff) - (pch-buff) - 2,c->nind);
+        }
+
+        /*expand marker array if required*/
+        if(c->nmarkers == narray)
+        {
+            narray *= 2;
+            assert(c->array = realloc(c->array,narray*sizeof(struct marker*)));
+        }
 
         /*create marker*/
+        i = c->nmarkers;
+        c->nmarkers += 1;
         c->array[i] = create_marker_phased(c,buff);
         c->array[i]->lg = lg;
     }
@@ -533,6 +555,44 @@ void calc_RN_simple(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,u
             }
             
             if(m1->data[x][i] != m2->data[x][i]) *R += 1;
+        }
+    }
+}
+
+/*
+allow arbitrary compares
+*/
+void calc_RN_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,unsigned y,unsigned*R,unsigned*N)
+{
+    unsigned i;
+    BITTYPE bits,mask;
+    
+    if(c->gg_bitstrings)
+    {
+        *R = 0;
+        *N = 0;
+        for(i=0; i<c->nvar; i++)
+        {
+            mask = m1->mask[x][i] & m2->mask[y][i];  //set bit if both values are non-missing
+            bits = m1->bits[x][i] ^ m2->bits[y][i];  //set bit if values differ
+            *N += POPCNT(mask);                      //count number of non-missing values
+            *R += POPCNT(bits & mask);               //count bits which differ and are non-missing
+        }
+    }
+    else
+    {
+        *R = 0;
+        *N = c->nind;
+        for(i=0; i<c->nind; i++)
+        {
+            //missing data never contribute any recomb events
+            if(m1->data[x][i] == MISSING || m2->data[y][i] == MISSING)
+            {
+                *N -= 1;//reduce effective population size
+                continue;
+            }
+            
+            if(m1->data[x][i] != m2->data[y][i]) *R += 1;
         }
     }
 }
