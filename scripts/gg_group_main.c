@@ -19,6 +19,7 @@ int main(int argc,char*argv[])
     parseuns(argc,argv,"randomise_order",&c->gg_randomise_order,1,0);
     parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,0);
     parseuns(argc,argv,"show_pearson",&c->gg_show_pearson,1,0);
+    parseuns(argc,argv,"fix_marker_type",&c->grp_fix_type,1,0);
     parseuns(argc,argv,"check_phase",&c->grp_check_phase,1,0);
     parsedbl(argc,argv,"min_lod",&c->grp_min_lod,1,3.0);
     parsedbl(argc,argv,"em_tol",&c->grp_em_tol,1,1e-5);
@@ -102,6 +103,9 @@ int main(int argc,char*argv[])
     //impute missing values
     for(i=0; i<c->nlgs; i++)
     {   
+        //fix marker typing errors (ie switch LM <=> NP)
+        if(c->grp_fix_type) fix_marker_types(c,i);
+        
         phase_markers(c,i,0);
         phase_markers(c,i,1);
         impute_missing(c,c->lg_nmarkers[i],c->lg_markers[i],c->lg_nedges[i],c->lg_edges[i]);

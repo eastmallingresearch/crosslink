@@ -29,3 +29,5 @@ void update_data(struct conf*c,unsigned nmark,struct marker**array);
 double impute_est_rf(struct conf*c,struct marker*m1,struct marker*m2,unsigned x);
 void append_knn(struct conf*c,struct missing*z,VARTYPE val,double rf);
 void impute_alloc(struct conf*c,unsigned nmark,struct marker**array);
+void calc_rflod_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,unsigned y,double*_lod,double*_rf);
+void fix_marker_types(struct conf*c,unsigned lg);

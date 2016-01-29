@@ -189,6 +189,7 @@ struct conf
     unsigned grp_em_maxit;          //max EM iterations before giving up
     unsigned grp_check_phase;       //for test data with known phase, check for phasing errors
     unsigned grp_knn;               //k parameter of kNN imputation
+    unsigned grp_fix_type;          //test for LM <=> NP linkage, correct false marker types
     
     unsigned ga_gibbs_cycles;//how many overall cycles of ga+gibbs to perform
     unsigned ga_report;      //how often to report ga progress

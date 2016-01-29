@@ -2,6 +2,155 @@
 #include "gg_utils.h"
 
 /*
+fix marker types
+where strong linkage exists between LM and NP markers take this to indicate
+that the parental genotypes were wrong, and that the marker type should be
+switched between LM <=> NP
+*/
+void fix_marker_types(struct conf*c,unsigned lg)
+{
+    unsigned i,ntrees,ctr,changes;
+    unsigned*lmct=NULL;
+    unsigned*npct=NULL;
+    struct marker*curr=NULL;
+    struct marker*prev=NULL;
+    //double min_lod_used=-1.0;
+    struct edge*e=NULL;
+    struct marker*m=NULL;
+    
+    //initialise to disconnected forest, ignore hks
+    ntrees = 0;
+    for(i=0; i<c->lg_nmarkers[lg]; i++)
+    {
+        m = c->lg_markers[lg][i];
+        
+        //each marker begins in its own group with no attached edges
+        m->uf_parent = m;
+        m->uf_rank = 1;
+
+        //ignore hk markers
+        if(m->type != HKTYPE) ntrees += 1;
+    }
+
+    for(i=0; i<c->lg_nedges[lg] && ntrees>1; i++)
+    {
+        e = c->lg_edges[lg][i];
+        
+        //ignore if edge involves an hk marker
+        if(e->m1->type == HKTYPE || e->m2->type == HKTYPE) continue;
+        
+        if(union_groups(e->m1,e->m2))
+        {
+            ntrees -= 1;
+            //min_lod_used = e->lod;
+        }
+    }
+    
+    //count lms and nps in each tree
+    assert(lmct = calloc(ntrees,sizeof(unsigned)));
+    assert(npct = calloc(ntrees,sizeof(unsigned)));
+    
+    //sort by tree grouping
+    qsort(c->lg_markers[lg],c->lg_nmarkers[lg],sizeof(struct marker*),mcomp_func);
+    
+    curr = NULL;
+    prev = NULL;
+    for(i=0; i<c->lg_nmarkers[lg]; i++)
+    {
+        m = c->lg_markers[lg][i];
+        if(m->type == HKTYPE) continue;
+        
+        //keep track of which tree we are looking at
+        curr = find_group(m);
+        if(prev == NULL)
+        {
+            ctr = 0;
+        }
+        else if(curr != prev)
+        {
+            ctr += 1;
+        }
+        
+        prev = curr;
+        
+        //count lms/nps in the current tree
+        if(m->type == LMTYPE) lmct[ctr] += 1;
+        else                  npct[ctr] += 1;
+    }
+    
+    for(i=0; i<ntrees; i++)
+    {
+        printf("group %u lmct=%u npct=%u\n",i,lmct[i],npct[i]);
+    }
+        
+    curr = NULL;
+    prev = NULL;
+    changes = 0;
+    for(i=0; i<c->lg_nmarkers[lg]; i++)
+    {
+        m = c->lg_markers[lg][i];
+        if(m->type == HKTYPE) continue;
+        
+        //keep track of which tree we are looking at
+        curr = find_group(m);
+        if(prev == NULL)
+        {
+            ctr = 0;
+        }
+        else if(curr != prev)
+        {
+            ctr += 1;
+        }
+        
+        prev = curr;
+        
+        //convert to most commom marker type in the current tree
+        //if tied, choose lm arbitrarily
+        if(m->type == LMTYPE)
+        {
+            if(lmct[ctr] < npct[ctr])
+            {
+                //convert lm -> np
+                m->type = NPTYPE;
+                m->oldphase[1] = m->oldphase[0];
+                m->phase[1] = m->phase[0];
+                m->data[1] = m->data[0];
+                m->bits[1] = m->bits[0];
+                m->mask[1] = m->mask[0];
+                m->orig[1] = m->orig[0];
+                m->data[0] = NULL;
+                m->bits[0] = NULL;
+                m->mask[0] = NULL;
+                m->orig[0] = NULL;
+                changes += 1;
+            }
+        }
+        else if(m->type == NPTYPE)
+        {
+            if(npct[ctr] <= lmct[ctr])
+            {
+                //convert np -> lm
+                m->type = LMTYPE;
+                m->oldphase[0] = m->oldphase[1];
+                m->phase[0] = m->phase[1];
+                m->data[0] = m->data[1];
+                m->bits[0] = m->bits[1];
+                m->mask[0] = m->mask[1];
+                m->orig[0] = m->orig[1];
+                m->data[1] = NULL;
+                m->bits[1] = NULL;
+                m->mask[1] = NULL;
+                m->orig[1] = NULL;
+                changes += 1;
+            }
+        }
+    }
+    //are there any left over lm<=>np edges?
+    
+    if(c->flog) fprintf(c->flog,"#linkage group %u, type fixing resolved %u groups, %u marker type(s) changed\n",lg,ntrees,changes);
+}
+
+/*
 imputing missing genotype calls using kNN method
 */
 void impute_missing(struct conf*c,unsigned nmark,struct marker**marray,unsigned nedge,struct edge**elist)
@@ -276,6 +425,36 @@ void calc_rflod_simple(struct conf*c,struct marker*m1,struct marker*m2,unsigned 
     *_lod = lod;
 }
 
+void calc_rflod_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,unsigned y,double*_lod,double*_rf)
+{
+    unsigned R,S,N;
+    double r,s,lod;
+    
+    //count number of recombinants and total non-missing genotype pairs
+    calc_RN_simple2(c,m1,m2,x,y,&R,&N);
+    
+    if(N == 0)
+    {
+        //rf and lod are undefined
+        *_rf = NO_RFLOD;
+        *_lod = NO_RFLOD;
+        return;
+    }
+    
+    r = (double)R / N;
+    
+    //calculate linkage LOD
+    s = 1.0 - r;
+    S = N - R;
+    
+    lod = 0.0;
+    if(s > 0.0) lod += S * LOG10(2.0*s);
+    if(r > 0.0) lod += R * LOG10(2.0*r);
+
+    *_rf = r;
+    *_lod = lod;
+}
+
 /*
 calculate rf and LOD using 2pt methods from Maliepaard
 this method implicitly deduces phase as far as possible
@@ -445,6 +624,18 @@ void build_elist(struct conf*c)
             {
                 calc_rflod_simple(c,m1,m2,1,&lod,&rf);
             }
+            //LM vs NP if fix_marker_type option is active
+            else if(c->grp_fix_type)
+            {
+                if(m1->type == LMTYPE && m2->type == NPTYPE)
+                {
+                    calc_rflod_simple2(c,m1,m2,0,1,&lod,&rf);
+                }
+                else if(m1->type == NPTYPE && m2->type == LMTYPE)
+                {
+                    calc_rflod_simple2(c,m1,m2,1,0,&lod,&rf);
+                }
+            }
             
             //DEBUG
             //printf("%s -> %s lod=%f rf=%f cxrflag=%u\n",m1->name,m2->name,lod,rf,cxr_flag);
@@ -561,7 +752,7 @@ void form_groups(struct conf*c)
     
     //perform unions between groups until the requested number of linkage groups are formed
     //or until no more (lod-filtered) edges are left
-    for(i=0; i<c->nedge && c->nlgs>c->grp_min_lgs; i++)
+    for(i=0; i<c->nedge && c->nlgs > c->grp_min_lgs; i++)
     {
         e = c->elist[i];
         
@@ -1199,7 +1390,7 @@ void split_markers(struct conf*c)
     //split markers into their own array per lg
     assert(c->lg_markers = calloc(c->nlgs,sizeof(struct marker**))); //for lg markers
     for(i=0; i<c->nlgs; i++) assert(c->lg_markers[i] = calloc(c->lg_nmarkers[i],sizeof(struct marker*)));
-    for(i=0; i<c->nlgs; i++)  c->lg_nmarkers[i] = 0;
+    for(i=0; i<c->nlgs; i++) c->lg_nmarkers[i] = 0;
     
     for(i=0; i<c->nmarkers; i++)
     {

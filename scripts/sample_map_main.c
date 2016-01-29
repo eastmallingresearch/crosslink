@@ -15,6 +15,7 @@ int main(int argc,char*argv[])
     parseuns(argc,argv,"omit_phase",&c->omit_phase,1,0);
     parsedbl(argc,argv,"prob_missing",&c->prob_missing,1,0.0);
     parsedbl(argc,argv,"prob_error",&c->prob_error,1,0.0);
+    parsedbl(argc,argv,"prob_type_error",&c->prob_type_error,1,0.0);
     parseuns(argc,argv,"map_func",&c->map_func,1,1);
     parseend(argc,argv);
     

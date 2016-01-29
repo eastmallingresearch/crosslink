@@ -44,6 +44,7 @@ struct conf
     unsigned prng_seed;   //PRNG seed, 0=>using system time
     double prob_missing;  //prob genotype is missing
     double prob_error;    //prob genotype call is wrong
+    double prob_type_error;    //prob lm type is called as np or vice versa
     unsigned randomise_order;     //randomise marker order in output data
     unsigned hide_hk_inheritance; //always output hk for hk or kh calls
     unsigned omit_phase;    //do not output the phase column 
@@ -52,9 +53,9 @@ struct conf
     unsigned nmarkers;
     unsigned nlgs;
 
-    struct marker**map;   /*list of markers map[i]-> marker */
-    unsigned***data;  //genotype data stored per individual data[indiv][2][marker]-> genotype code
-    unsigned*nmark;       /*how many markers per lg*/
+    struct marker**map;   //list of markers map[i]-> marker
+    unsigned***data;      //genotype data stored per individual data[indiv][2][marker]-> genotype code
+    unsigned*nmark;       //how many markers per lg
 };
 
 void load_map(struct conf*c);

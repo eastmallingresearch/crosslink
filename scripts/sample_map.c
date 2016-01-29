@@ -298,20 +298,32 @@ void sample_individual(struct conf*c,unsigned**data)
 
 void apply_errors(struct conf*c)
 {
-    unsigned i,j;
+    unsigned i,j,utmp;
+    struct marker*m=NULL;
     
     for(i=0; i<c->nmarkers; i++)
     {
         for(j=0; j<c->nind; j++)
         {
+            //apply genotyping error
             if(drand48() < c->prob_error) c->data[j][0][i] = !(c->data[j][0][i]);
             if(drand48() < c->prob_error) c->data[j][1][i] = !(c->data[j][1][i]);
-            
+     
+            //create missing data
             if(drand48() < c->prob_missing)
             {
                 c->data[j][0][i] = MISSING;
                 c->data[j][1][i] = MISSING;
             }
         }
+        
+        m = c->map[i];
+        if(m->type == HKTYPE) continue;
+        if(drand48() >= c->prob_type_error) continue;
+        
+        //create marker typing error
+        m->type = (m->type==LMTYPE)?NPTYPE:LMTYPE;
+        SWAP(m->phase[0],m->phase[1],utmp);
+        for(j=0; j<c->nind; j++) SWAP(c->data[j][0][i],c->data[j][1][i],utmp);
     }
 }
