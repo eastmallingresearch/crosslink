@@ -185,7 +185,7 @@ struct marker* create_marker_raw(struct conf*c,char*buff)
 }
 
 //create marker from the data in the string
-//treat as already phased
+//treat as already phased, but hks as unknown
 struct marker* create_marker_phased(struct conf*c,char*buff)
 {
     struct marker*m=NULL;
@@ -279,6 +279,97 @@ struct marker* create_marker_phased(struct conf*c,char*buff)
     return m;
 }
 
+
+//create marker from the data in the string
+//treat as already phased, but hks as unknown
+struct marker* create_marker_phased_imputed(struct conf*c,char*buff)
+{
+    struct marker*m=NULL;
+    unsigned i;
+    
+    //alloc memory, load common data
+    m = new_marker(c,buff);
+    
+    //read in individual genotype calls
+    //data must be two characters per individual separated by one space
+    buff += 14 + strlen(m->name);
+    
+    //marker segtype
+    switch(m->type)
+    {
+        //<lmxll> valid allele codes: ll lm --
+        case LMTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff[3*i] == '-' || buff[3*i+1] == '-')
+                {
+                    m->orig[0][i] = m->data[0][i] = MISSING;          //missing
+                    continue;
+                }
+                
+                if(buff[3*i] != buff[3*i+1])       m->orig[0][i] = 1; //lm
+                if(XOR(m->orig[0][i],m->phase[0])) m->data[0][i] = 1; //phased representation
+            }
+            break;
+            
+        //<nnxnp> valid allele codes: nn np --
+        case NPTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff[3*i] == '-' || buff[3*i+1] == '-')
+                {
+                    m->orig[1][i] = m->data[1][i] = MISSING;          //missing
+                    continue;
+                }
+                
+                if(buff[3*i] != buff[3*i+1])       m->orig[1][i] = 1; //np
+                if(XOR(m->orig[1][i],m->phase[1])) m->data[1][i] = 1; //phased representation
+            }
+            break;
+            
+        //<hkxhk> valid allele codes: hh hk kh kk --
+        // hk and kh are treated as fully imputed calls to allow hk-known test data to be loaded
+        // but gibbs will always reimpute them and use the original hk/kh data for comparison only
+        // if show_hkcheck is enabled
+        case HKTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff[3*i] == '-' || buff[3*i+1] == '-')
+                {
+                    m->orig[0][i] = m->data[0][i] = MISSING;   //missing
+                    m->orig[1][i] = m->data[1][i] = MISSING;
+                    m->code[i] = MISSING;
+                    continue;
+                }
+        
+                if(buff[3*i] != buff[3*i+1])
+                {
+                    if(buff[3*i] == 'k') m->orig[0][i] = 1;     //kh
+                    else                 m->orig[1][i] = 1;     //hk
+                    m->code[i] = HK_CALL;
+                }
+                else if(buff[3*i] == 'k')
+                {
+                    m->orig[0][i] = 1;                         //kk
+                    m->orig[1][i] = 1;
+                    m->code[i] = KK_CALL;
+                }
+                else
+                {
+                    m->code[i] = HH_CALL;                      //hh
+                }
+                
+                if(XOR(m->orig[0][i],m->phase[0])) m->data[0][i] = 1; //phased representation
+                if(XOR(m->orig[1][i],m->phase[1])) m->data[1][i] = 1;
+            }
+            break;
+            
+        default:
+            assert(0);
+    }
+    
+    return m;
+}
 
 //load marker data into marker array
 //loads unphased, ungrouped data
@@ -398,6 +489,7 @@ void load_phased_lg(struct conf*c,const char*fname,const char*lg)
 /*
 load all linkage groups
 treat as phased and fully imputed
+used by crosslink_viewer
 */
 void load_phased_all(struct conf*c,const char*fname)
 {
@@ -471,7 +563,7 @@ void load_phased_all(struct conf*c,const char*fname)
         /*create marker*/
         i = c->nmarkers;
         c->nmarkers += 1;
-        c->array[i] = create_marker_phased(c,buff);
+        c->array[i] = create_marker_phased_imputed(c,buff);
         c->array[i]->lg = lg;
     }
     

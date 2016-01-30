@@ -3,11 +3,11 @@
 char*type_str[] = {"NULL","<lmxll>","<nnxnp>","<hkxhk>"};
 char*phase_str = "01";
 
-void save_data(struct conf*c,char*fname)
+void save_data(struct conf*c,char*fname,unsigned orig)
 {
     struct marker*m=NULL;
     FILE*f=NULL;
-    unsigned i,j,lg=9999999;
+    unsigned i,j,lg=9999999,hk1,hk2;
     
     assert(f = fopen(fname,"wb"));
 
@@ -18,7 +18,8 @@ void save_data(struct conf*c,char*fname)
     
     for(i=0; i<c->nmarkers; i++)
     {
-        if(!c->randomise_order && c->map[i]->lg != lg)
+        //identify beginning of each lg with a comment
+        if(orig && c->map[i]->lg != lg)
         {
             fprintf(f,"; group %03d markers %u\n",c->map[i]->lg,c->nmark[c->map[i]->lg]);
             lg = c->map[i]->lg;
@@ -27,8 +28,9 @@ void save_data(struct conf*c,char*fname)
         m = c->map[i];
         fprintf(f,"%s %s",m->name,type_str[m->type]);
         
-        if(!c->omit_phase)
+        if(orig)
         {
+            //output true phase
             switch(m->type)
             {
                 case LMTYPE:
@@ -44,6 +46,24 @@ void save_data(struct conf*c,char*fname)
                     else                 fprintf(f," {0");
                     if(m->phase[1])      fprintf(f,"1}");
                     else                 fprintf(f,"0}");
+                    break;
+                default:
+                    assert(0);
+            }
+        }
+        else
+        {
+            //hide phase
+            switch(m->type)
+            {
+                case LMTYPE:
+                    fprintf(f," {0-}");
+                    break;
+                case NPTYPE:
+                    fprintf(f," {-0}");
+                    break;
+                case HKTYPE:
+                    fprintf(f," {00}");
                     break;
                 default:
                     assert(0);
@@ -69,10 +89,30 @@ void save_data(struct conf*c,char*fname)
                     else                                  fprintf(f," nn");
                     break;
                 case HKTYPE:
-                    if(XOR(c->data[j][0][i],m->phase[0])) fprintf(f," k");
-                    else                                  fprintf(f," h");
-                    if(XOR(c->data[j][1][i],m->phase[1])) fprintf(f,"k");
-                    else                                  fprintf(f,"h");
+                    hk1 = XOR(c->data[j][0][i],m->phase[0]);
+                    hk2 = XOR(c->data[j][1][i],m->phase[1]);
+                    
+                    if(orig)
+                    {
+                        //output full information
+                        if(hk1) fprintf(f," k");
+                        else    fprintf(f," h");
+                        if(hk2) fprintf(f,"k");
+                        else    fprintf(f,"h");
+                    }
+                    else
+                    {
+                        //hide hk verus kh information
+                        if(hk1 == hk2)
+                        {
+                            if(hk1) fprintf(f," kk");
+                            else    fprintf(f," hh");
+                        }
+                        else
+                        {
+                            fprintf(f," hk");
+                        }
+                    }
                     break;
                 default:
                     assert(0);

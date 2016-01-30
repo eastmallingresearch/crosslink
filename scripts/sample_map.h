@@ -40,15 +40,12 @@ struct conf
     char*out;             //output file
     char*orig;            //output without errors/missing file
 
-    unsigned nind;        //number of individuals in population
-    unsigned prng_seed;   //PRNG seed, 0=>using system time
-    double prob_missing;  //prob genotype is missing
-    double prob_error;    //prob genotype call is wrong
-    double prob_type_error;    //prob lm type is called as np or vice versa
-    unsigned randomise_order;     //randomise marker order in output data
-    unsigned hide_hk_inheritance; //always output hk for hk or kh calls
-    unsigned omit_phase;    //do not output the phase column 
-    unsigned map_func;    //which mapping function, 1=haldane,2=kosambi
+    unsigned nind;                //number of individuals in population
+    unsigned prng_seed;           //PRNG seed, 0=>using system time
+    double prob_missing;          //prob genotype is missing
+    double prob_error;            //prob genotype call is wrong
+    double prob_type_error;       //prob lm type is called as np or vice versa
+    unsigned map_func;            //which mapping function, 1=haldane,2=kosambi
 
     unsigned nmarkers;
     unsigned nlgs;
@@ -59,7 +56,7 @@ struct conf
 };
 
 void load_map(struct conf*c);
-void save_data(struct conf*c,char*fname);
+void save_data(struct conf*c,char*fname,unsigned orig);
 void sample_map(struct conf*c);
 void sample_individual(struct conf*c,unsigned**data);
 double inverse_kosambi(double d);

@@ -10,9 +10,6 @@ int main(int argc,char*argv[])
     parsestr(argc,argv,"orig",&c->orig,0,NULL);
     parseuns(argc,argv,"nind",&c->nind,1,200);
     parseuns(argc,argv,"prng_seed",&c->prng_seed,1,0);
-    parseuns(argc,argv,"randomise_order",&c->randomise_order,1,0);
-    parseuns(argc,argv,"hide_hk_inheritance",&c->hide_hk_inheritance,1,0);
-    parseuns(argc,argv,"omit_phase",&c->omit_phase,1,0);
     parsedbl(argc,argv,"prob_missing",&c->prob_missing,1,0.0);
     parsedbl(argc,argv,"prob_error",&c->prob_error,1,0.0);
     parsedbl(argc,argv,"prob_type_error",&c->prob_type_error,1,0.0);
@@ -35,15 +32,13 @@ int main(int argc,char*argv[])
     
     sample_map(c);
     
-    if(c->randomise_order) random_order(c);
+    if(c->orig) save_data(c,c->orig,1);
 
-    if(c->orig) save_data(c,c->orig);
-
-    apply_errors(c);
+    if(c->prob_missing+c->prob_error+c->prob_type_error > 0.0) apply_errors(c);
     
-    if(c->hide_hk_inheritance) hide_hk(c);
+    random_order(c);
 
-    save_data(c,c->out);
+    save_data(c,c->out,0);
     
     return 0;
 }

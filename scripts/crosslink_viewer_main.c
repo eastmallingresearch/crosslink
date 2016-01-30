@@ -158,7 +158,9 @@ int main(int argc,char*argv[])
     if(hardware) assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED));
     else         assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE));
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest"); //"linear" or "nearest"
-    assert(tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING, c->nmarkers, c->nmarkers));
+    //assert(tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING, c->nmarkers, c->nmarkers));
+    assert(tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC, c->nmarkers, c->nmarkers));
+    SDL_UpdateTexture(tex, NULL, buff, c->nmarkers * sizeof (uint32_t));
     
     while(1)
     {
@@ -167,7 +169,7 @@ int main(int argc,char*argv[])
         src.w = width_pix;
         src.h = width_pix;
         
-        SDL_UpdateTexture(tex, NULL, buff, c->nmarkers * sizeof (uint32_t));
+        //SDL_UpdateTexture(tex, NULL, buff, c->nmarkers * sizeof (uint32_t));
         SDL_RenderClear(ren);
         SDL_RenderCopy(ren, tex, &src, NULL);
         SDL_RenderPresent(ren);

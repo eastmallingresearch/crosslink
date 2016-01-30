@@ -10,10 +10,11 @@ set -eu
 
 TYPE="-Wall -Wextra -O3"
 
-RJVUTILS=/home/vicker/rjv_mnt/cluster/git_repos/rjvbio/rjv_cutils.c
+RJVUTILS=~/rjv_mnt/cluster/git_repos/rjvbio/rjv_cutils.c
 
 gcc ${TYPE}\
     -I/home/vicker/rjv_mnt/cluster/git_repos/rjvbio\
+    -I/home/rov/rjv_mnt/cluster/git_repos/rjvbio\
     -o crosslink_viewer\
     gg_utils.c\
     gg_ga.c\
