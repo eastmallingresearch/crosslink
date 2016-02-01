@@ -13,7 +13,7 @@ also runs gibbs sampler to impute inheritance vectors for hk/kh genotypes
 #include "gg_utils.h"
 #include "gg_ga.h"
 #include "gg_gibbs.h"
-#include "/home/vicker/git_repos/rjvbio/rjv_cutils.h"
+#include "rjv_cutils.h"
 
 int main(int argc,char*argv[])
 {
@@ -184,7 +184,7 @@ int main(int argc,char*argv[])
             printf("unable to open file %s for output\n",c->out);
             exit(1);
         }
-        print_order(c,c->array,f);
+        print_order(c,c->lg,c->nmarkers,c->array,f);
         fclose(f);
     }
 

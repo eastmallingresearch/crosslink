@@ -1,6 +1,6 @@
 #include "gg_group.h"
 #include "gg_utils.h"
-#include "/home/vicker/git_repos/rjvbio/rjv_cutils.h"
+#include "rjv_cutils.h"
 
 int main(int argc,char*argv[])
 {

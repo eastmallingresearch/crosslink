@@ -7,7 +7,7 @@
 
 set -eu
 
-TYPE="-Wall -Wextra -O3"
+TYPE="-Wall -Wextra -O3 -I/home/vicker/git_repos/rjvbio"
 
 RJVUTILS=/home/vicker/git_repos/rjvbio/rjv_cutils.c
 
@@ -43,7 +43,6 @@ gcc ${TYPE}\
     -lm
     
 #build main executable
-<<COMM
 gcc ${TYPE}\
     -o gg_map\
     gg_main.c\
@@ -53,7 +52,6 @@ gcc ${TYPE}\
     gg_gibbs.o\
     ${RJVUTILS}\
     -lm
-COMM
 
 #build map distance utility
 gcc ${TYPE}\
@@ -63,6 +61,14 @@ gcc ${TYPE}\
     gg_ga.o\
     gg_group.o\
     gg_gibbs.o\
+    ${RJVUTILS}\
+    -lm
+
+#build lg fragment sorter utility
+gcc ${TYPE}\
+    -o crosslink_sorter\
+    crosslink_sorter_main.c\
+    gg_utils.o\
     ${RJVUTILS}\
     -lm
 

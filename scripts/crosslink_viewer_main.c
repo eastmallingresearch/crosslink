@@ -21,7 +21,7 @@ int main(int argc,char*argv[])
     SDL_Event eve;
     SDL_Rect src;
     unsigned size,i,j,x,R,N,S,val[3],val2[3],tmpval;
-    unsigned hardware;
+    unsigned hardware,skip_markers,total_markers;
     struct marker*m1=NULL;
     struct marker*m2=NULL;
     double rf,s,lod,minlod;
@@ -34,18 +34,20 @@ int main(int argc,char*argv[])
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
     parsestr(argc,argv,"inp",&c->inp,0,NULL);
-    parseuns(argc,argv,"window_size",&size,1,500);
+    parseuns(argc,argv,"window_size",&size,1,1000);
     parsedbl(argc,argv,"minlod",&minlod,1,3.0);
-    parseuns(argc,argv,"phased",&c->view_phased,1,1);
+    //parseuns(argc,argv,"phased",&c->view_phased,1,1);
     parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
     parseuns(argc,argv,"hardware_accel",&hardware,1,1);
+    parseuns(argc,argv,"skip_markers",&skip_markers,1,0);   //load starting from the first marker
+    parseuns(argc,argv,"total_markers",&total_markers,1,0); //zero indicates load all markers
     parseend(argc,argv);
     
     //precalc bitmasks for every possible bit position
     init_masks(c);
 
     //load phased marker data from all lgs
-    load_phased_all(c,c->inp);
+    load_phased_all(c,c->inp,skip_markers,total_markers);
     
     base_pix = (double)c->nmarkers / 2.0;      //control view window
     width_pix = c->nmarkers;

@@ -89,6 +89,80 @@ struct marker* new_marker(struct conf*c,char*buff)
     return m;
 }
 
+//calc all-versus-all LOD values
+//store only the highest interLG LOD values
+double* find_maxlod(struct conf*c,double minlod)
+{
+    double*maxlod=NULL;
+    double rf,s,lod;
+    unsigned i,j,k,l,S,R=0,N=0,RR=0,NN=0;
+    struct marker*m1=NULL;
+    struct marker*m2=NULL;
+    
+    assert(maxlod = calloc(c->nlgs*c->nlgs,sizeof(double)));
+    
+    for(i=0; i<c->nlgs-1; i++)
+    {
+        for(j=i+1; j<c->nlgs; j++)
+        {
+            for(k=0; k<c->lg_nmarkers[i]; k++)
+            {
+                m1 = c->lg_markers[i][k];
+                
+                for(l=0; l<c->lg_nmarkers[j]; l++)
+                {
+                    m2 = c->lg_markers[j][l];
+                    
+                    //LM<=>NP linkage
+                    if((m1->type == LMTYPE && m2->type == NPTYPE) || (m1->type == NPTYPE && m2->type == LMTYPE))
+                    {
+                        if(m1->type == LMTYPE) calc_RN_simple2(c,m1,m2,0,1,&R,&N);
+                        else                   calc_RN_simple2(c,m1,m2,1,0,&R,&N);
+                    }
+                    else
+                    {
+                        if(m1->data[0] && m2->data[0]) calc_RN_simple(c,m1,m2,0,&R,&N);
+                        if(m1->data[1] && m2->data[1]) calc_RN_simple(c,m1,m2,1,&RR,&NN);
+                        
+                        if(NN > N)
+                        {
+                            R = RR;
+                            N = NN;
+                        }
+                    }
+                        
+                    if(N == 0) continue;
+                    rf = (double)R / N;
+                    
+                    //calculate linkage LOD
+                    s = 1.0 - rf;
+                    S = N - R;
+                    
+                    lod = 0.0;
+                    if(s > 0.0) lod += S * log10(2.0*s);
+                    if(rf > 0.0) lod += R * log10(2.0*rf);
+                    
+                    if(lod >= minlod && lod >= maxlod[i*c->nlgs+j])
+                    {
+                        maxlod[i*c->nlgs+j] = lod;
+                        maxlod[j*c->nlgs+i] = lod;
+                    }
+                }
+            }
+        }
+    }
+    
+    /*for(i=0; i<c->nlgs-1; i++)
+    {
+        for(j=i+1; j<c->nlgs; j++)
+        {
+            printf("%u %u %lf\n",i,j,maxlod[i*c->nlgs+j]);
+        }
+    }*/
+    
+    return maxlod;
+}
+
 //create marker from the data in the string
 //treat as unphased
 struct marker* create_marker_raw(struct conf*c,char*buff)
@@ -279,9 +353,8 @@ struct marker* create_marker_phased(struct conf*c,char*buff)
     return m;
 }
 
-
 //create marker from the data in the string
-//treat as already phased, but hks as unknown
+//treat as already phased and hks as imputed
 struct marker* create_marker_phased_imputed(struct conf*c,char*buff)
 {
     struct marker*m=NULL;
@@ -487,16 +560,16 @@ void load_phased_lg(struct conf*c,const char*fname,const char*lg)
 }
 
 /*
-load all linkage groups
+load all markers, do not separate into LGs
 treat as phased and fully imputed
 used by crosslink_viewer
 */
-void load_phased_all(struct conf*c,const char*fname)
+void load_phased_all(struct conf*c,const char*fname,unsigned skip,unsigned total)
 {
     FILE*f=NULL;
     char buff[BUFFER];
     char*pch=NULL;
-    unsigned i,narray;
+    unsigned i,narray,skip_ct;
     int lg;
 
     /*open input file*/
@@ -528,6 +601,7 @@ void load_phased_all(struct conf*c,const char*fname)
     assert(c->array = calloc(narray,sizeof(struct marker*)));
     
     lg=-1;
+    skip_ct=0;
     
     /*read all markers*/
     while(1)
@@ -553,6 +627,13 @@ void load_phased_all(struct conf*c,const char*fname)
             //printf("%ld => nind = %d\n",strlen(buff) - (pch-buff) - 2,c->nind);
         }
 
+        //skip required number of initial markers
+        if(skip_ct < skip)
+        {
+            skip_ct += 1;
+            continue;
+        }
+
         /*expand marker array if required*/
         if(c->nmarkers == narray)
         {
@@ -565,9 +646,101 @@ void load_phased_all(struct conf*c,const char*fname)
         c->nmarkers += 1;
         c->array[i] = create_marker_phased_imputed(c,buff);
         c->array[i]->lg = lg;
+        
+        if(total > 0 && c->nmarkers >= total) break; //load only required number of markers
     }
     
+    assert(c->nmarkers > 0);
+    
     compress_to_bitstrings(c,c->nmarkers,c->array);
+    
+    fclose(f);
+}
+
+/*
+load all markers, separate by LG
+treat as phased and fully imputed
+used by crosslink_sorter
+*/
+void load_imputed_by_lg(struct conf*c,const char*fname)
+{
+    FILE*f=NULL;
+    char buff[BUFFER];
+    char buff2[BUFFER];
+    char*pch=NULL;
+    unsigned ctr,i;
+
+    /*open input file*/
+    assert(f = fopen(fname,"rb"));
+
+    /*read first line*/
+    assert(fgets(buff,BUFFER,f));
+
+    /*skip joinmap header if present*/
+    if(strncmp(buff,"name",4) == 0)
+    {
+        assert(fgets(buff,BUFFER,f));
+        assert(fgets(buff,BUFFER,f));
+        assert(fgets(buff,BUFFER,f));
+    }
+    else
+    {
+        rewind(f); /*if no header, return to start of file*/
+    }
+    
+    /*calculate how many BITTYPE variables needed to contain this number of bits*/
+    //c->nvar = (c->nind + BITSIZE - 1) / BITSIZE;
+    c->nvar = 0; //work this value out after loading the first marker
+    c->nind = 0;
+    c->nmarkers = 0;
+    
+    c->nlgs = 0;
+    c->lg_nmarkers = NULL;
+    c->lg_markers = NULL;
+    c->lg_names = NULL;
+    ctr = 0;
+    
+    /*read all markers*/
+    while(1)
+    {
+        /*read next line*/
+        if(fgets(buff,BUFFER,f) == NULL) break; //end of file
+        
+        if(buff[0] == ';')
+        {
+            //each linkage group must have a header line like:
+            //; group GROUPNAME markers NMARKERS
+            c->nlgs += 1;
+            ctr=0;
+            assert(c->lg_nmarkers = realloc(c->lg_nmarkers,c->nlgs*sizeof(unsigned)));
+            assert(c->lg_markers = realloc(c->lg_markers,c->nlgs*sizeof(struct marker**)));
+            assert(c->lg_names = realloc(c->lg_names,c->nlgs*sizeof(char*)));
+            assert(sscanf(buff,"%*s %*s %s %*s %u",buff2,&(c->lg_nmarkers[c->nlgs-1])) == 2);
+            assert(c->lg_markers[c->nlgs-1] = calloc(c->lg_nmarkers[c->nlgs-1],sizeof(struct marker*)));
+            assert(c->lg_names[c->nlgs-1] = calloc(strlen(buff2)+2,sizeof(char)));
+            strcpy(c->lg_names[c->nlgs-1],buff2);
+            continue;
+        }
+        
+        assert(c->nlgs > 0);
+        assert(strlen(buff) < BUFFER-1);
+        
+        /*count number of individuals from the first marker encountered*/
+        if(c->nvar == 0)
+        {
+            assert(pch = strchr(buff,'}')); //find end of phasing info
+            c->nind = (strlen(buff) - (pch - buff) - 2) / 3;//calc number of individuals
+            c->nvar = (c->nind + BITSIZE - 1) / BITSIZE;
+            //printf("%ld => nind = %d\n",strlen(buff) - (pch-buff) - 2,c->nind);
+        }
+
+        /*create marker*/
+        c->lg_markers[c->nlgs-1][ctr] = create_marker_phased_imputed(c,buff);
+        c->lg_markers[c->nlgs-1][ctr]->lg = c->nlgs-1;
+        ctr += 1;
+    }
+    
+    for(i=0; i<c->nlgs; i++) compress_to_bitstrings(c,c->lg_nmarkers[i],c->lg_markers[i]);
     
     fclose(f);
 }
@@ -857,15 +1030,16 @@ void create_random_map(struct conf*c)
 #endif
 
 /*
-print the ordered linkage group to stdout
+print the ordered linkage group to file
 */
-void print_order(struct conf*c,struct marker**marray,FILE*f)
+void print_order(struct conf*c,const char*name,unsigned nmarkers,struct marker**marray,FILE*f)
 {
     struct marker*m=NULL;
     unsigned i,j;
     
-    fprintf(f,"; group %s markers %u\n",c->lg,c->nmarkers);
-    for(i=0; i<c->nmarkers; i++)
+    //fprintf(f,"; group %s markers %u\n",c->lg,c->nmarkers);
+    fprintf(f,"; group %s markers %u\n",name,nmarkers);
+    for(i=0; i<nmarkers; i++)
     {
         m = marray[i];
         fprintf(f,"%s ",m->name);

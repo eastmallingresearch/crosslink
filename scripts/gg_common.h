@@ -259,6 +259,7 @@ struct conf
     
     struct marker***lg_markers;
     struct edge***lg_edges;
+    char**lg_names;
 
     unsigned**cache[2];         //cached intermarker distances
     unsigned unidir_mode;        //true if resampling using unidirectional method
