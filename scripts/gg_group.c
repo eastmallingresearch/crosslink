@@ -32,6 +32,7 @@ void fix_marker_types(struct conf*c,unsigned lg)
         if(m->type != HKTYPE) ntrees += 1;
     }
 
+    //union find into smallest number of groups
     for(i=0; i<c->lg_nedges[lg] && ntrees>1; i++)
     {
         e = c->lg_edges[lg][i];
@@ -46,13 +47,13 @@ void fix_marker_types(struct conf*c,unsigned lg)
         }
     }
     
-    //count lms and nps in each tree
     assert(lmct = calloc(ntrees,sizeof(unsigned)));
     assert(npct = calloc(ntrees,sizeof(unsigned)));
     
     //sort by tree grouping
     qsort(c->lg_markers[lg],c->lg_nmarkers[lg],sizeof(struct marker*),mcomp_func);
     
+    //count lms and nps in each tree
     curr = NULL;
     prev = NULL;
     for(i=0; i<c->lg_nmarkers[lg]; i++)
@@ -993,7 +994,7 @@ void sort_by_dist(struct conf*c,unsigned lg)
 
 /*
 build centimorgan-minimising MST per LG including cxr / rxc linkage
-deal with maternal and paternal phases separately
+deal with maternal and paternal information separately
 x=0 => maternal
 x=1 => paternal
 */
@@ -1102,15 +1103,33 @@ void order_markers(struct conf*c,unsigned nmark,struct marker**marray,unsigned n
     /*if(ntrees != 1)
     {
         //DEBUG
+        struct marker*mtmp;
         for(i=0; i<nmark; i++)
         {
             m = marray[i];
             mtmp = find_group(m);
             printf("%s %p treesize=%u\n",m->name,mtmp,mtmp->uf_rank);
         }
+        printf("ntrees=%u\n",ntrees);
     }*/
     
-    assert(ntrees == 1);
+    if(ntrees > 1)
+    {
+        for(i=0; i<nmark; i++)
+        {
+            m = marray[i];
+            m->pos[x] = NO_POSN;           //no map position defined
+        }
+        
+        if(c->flog)
+        {
+            if(x == 0) fprintf(c->flog,"#failed to order maternal map backbone\n");
+            else       fprintf(c->flog,"#failed to order paternal map backbone\n");
+        }
+        
+        return;
+    }
+    
     
     /*for(i=0; i<c->lg_nmarkers[lg]; i++)
     {
