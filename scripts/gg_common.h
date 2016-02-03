@@ -85,6 +85,13 @@ eg SWAP(array[i],array[rand()%n],itmp) will evaluate rand()%n twice to different
 #define CLEAR_BIT(x,i)  ((BITTYPE)(x) & ~(c->precalc_mask[i]) )
 #define FLIP_BIT(x,i)   ((BITTYPE)(x) ^  (c->precalc_mask[i]) )
 
+struct lg
+{
+    char*name;
+    unsigned nmarkers;
+    struct marker**array;
+};
+
 //data defining a single marker
 struct marker
 {
@@ -224,9 +231,6 @@ struct conf
     double   gibbs_twopt;            //_2 used throughout sampling
     unsigned gibbs_min_ctr;          //set hk state to missing if counter mag less than threshold
     
-    unsigned view_winsize;           //width and height of SDL window (pixels)
-    unsigned view_phased;            //whether to treat loaded data as phased or unphased
-
     unsigned nmarkers;     //number of markers
     unsigned nind;         //number of individuals in population
     unsigned nvar;         //length of bitstring array (ie how many BITTYPE variables)

@@ -11,6 +11,12 @@ TYPE="-Wall -Wextra -O3 -I/home/vicker/git_repos/rjvbio"
 
 RJVUTILS=/home/vicker/git_repos/rjvbio/rjv_cutils.c
 
+#build gg source
+for FNAME in gg_utils gg_ga gg_gibbs gg_group
+do
+    gcc ${TYPE} -c ${FNAME}.c -o ${FNAME}.o
+done
+
 #build create_map
 gcc ${TYPE}\
     -o create_map\
@@ -27,15 +33,9 @@ gcc ${TYPE}\
     ${RJVUTILS}\
     -lm
 
-#build gg source
-for FNAME in gg_utils gg_ga gg_gibbs gg_group
-do
-    gcc ${TYPE} -c ${FNAME}.c -o ${FNAME}.o
-done
-
 #build gg_group
 gcc ${TYPE}\
-    -o gg_group\
+    -o crosslink_group\
     gg_group.o\
     gg_utils.o\
     gg_group_main.c\
@@ -44,7 +44,7 @@ gcc ${TYPE}\
     
 #build main executable
 gcc ${TYPE}\
-    -o gg_map\
+    -o crosslink_map\
     gg_main.c\
     gg_utils.o\
     gg_ga.o\
@@ -55,7 +55,7 @@ gcc ${TYPE}\
 
 #build map distance utility
 gcc ${TYPE}\
-    -o gg_calc_dist\
+    -o crosslink_calc_dist\
     gg_calc_dist.c\
     gg_utils.o\
     gg_ga.o\

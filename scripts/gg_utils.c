@@ -745,6 +745,431 @@ void load_imputed_by_lg(struct conf*c,const char*fname)
     fclose(f);
 }
 
+/*
+set all phases to 0
+set hk calls to missing
+*/
+void generic_convert_to_unphased(struct conf*c,struct lg*p)
+{
+    struct marker*m=NULL;
+    unsigned i,j;
+    
+    for(i=0; i<p->nmarkers; i++)
+    {
+        m = p->array[i];
+        
+        switch(m->type)
+        {
+            case LMTYPE:
+                m->phase[0] = 0;
+                break;
+            case NPTYPE:
+                m->phase[1] = 0;
+                break;
+            case HKTYPE:
+                m->phase[0] = m->phase[1] = 0;
+                
+                for(j=0; j<c->nind; j++)
+                {
+                    if(m->data[0][j] != m->data[1][j])
+                    {
+                        m->data[0][j] = m->data[1][j] = MISSING;
+                    }
+                }
+                break;
+            default:
+                assert(0);
+        }
+    }
+    
+    compress_to_bitstrings(c,p->nmarkers,p->array);
+}
+
+void generic_convert_to_phased(struct conf*c,struct lg*p)
+{
+    struct marker*m=NULL;
+    unsigned i,j;
+    
+    for(i=0; i<p->nmarkers; i++)
+    {
+        m = p->array[i];
+        
+        switch(m->type)
+        {
+            case LMTYPE:
+                for(j=0; j<c->nind; j++)
+                {
+                    if(m->data[0][j] == MISSING) continue;
+                    if(XOR(m->data[0][j],m->phase[0])) m->data[0][j] = 1;
+                    else                               m->data[0][j] = 0; 
+                }
+                break;
+            case NPTYPE:
+                for(j=0; j<c->nind; j++)
+                {
+                    if(m->data[1][j] == MISSING) continue;
+                    if(XOR(m->data[1][j],m->phase[1])) m->data[1][j] = 1;
+                    else                               m->data[1][j] = 0; 
+                }
+                break;
+            case HKTYPE:
+                for(j=0; j<c->nind; j++)
+                {
+                    if(m->data[0][j] == MISSING) continue;
+                    
+                    if(m->data[0][j] != m->data[1][j])
+                    {
+                        m->data[0][j] = m->data[1][j] = MISSING;
+                        continue;
+                    }
+                    
+                    if(XOR(m->data[0][j],m->phase[0])) m->data[0][j] = 1;
+                    else                               m->data[0][j] = 0; 
+                    
+                    if(XOR(m->data[1][j],m->phase[1])) m->data[1][j] = 1;
+                    else                               m->data[1][j] = 0; 
+                }
+                break;
+            default:
+                assert(0);
+        }
+    }
+    
+    compress_to_bitstrings(c,p->nmarkers,p->array);
+}
+
+void generic_convert_to_imputed(struct conf*c,struct lg*p)
+{
+    struct marker*m=NULL;
+    unsigned i,j;
+    
+    for(i=0; i<p->nmarkers; i++)
+    {
+        m = p->array[i];
+        
+        switch(m->type)
+        {
+            case LMTYPE:
+                for(j=0; j<c->nind; j++)
+                {
+                    if(m->data[0][j] == MISSING) continue;
+                    if(XOR(m->data[0][j],m->phase[0])) m->data[0][j] = 1;
+                    else                               m->data[0][j] = 0; 
+                }
+                break;
+            case NPTYPE:
+                for(j=0; j<c->nind; j++)
+                {
+                    if(m->data[1][j] == MISSING) continue;
+                    if(XOR(m->data[1][j],m->phase[1])) m->data[1][j] = 1;
+                    else                               m->data[1][j] = 0; 
+                }
+                break;
+            case HKTYPE:
+                for(j=0; j<c->nind; j++)
+                {
+                    if(m->data[0][j] == MISSING) continue;
+                    
+                    if(XOR(m->data[0][j],m->phase[0])) m->data[0][j] = 1;
+                    else                               m->data[0][j] = 0; 
+                    
+                    if(XOR(m->data[1][j],m->phase[1])) m->data[1][j] = 1;
+                    else                               m->data[1][j] = 0; 
+                }
+                break;
+            default:
+                assert(0);
+        }
+    }
+    
+    compress_to_bitstrings(c,p->nmarkers,p->array);
+}
+
+struct marker* generic_load_marker(struct conf*c,FILE*f,unsigned lgctr)
+{
+    struct marker*m=NULL;
+    char buff[BUFFER];
+    char*buff2=NULL;
+    char name[BUFFER];
+    char type[BUFFER];
+    char phase[BUFFER];
+    size_t namelen;
+    unsigned i;
+    
+    assert(fgets(buff,BUFFER,f));
+
+    assert(m = calloc(1,sizeof(struct marker)));
+    
+    m->lg = lgctr;
+    
+    //set all 3 map positions to missing
+    m->pos[0] = NO_POSN;
+    m->pos[1] = NO_POSN;
+    m->pos[2] = NO_POSN;
+    
+    //separate marker name, type and phase
+    assert(sscanf(buff,"%s %s %s",name,type,phase) == 3);
+    
+    //copy marker name
+    namelen = strlen(name);
+    assert(m->name = calloc(namelen+1,sizeof(char)));
+    strcpy(m->name,name);
+    
+    if(c->nind == 0)
+    {
+        //calculate the number of individuals from the line length
+        c->nind = (strlen(buff) - namelen - 14) / 3;
+        c->nvar = (c->nind + BITSIZE - 1) / BITSIZE;
+    }
+    else
+    {
+        //check length of line is correct for the given marker name length and nind eg:
+        //'NAME <hkxhk> {01} hk hk... hk hk\n'
+        assert(strlen(buff) == namelen + 14 + 3*c->nind);
+    }
+    
+    //set type and phase
+    //alloc memory
+    if(type[1] != type[2] && type[4] != type[5])
+    {
+        //<hkxhk> or <abxab>
+        m->type = HKTYPE;
+        
+        if(phase[1] == '1') m->phase[0] = m->oldphase[0] = 1;
+        if(phase[2] == '1') m->phase[1] = m->oldphase[1] = 1;
+        
+        assert(m->bits[0] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->bits[1] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->mask[0] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->mask[1] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->data[0] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->data[1] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->orig[0] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->orig[1] = calloc(c->nind,sizeof(VARTYPE)));
+        
+        assert(m->code = calloc(c->nind,sizeof(VARTYPE)));
+    }
+    else if(type[1] != type[2] && type[4] == type[5])
+    {
+        //<lmxll> or <abxaa>
+        m->type = LMTYPE;
+        
+        if(phase[1] == '1') m->phase[0] = m->oldphase[0] = 1;
+        
+        assert(m->bits[0] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->mask[0] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->data[0] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->orig[0] = calloc(c->nind,sizeof(VARTYPE)));
+     }
+    else if(type[1] == type[2] && type[4] != type[5])
+    {
+        //<nnxnp> or <aaxab>
+        m->type = NPTYPE;
+        
+        if(phase[2] == '1') m->phase[1] = m->oldphase[1] = 1;
+        
+        assert(m->bits[1] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->mask[1] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->data[1] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->orig[1] = calloc(c->nind,sizeof(VARTYPE)));
+    }
+    else
+    {
+        //unsupported marker type
+        assert(0);
+    }
+    
+    //read in individual genotype calls
+    //data must be two characters per individual separated by one space
+    buff2 = buff + 14 + strlen(m->name);
+    
+    //marker segtype
+    switch(m->type)
+    {
+        //<lmxll> ll lm --
+        case LMTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff2[3*i] == '-' || buff2[3*i+1] == '-')
+                {
+                    //missing
+                    m->orig[0][i] = m->data[0][i] = MISSING;
+                }
+                else if(buff2[3*i] != buff2[3*i+1])
+                {
+                    //lm or ab
+                    m->orig[0][i] = m->data[0][i] = 1;
+                }
+            }
+            break;
+            
+        //<nnxnp> nn np --
+        case NPTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff2[3*i] == '-' || buff2[3*i+1] == '-')
+                {
+                    //missing
+                    m->orig[1][i] = m->data[1][i] = MISSING;
+                }
+                else if(buff2[3*i] != buff2[3*i+1])
+                {
+                    //np or ab
+                    m->orig[1][i] = m->data[1][i] = 1;
+                }
+            }
+            break;
+            
+        //<hkxhk> hh hk kh kk --
+        case HKTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff2[3*i] == '-' || buff2[3*i+1] == '-')
+                {
+                    //missing
+                    m->orig[0][i] = m->data[0][i] = MISSING;
+                    m->orig[1][i] = m->data[1][i] = MISSING;
+                    m->code[i] = MISSING;
+                }
+                else if(buff2[3*i] != buff2[3*i+1])
+                {
+                    //hk / kh
+                    if(buff2[3*i]   == type[2]) m->orig[0][i] = m->data[0][i] = 1;
+                    else                        m->orig[1][i] = m->data[1][i] = 1;
+                    m->code[i] = HK_CALL;
+                }
+                else if(buff2[3*i] == type[2])
+                {
+                    //kk
+                    m->orig[0][i] = m->data[0][i] = 1;
+                    m->orig[1][i] = m->data[1][i] = 1;
+                    m->code[i] = KK_CALL;
+                }
+                else
+                {
+                    //hh
+                    m->orig[0][i] = m->data[0][i] = 0;
+                    m->orig[1][i] = m->data[1][i] = 0;
+                    m->code[i] = HH_CALL;
+                }
+            }
+            break;
+            
+        default:
+            assert(0);
+    }
+    
+    return m;
+}
+
+/*
+load the next lg from the file
+does not support presence of a joinmap header
+*/
+struct lg* generic_load_lg(struct conf*c,FILE*f,unsigned lgctr)
+{
+    char buff[BUFFER];
+    char buff2[BUFFER];
+    struct lg*p=NULL;
+    unsigned i;
+    
+    assert(p = calloc(1,sizeof(struct lg)));
+
+    //each linkage group must have a header line like:
+    //; group GROUPNAME markers NMARKERS
+    assert(fgets(buff,BUFFER,f));
+    
+    //parse lg name and number of markers
+    assert(sscanf(buff,"%*s %*s %s %*s %u",buff2,&(p->nmarkers)) == 2);
+    assert(p->array = calloc(p->nmarkers,sizeof(struct marker*)));
+    assert(p->name = calloc(strlen(buff2)+2,sizeof(char)));
+    strcpy(p->name,buff2);
+    
+    //load markers
+    for(i=0; i<p->nmarkers; i++) p->array[i] = generic_load_marker(c,f,lgctr);
+    
+    return p;
+}
+
+/*
+load all remaining lgs in the file
+does not support presence of a joinmap header
+*/
+void generic_load_all(struct conf*c,const char*fname,unsigned*nlgs,struct lg***lgs)
+{
+    FILE*f=NULL;
+    char buff[BUFFER];
+    struct lg*p=NULL;
+    long fposn;
+    
+    assert(f = fopen(fname,"rb"));
+    assert(*nlgs == 0);
+    assert(*lgs == NULL);
+    
+    //read all remaining lgs
+    while(1)
+    {
+        //peek at next line
+        fposn = ftell(f);
+        if(fgets(buff,BUFFER,f) == NULL) break; //end of file
+        fseek(f, fposn, SEEK_SET);
+        
+        //if not eof must be start of next lg
+        assert(buff[0] == ';');
+        
+        //load in the lg header and markers
+        p = generic_load_lg(c,f,*nlgs);
+        
+        //append to the array of lgs
+        *nlgs += 1;
+        assert(*lgs = realloc(*lgs,*nlgs*sizeof(struct lg*)));
+        (*lgs)[(*nlgs)-1] = p;
+    }
+    
+    fclose(f);
+}
+
+/*
+load all lgs, then merge into a single lg
+*/
+struct lg* generic_load_merged(struct conf*c,const char*fname,unsigned skip,unsigned total)
+{
+    unsigned nlgs=0,prev;
+    struct lg**lgs=NULL;
+    unsigned i,j;
+    struct lg*p=NULL;
+    
+    //load all data into separate lgs
+    generic_load_all(c,fname,&nlgs,&lgs);
+    
+    assert(p = calloc(1,sizeof(struct lg)));
+    assert(p->name = calloc(10,sizeof(char)));
+    strcpy(p->name,"merged");
+    
+    //merge into a single chimeric "lg"
+    for(i=0; i<nlgs; i++)
+    {
+        prev = p->nmarkers;
+        p->nmarkers += lgs[i]->nmarkers;
+        assert(p->array = realloc(p->array,p->nmarkers*sizeof(struct marker*)));
+        
+        for(j=0; j<lgs[i]->nmarkers; j++) p->array[prev+j] = lgs[i]->array[j];
+        
+        free(lgs[i]->array);
+        free(lgs[i]->name);
+    }
+    free(lgs);
+    
+    //hide unwanted markers
+    assert(skip < p->nmarkers);
+    p->array += skip;
+    p->nmarkers -= skip;
+    
+    if(total && total < p->nmarkers) p->nmarkers = total;
+    
+    return p;
+}
+
 //count hk genotypes and allocate data structures for them
 void alloc_hks(struct conf*c)
 {

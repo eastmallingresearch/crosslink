@@ -79,10 +79,7 @@ void fix_marker_types(struct conf*c,unsigned lg)
         else                  npct[ctr] += 1;
     }
     
-    for(i=0; i<ntrees; i++)
-    {
-        printf("group %u lmct=%u npct=%u\n",i,lmct[i],npct[i]);
-    }
+    //for(i=0; i<ntrees; i++) printf("group %u lmct=%u npct=%u\n",i,lmct[i],npct[i]);
         
     curr = NULL;
     prev = NULL;

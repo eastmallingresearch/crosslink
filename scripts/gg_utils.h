@@ -40,3 +40,11 @@ void calc_RN_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,
 struct marker* create_marker_phased_imputed(struct conf*c,char*buff);
 void load_imputed_by_lg(struct conf*c,const char*fname);
 double* find_maxlod(struct conf*c,double minlod);
+
+void generic_load_all(struct conf*c,const char*fname,unsigned*nlgs,struct lg***lgs);
+struct lg* generic_load_lg(struct conf*c,FILE*f,unsigned lgctr);
+struct marker* generic_load_marker(struct conf*c,FILE*f,unsigned lgctr);
+struct lg* generic_load_merged(struct conf*c,const char*fname,unsigned skip,unsigned total);
+void generic_convert_to_unphased(struct conf*c,struct lg*p);
+void generic_convert_to_phased(struct conf*c,struct lg*p);
+void generic_convert_to_imputed(struct conf*c,struct lg*p);

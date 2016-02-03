@@ -108,7 +108,7 @@ int main(int argc,char*argv[])
         
         phase_markers(c,i,0);
         phase_markers(c,i,1);
-        impute_missing(c,c->lg_nmarkers[i],c->lg_markers[i],c->lg_nedges[i],c->lg_edges[i]);
+        if(c->grp_knn > 0) impute_missing(c,c->lg_nmarkers[i],c->lg_markers[i],c->lg_nedges[i],c->lg_edges[i]);
     }
     
     //give markers approximate order

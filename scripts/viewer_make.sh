@@ -8,7 +8,8 @@
 
 set -eu
 
-TYPE="-Wall -Wextra -O3"
+#TYPE="-Wall -Wextra -O3"
+TYPE="-Wall -Wextra -g"
 
 RJVUTILS=~/rjv_mnt/cluster/git_repos/rjvbio/rjv_cutils.c
 
@@ -20,6 +21,7 @@ gcc ${TYPE}\
     gg_ga.c\
     gg_gibbs.c\
     gg_group.c\
-    crosslink_viewer_main.c\
+    crosslink_viewer.c\
+    crosslink_viewer_main2.c\
     ${RJVUTILS}\
     -lSDL2 -lm
