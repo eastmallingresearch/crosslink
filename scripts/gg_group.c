@@ -661,11 +661,12 @@ void build_elist(struct conf*c,struct lg*p,struct earray*e)
                 }
             }
             
-            //DEBUG
-            //printf("%s -> %s lod=%f rf=%f cxrflag=%u\n",m1->name,m2->name,lod,rf,cxr_flag);
 
             if(lod < c->grp_min_lod || lod == NO_RFLOD) continue;
             
+            //DEBUG
+            //printf("%s %s lod= %f rf= %f cxrflag= %u\n",m1->name,m2->name,lod,rf,cxr_flag);
+
             add_edge2(e,m1,m2,lod,rf,cxr_flag,0.0,nonhk);
         }
     }
@@ -1574,7 +1575,7 @@ void split_edges(struct earray*ea,struct map*mp)
     {
         e = ea->array[i];
         if(e->m1->lg != e->m2->lg) continue; //ignore edge if bridges two lgs
-        mp->earrays[i]->nedgemax += 1; //count egdes per lg
+        mp->earrays[e->m1->lg]->nedgemax += 1; //count egdes per lg
     }
     
     //alloc space for all edges
@@ -1694,7 +1695,8 @@ void split_markers(struct lg*p,struct map*mp)
         if((int)lg != prev) ctr = 0;
         
         mp->lgs[lg]->array[ctr] = m;
-
+        
+        ctr += 1;
         prev = lg;
     }
     

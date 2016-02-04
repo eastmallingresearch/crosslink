@@ -12,7 +12,7 @@
 #include <unistd.h>
 
 /*length of longest allowable line in the input file*/
-#define BUFFER 50000
+#define BUFFER 30000
 
 //whether to use 64 bit ints for the bitstrings
 #define RJV_UINT64
@@ -191,6 +191,8 @@ struct conf
     char*map; //output map file
     char*mstmap; //output mstmap file
     char*lg;  //which linkage group to process
+    char*outbase; //output filename base
+    char*mapbase; //output map filename base
     FILE*flog;
     
     unsigned gg_prng_seed;        //0 => use system time, >0 => deterministic behaviour

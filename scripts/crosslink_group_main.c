@@ -9,12 +9,13 @@ int main(int argc,char*argv[])
     struct lg*p=NULL;
     struct earray*e=NULL;
     unsigned i;
+    char buff[BUFFER];
    
     //parse command line options
     assert(c = calloc(1,sizeof(struct conf)));
     parsestr(argc,argv,"inp",&c->inp,0,NULL);
-    parsestr(argc,argv,"out",&c->out,1,"NONE");
-    parsestr(argc,argv,"map",&c->map,1,"NONE");
+    parsestr(argc,argv,"outbase",&c->outbase,1,"NONE");
+    parsestr(argc,argv,"mapbase",&c->mapbase,1,"NONE");
     parsestr(argc,argv,"log",&c->log,1,"NONE");
     parseuns(argc,argv,"prng_seed",&c->gg_prng_seed,1,0);
     parseuns(argc,argv,"map_func",&c->gg_map_func,1,1);
@@ -129,15 +130,23 @@ int main(int argc,char*argv[])
     if(c->flog && c->gg_show_pearson) show_pearson_all(c,mp);
     
     //save to file grouped by lg and sorted by approx order
-    if(strcmp(c->out,"NONE") != 0)
+    if(strcmp(c->outbase,"NONE") != 0)
     {
-        for(i=0; i<mp->nlgs; i++) save_lg_markers(c,c->out,mp->lgs[i]);
+        for(i=0; i<mp->nlgs; i++)
+        {
+            sprintf(buff,"%s%s.loc",c->outbase,mp->lgs[i]->name);
+            save_lg_markers(c,buff,mp->lgs[i]);
+        }
     }
     
     //save approx map positions
-    if(strcmp(c->map,"NONE") != 0)
+    if(strcmp(c->mapbase,"NONE") != 0)
     {
-        for(i=0; i<mp->nlgs; i++) save_lg_map(c->map,mp->lgs[i]);
+        for(i=0; i<mp->nlgs; i++)
+        {
+            sprintf(buff,"%s%s.map",c->mapbase,mp->lgs[i]->name);
+            save_lg_map(buff,mp->lgs[i]);
+        }
     }
     
     /*close log file*/

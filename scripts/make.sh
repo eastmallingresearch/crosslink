@@ -7,7 +7,7 @@
 
 set -eu
 
-TYPE="-Wall -Wextra -O3 -I/home/vicker/git_repos/rjvbio"
+TYPE="-Wall -Wextra -g -I/home/vicker/git_repos/rjvbio"
 
 RJVUTILS=/home/vicker/git_repos/rjvbio/rjv_cutils.c
 

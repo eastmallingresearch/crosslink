@@ -174,6 +174,9 @@ uint32_t*generate_image(struct conf*c,struct lg*p,double minlod)
                             if(s > 0.0) lod += S * log10(2.0*s);
                             if(rf > 0.0) lod += R * log10(2.0*rf);
                             
+                            //DEBUG code
+                            //printf("%s %s %lf\n",m1->name,m2->name,lod);
+                            
                             if(lod >= minlod) val2[x] = tanh(lod/50.0) * 255.999;
                         }
                     }

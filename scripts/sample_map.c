@@ -11,10 +11,15 @@ void save_data(struct conf*c,char*fname,unsigned orig)
     
     assert(f = fopen(fname,"wb"));
 
-    fprintf(f,"name = POPNAME\n");
+    /*fprintf(f,"name = POPNAME\n");
     fprintf(f,"popt = CP\n");
     fprintf(f,"nloc = %u\n",c->nmarkers);
-    fprintf(f,"nind = %u\n",c->nind);
+    fprintf(f,"nind = %u\n",c->nind);*/
+    
+    if(!orig)
+    {
+        fprintf(f,"; group 000 markers %u\n",c->nmarkers);
+    }
     
     for(i=0; i<c->nmarkers; i++)
     {
