@@ -1291,16 +1291,18 @@ void calc_RN_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,
 calculate magnitude of Pearson correlation coefficient
 assuming correct marker order corresponds with original ordering in file
 */
-void show_pearson_all(struct conf*c)
+void show_pearson_all(struct conf*c,struct map*mp)
 {
     unsigned i;
-    double p;
+    double pscore;
+    struct lg*p=NULL;
     
-    for(i=0; i<c->nlgs; i++)
+    for(i=0; i<mp->nlgs; i++)
     {
         //pearson correlation coefficient per LG
-        p = calc_pearson(c->lg_nmarkers[i],c->lg_markers[i]);
-        fprintf(c->flog,"#lg %u Pearson correlation coefficient %f\n",i,p);
+        p = mp->lgs[i];
+        pscore = calc_pearson(p->nmarkers,p->array);
+        fprintf(c->flog,"#lg %u Pearson correlation coefficient %f\n",i,pscore);
     }
 }
 
@@ -1617,6 +1619,35 @@ void check_invert_paternal(unsigned n,struct marker**marray)
             if(m->data[1]) m->pos[1] = maxpat - m->pos[1];
         }
     }
+}
+
+//combine maternal and paternal map positions to give final estimated order
+void comb_map_positions2(struct conf*c,struct lg*p,unsigned flip_check)
+{
+    struct marker*m=NULL;
+    unsigned i,nhk;
+    
+    //ensure there are at least two hk markers in this lg
+    nhk = 0;
+    for(i=0; i<p->nmarkers; i++)
+    {
+        m = p->array[i];
+        m->pos[2] = NO_POSN;
+        if(m->type == HKTYPE) nhk += 1;
+    }
+    
+    if(nhk < 2)
+    {
+        if(c->flog) fprintf(c->flog,"#lg %s has less than 2 hk markers, cannot produce combined map\n",p->name);
+        return;
+    }
+    
+    //flip paternal map positions if reversed wrt maternal
+    //does nothing if less than two hk markers in this lg
+    if(flip_check) check_invert_paternal(p->nmarkers,p->array);
+    
+    //interpolate / extrapolate lm/np positions from averaged hk positions
+    combine_maps(p->nmarkers,p->array);
 }
 
 //combine maternal and paternal map positions to give final estimated order

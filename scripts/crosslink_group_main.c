@@ -5,9 +5,9 @@
 int main(int argc,char*argv[])
 {
     struct conf*c=NULL;
+    struct map*mp=NULL;
     struct lg*p=NULL;
     struct earray*e=NULL;
-    FILE*f=NULL;
     unsigned i;
    
     //parse command line options
@@ -21,6 +21,7 @@ int main(int argc,char*argv[])
     parseuns(argc,argv,"randomise_order",&c->gg_randomise_order,1,0);
     parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,0);
     parseuns(argc,argv,"show_pearson",&c->gg_show_pearson,1,0);
+    parseuns(argc,argv,"detect_matpat_linkage",&c->grp_detect_matpat,1,0);
     parseuns(argc,argv,"fix_marker_type",&c->grp_fix_type,1,0);
     parseuns(argc,argv,"check_phase",&c->grp_check_phase,1,0);
     parsedbl(argc,argv,"min_lod",&c->grp_min_lod,1,3.0);
@@ -92,61 +93,51 @@ int main(int argc,char*argv[])
     build_elist(c,p,e);
     
     //sort by LOD
-    sort_elist(c->nedge,c->elist);
+    sort_elist(e);
     
     //form linkage groups
-    form_groups(c);
-    
-    //split markers and edges into separate LGs
-    split_into_lgs(c);
+    assert(mp = calloc(1,sizeof(struct map)));
+    form_groups(c,p,e,mp);
     
     //phase markers per lg / parental origin
     //sets m->phase
     //impute missing values
-    for(i=0; i<c->nlgs; i++)
+    for(i=0; i<mp->nlgs; i++)
     {   
         //fix marker typing errors (ie switch LM <=> NP)
-        if(c->grp_fix_type) fix_marker_types(c,i);
+        if(c->grp_detect_matpat && c->grp_fix_type) fix_marker_types(c,mp->lgs[i],mp->earrays[i]);
         
-        phase_markers(c,i,0);
-        phase_markers(c,i,1);
-        if(c->grp_knn > 0) impute_missing(c,c->lg_nmarkers[i],c->lg_markers[i],c->lg_nedges[i],c->lg_edges[i]);
+        phase_markers(c,mp->lgs[i],mp->earrays[i],0);
+        phase_markers(c,mp->lgs[i],mp->earrays[i],1);
+        
+        if(c->grp_knn > 0) impute_missing(c,mp->lgs[i],mp->earrays[i]);
     }
     
     //give markers approximate order
-    for(i=0; i<c->nlgs; i++)
+    for(i=0; i<mp->nlgs; i++)
     {
-        sort_by_dist(c,i);    //calc edge map distances and sort
-        order_markers(c,c->lg_nmarkers[i],c->lg_markers[i],c->lg_nedges[i],c->lg_edges[i],0);  //maternal ordering
-        order_markers(c,c->lg_nmarkers[i],c->lg_markers[i],c->lg_nedges[i],c->lg_edges[i],1);  //paternal ordering
-        comb_map_positions(c,c->lg_nmarkers[i],c->lg_markers[i],i,1);                          //combine mat/pat info with flip check
+        sort_by_dist(c,mp->earrays[i]);    //calc edge map distances and sort
+        order_markers2(c,mp->lgs[i],mp->earrays[i],0);  //maternal ordering
+        order_markers2(c,mp->lgs[i],mp->earrays[i],1);  //paternal ordering
+        comb_map_positions2(c,mp->lgs[i],1);   //combine mat/pat info with flip check
     }
     
     //if processing test data with known phase, check for phasing errors
-    if(c->flog && c->grp_check_phase) check_phase(c);
+    if(c->flog && c->grp_check_phase) check_phase(c,mp);
     
     //calc pearson correlation wrt true marker order
-    if(c->flog && c->gg_show_pearson) show_pearson_all(c);
+    if(c->flog && c->gg_show_pearson) show_pearson_all(c,mp);
     
     //save to file grouped by lg and sorted by approx order
-    if(strcmp(c->out,"NONE") != 0) save_markers(c,c->out);
+    if(strcmp(c->out,"NONE") != 0)
+    {
+        for(i=0; i<mp->nlgs; i++) save_lg_markers(c,c->out,mp->lgs[i]);
+    }
     
     //save approx map positions
     if(strcmp(c->map,"NONE") != 0)
     {
-        f = fopen(c->map,"wb");
-        if(f == NULL)
-        {
-            printf("unable to open file %s for output\n",c->map);
-            exit(1);
-        }
-
-        for(i=0; i<c->nlgs; i++)
-        {
-            print_map(c->lg_nmarkers[i],c->lg_markers[i],f,i,NULL);
-        }
-        
-        fclose(f);
+        for(i=0; i<mp->nlgs; i++) save_lg_map(c->map,mp->lgs[i]);
     }
     
     /*close log file*/

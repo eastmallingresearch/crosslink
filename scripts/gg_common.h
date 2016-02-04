@@ -85,10 +85,18 @@ eg SWAP(array[i],array[rand()%n],itmp) will evaluate rand()%n twice to different
 #define CLEAR_BIT(x,i)  ((BITTYPE)(x) & ~(c->precalc_mask[i]) )
 #define FLIP_BIT(x,i)   ((BITTYPE)(x) ^  (c->precalc_mask[i]) )
 
+//set of lgs and earrays
+struct map
+{
+    unsigned nlgs;
+    struct lg**lgs;
+    struct earray**earrays;
+};
+
 //array of edges (marker-marker comparisons)
 struct earray
 {
-    unsigned nedge,nedgemax;
+    unsigned nedges,nedgemax;
     struct edge**array;
 };
 
@@ -204,7 +212,8 @@ struct conf
     unsigned grp_em_maxit;          //max EM iterations before giving up
     unsigned grp_check_phase;       //for test data with known phase, check for phasing errors
     unsigned grp_knn;               //k parameter of kNN imputation
-    unsigned grp_fix_type;          //test for LM <=> NP linkage, correct false marker types
+    unsigned grp_detect_matpat;     //test for LM <=> NP linkage when forming LGs
+    unsigned grp_fix_type;          //fix incorrect LM <=> NP  marker typing
     
     unsigned ga_gibbs_cycles;//how many overall cycles of ga+gibbs to perform
     unsigned ga_report;      //how often to report ga progress
