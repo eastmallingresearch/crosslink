@@ -22,6 +22,6 @@ gcc ${TYPE}\
     gg_gibbs.c\
     gg_group.c\
     crosslink_viewer.c\
-    crosslink_viewer_main2.c\
+    crosslink_viewer_main.c\
     ${RJVUTILS}\
     -lSDL2 -lm

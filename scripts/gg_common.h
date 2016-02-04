@@ -85,6 +85,14 @@ eg SWAP(array[i],array[rand()%n],itmp) will evaluate rand()%n twice to different
 #define CLEAR_BIT(x,i)  ((BITTYPE)(x) & ~(c->precalc_mask[i]) )
 #define FLIP_BIT(x,i)   ((BITTYPE)(x) ^  (c->precalc_mask[i]) )
 
+//array of edges (marker-marker comparisons)
+struct earray
+{
+    unsigned nedge,nedgemax;
+    struct edge**array;
+};
+
+//one linkage group
 struct lg
 {
     char*name;

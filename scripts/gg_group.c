@@ -356,6 +356,32 @@ void update_data(struct conf*c,unsigned nmark,struct marker**marray)
     compress_to_bitstrings(c,nmark,marray);
 }
 
+//append new edge to array, expanding first if required
+void add_edge2(struct earray*e,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk)
+{
+    struct edge*p=NULL;
+    
+    //expand the array if required
+    if(e->nedge == e->nedgemax)
+    {
+        if(e->nedgemax == 0) e->nedgemax = 500;
+        else                 e->nedgemax *= 2;
+        assert(e->array = realloc(e->array,e->nedgemax*sizeof(struct edge*)));
+    }
+    
+    assert(p = calloc(1,sizeof(struct edge)));
+    e->array[e->nedge] = p;
+    e->nedge += 1;
+    
+    p->lod = lod;
+    p->rf = rf;
+    p->cxr_flag = cxr_flag;
+    p->m1 = m1;
+    p->m2 = m2;
+    p->cm = cm;
+    p->nonhk = nonhk;
+}
+
 void add_edge(struct conf*c,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk)
 {
     struct edge*p=NULL;
@@ -583,7 +609,7 @@ void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,un
 build a list of all lod values above the threshold
 by scanning all-vs-all markers
 */
-void build_elist(struct conf*c)
+void build_elist(struct conf*c,struct lg*p,struct earray*e)
 {
     unsigned i,j;
     double lod,rf;
@@ -591,13 +617,13 @@ void build_elist(struct conf*c)
     struct marker*m1=NULL;
     struct marker*m2=NULL;
     
-    for(i=0; i<c->nmarkers-1; i++)
+    for(i=0; i<p->nmarkers-1; i++)
     {
-        m1 = c->array[i];
+        m1 = p->array[i];
         
-        for(j=i+1; j<c->nmarkers; j++)
+        for(j=i+1; j<p->nmarkers; j++)
         {
-            m2 = c->array[j];
+            m2 = p->array[j];
             
             lod = NO_RFLOD;
             rf = NO_RFLOD;
@@ -640,11 +666,11 @@ void build_elist(struct conf*c)
 
             if(lod < c->grp_min_lod || lod == NO_RFLOD) continue;
             
-            add_edge(c,m1,m2,lod,rf,cxr_flag,0.0,nonhk);
+            add_edge2(e,m1,m2,lod,rf,cxr_flag,0.0,nonhk);
         }
     }
     
-    if(c->flog) fprintf(c->flog,"#%u edges added\n",c->nedge);
+    if(c->flog) fprintf(c->flog,"#%u edges added\n",e->nedge);
 }
 
 /*
@@ -684,10 +710,10 @@ int ecomp_mapdist_nonhk(const void*_p1, const void*_p2)
 }
 
 /*sort edges so that largest lod is at the top*/
-void sort_elist(struct conf*c)
+void sort_elist(unsigned nedges,struct edge**elist)
 {
     
-    qsort(c->elist,c->nedge,sizeof(struct edge*),ecomp_func);
+    qsort(elist,nedges,sizeof(struct edge*),ecomp_func);
 
     //unsigned i;
     //for(i=0; i<c->nedge; i++) printf("%f\n",c->elist[i]->lod);

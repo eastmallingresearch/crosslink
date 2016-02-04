@@ -38,7 +38,7 @@ gcc ${TYPE}\
     -o crosslink_group\
     gg_group.o\
     gg_utils.o\
-    gg_group_main.c\
+    crosslink_group_main.c\
     ${RJVUTILS}\
     -lm
     

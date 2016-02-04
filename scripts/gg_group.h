@@ -1,12 +1,13 @@
 #include "gg_common.h"
 
+void add_edge2(struct earray*e,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk);
 void add_edge(struct conf*c,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk);
 void calc_rflod_simple(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,double*_lod,double*_rf);
 void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,unsigned*_cxr_flag);
-void build_elist(struct conf*c);
+void build_elist(struct conf*c,struct lg*p,struct earray*e);
 int ecomp_func(const void*_p1, const void*_p2);
 int ecomp_mapdist_nonhk(const void*_p1, const void*_p2);
-void sort_elist(struct conf*c);
+void sort_elist(unsigned nedges,struct edge**elist);
 struct marker*find_group(struct marker*m);
 unsigned union_groups(struct marker*m1,struct marker*m2);
 void form_groups(struct conf*c);
