@@ -209,13 +209,13 @@ struct conf
     unsigned gg_pause;            //wait for ENTER after printing bits
 
     double   grp_min_lod;           //min LOD score to consider as linkage
-    unsigned grp_min_lgs;           //min lgs to allows
+    //unsigned grp_min_lgs;           //min lgs to allows
     double   grp_em_tol;            //tolerance, EM assumed to have converged once change is <= this value
     unsigned grp_em_maxit;          //max EM iterations before giving up
     unsigned grp_check_phase;       //for test data with known phase, check for phasing errors
     unsigned grp_knn;               //k parameter of kNN imputation
-    unsigned grp_detect_matpat;     //test for LM <=> NP linkage when forming LGs
-    unsigned grp_fix_type;          //fix incorrect LM <=> NP  marker typing
+    double   grp_matpat_lod;          //if >0.0, detect and correct incorrect marker typing
+    unsigned grp_ignore_cxr;        //ignore cxr and rxc phasing between hk markers
     
     unsigned ga_gibbs_cycles;//how many overall cycles of ga+gibbs to perform
     unsigned ga_report;      //how often to report ga progress

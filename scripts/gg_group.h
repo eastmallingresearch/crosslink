@@ -25,7 +25,7 @@ void split_markers(struct lg*p,struct map*mp);
 void save_lg_markers(struct conf*c,const char*fname,struct lg*p);
 void save_lg_map(const char*fname,struct lg*p);
 void check_phase(struct conf*c,struct map*mp);
-void sort_by_dist(struct conf*c,struct earray*ea);
+void distance_and_sort(struct conf*c,struct earray*ea);
 void impute_missing(struct conf*c,struct lg*p,struct earray*ea);
 void update_data(struct conf*c,unsigned nmark,struct marker**array);
 double impute_est_rf(struct conf*c,struct marker*m1,struct marker*m2,unsigned x);

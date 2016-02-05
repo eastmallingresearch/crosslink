@@ -22,14 +22,14 @@ int main(int argc,char*argv[])
     parseuns(argc,argv,"randomise_order",&c->gg_randomise_order,1,0);
     parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,0);
     parseuns(argc,argv,"show_pearson",&c->gg_show_pearson,1,0);
-    parseuns(argc,argv,"detect_matpat_linkage",&c->grp_detect_matpat,1,0);
-    parseuns(argc,argv,"fix_marker_type",&c->grp_fix_type,1,0);
+    parsedbl(argc,argv,"matpat_lod",&c->grp_matpat_lod,1,0.0);
     parseuns(argc,argv,"check_phase",&c->grp_check_phase,1,0);
     parsedbl(argc,argv,"min_lod",&c->grp_min_lod,1,3.0);
     parsedbl(argc,argv,"em_tol",&c->grp_em_tol,1,1e-5);
     parseuns(argc,argv,"em_maxit",&c->grp_em_maxit,1,100);
-    parseuns(argc,argv,"min_lgs",&c->grp_min_lgs,1,1);
+    //parseuns(argc,argv,"min_lgs",&c->grp_min_lgs,1,1);
     parseuns(argc,argv,"knn",&c->grp_knn,1,5);
+    parseuns(argc,argv,"ignore_cxr",&c->grp_ignore_cxr,1,0);
     parseend(argc,argv);
     
     //seed random number generator(s)
@@ -93,9 +93,6 @@ int main(int argc,char*argv[])
     assert(e = calloc(1,sizeof(struct earray)));
     build_elist(c,p,e);
     
-    //sort by LOD
-    sort_elist(e);
-    
     //form linkage groups
     assert(mp = calloc(1,sizeof(struct map)));
     form_groups(c,p,e,mp);
@@ -106,10 +103,11 @@ int main(int argc,char*argv[])
     for(i=0; i<mp->nlgs; i++)
     {   
         //fix marker typing errors (ie switch LM <=> NP)
-        if(c->grp_detect_matpat && c->grp_fix_type) fix_marker_types(c,mp->lgs[i],mp->earrays[i]);
+        if(c->grp_matpat_lod > 0.0) fix_marker_types(c,mp->lgs[i],mp->earrays[i]);
         
         phase_markers(c,mp->lgs[i],mp->earrays[i],0);
         phase_markers(c,mp->lgs[i],mp->earrays[i],1);
+        generic_apply_phasing(c,mp->lgs[i]);
         
         if(c->grp_knn > 0) impute_missing(c,mp->lgs[i],mp->earrays[i]);
     }
@@ -117,10 +115,10 @@ int main(int argc,char*argv[])
     //give markers approximate order
     for(i=0; i<mp->nlgs; i++)
     {
-        sort_by_dist(c,mp->earrays[i]);    //calc edge map distances and sort
+        distance_and_sort(c,mp->earrays[i]);            //calc edge map distances and sort, prioritise nonhk
         order_markers2(c,mp->lgs[i],mp->earrays[i],0);  //maternal ordering
         order_markers2(c,mp->lgs[i],mp->earrays[i],1);  //paternal ordering
-        comb_map_positions2(c,mp->lgs[i],1);   //combine mat/pat info with flip check
+        comb_map_positions2(c,mp->lgs[i],1);            //combine mat/pat info with flip check
     }
     
     //if processing test data with known phase, check for phasing errors

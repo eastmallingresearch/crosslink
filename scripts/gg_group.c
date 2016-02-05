@@ -6,6 +6,9 @@ fix marker types
 where strong linkage exists between LM and NP markers take this to indicate
 that the parental genotypes were wrong, and that the marker type should be
 switched between LM <=> NP
+form trees excluding hk markers
+where a tree ends up with a minority of the other type of marker (eg a few LMs in an NP tree)
+switch the type of the minority to the majority
 */
 void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
 {
@@ -32,7 +35,7 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
         if(m->type != HKTYPE) ntrees += 1;
     }
 
-    //union find into smallest number of groups
+    //union find into trees
     for(i=0; i<ea->nedges && ntrees>1; i++)
     {
         e = ea->array[i];
@@ -50,7 +53,7 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
     assert(lmct = calloc(ntrees,sizeof(unsigned)));
     assert(npct = calloc(ntrees,sizeof(unsigned)));
     
-    //sort by tree grouping
+    //sort markers by tree grouping
     qsort(p->array,p->nmarkers,sizeof(struct marker*),mcomp_func);
     
     //count lms and nps in each tree
@@ -102,11 +105,12 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
         
         prev = curr;
         
-        //convert to most commom marker type in the current tree
+        //convert to most common marker type in the current tree
         //if tied, choose lm arbitrarily
-        if(m->type == LMTYPE)
+        if(lmct[ctr] < npct[ctr])
         {
-            if(lmct[ctr] < npct[ctr])
+            //tree is assumed to be NP
+            if(m->type == LMTYPE)
             {
                 //convert lm -> np
                 m->type = NPTYPE;
@@ -123,9 +127,10 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
                 changes += 1;
             }
         }
-        else if(m->type == NPTYPE)
+        else
         {
-            if(npct[ctr] <= lmct[ctr])
+            //tree is assumed to be LM
+            if(m->type == NPTYPE)
             {
                 //convert np -> lm
                 m->type = LMTYPE;
@@ -143,13 +148,41 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
             }
         }
     }
-    //are there any left over lm<=>np edges?
     
+    //flag any remaining edges between a mat and a pat marker with a negative lod
+    for(i=0; i<ea->nedges; i++)
+    {
+        e = ea->array[i];
+        
+        if(e->m1->type == HKTYPE || e->m2->type == HKTYPE) continue;
+        if(e->m1->type == e->m2->type) continue;
+        
+        e->lod = -1000.0;
+    }
+    
+    //sort edges by LOD, negative LODs go at the end
+    qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_func);
+    
+    //ignore negative lod edges
+    for(i=0; i<ea->nedges; i++)
+    {
+        e = ea->array[i];
+        
+        if(e->lod < 0.0)
+        {
+            ea->nedges = i; //not actually freeing them D:
+            break;
+        }
+    }
+
     if(c->flog) fprintf(c->flog,"#linkage group %s, type fixing resolved %u groups, %u marker type(s) changed\n",p->name,ntrees,changes);
 }
 
 /*
 imputing missing genotype calls using kNN method
+note: hk calls have their data set to missing but may not be actually missing
+therefore look at orig to decide if that call is actually missing
+rather than just being an hk that is not imputed yet
 */
 void impute_missing(struct conf*c,struct lg*p,struct earray*ea)
 {
@@ -160,9 +193,6 @@ void impute_missing(struct conf*c,struct lg*p,struct earray*ea)
     unsigned i,j,k,x;
     double rf,dval;
     
-    //update m->data/mask/bits to reflect phasing
-    update_data(c,p->nmarkers,p->array);
-
     //create missing value imputation data structures
     impute_alloc(c,p->nmarkers,p->array);
     
@@ -178,7 +208,7 @@ void impute_missing(struct conf*c,struct lg*p,struct earray*ea)
         {
             if(!m1->orig[x] || !m2->orig[x]) continue;
             
-            rf = NO_RFLOD;
+            rf = NO_RFLOD; //rf is bidirectional therefore should avoid calc it twice
             
             for(j=0; j<c->nind; j++)
             {
@@ -488,16 +518,19 @@ with possibly higher certainty through indirect means
 void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,unsigned*_cxr_flag)
 {
     unsigned i,j,N;
-    unsigned n[9] = {0,0,0,0,0,0,0,0,0};
+    unsigned n[10] = {0,0,0,0,0,0,0,0,0,0};
     double r,s,val,sum1,sum2,sum3;
     double lod_cxr,lod_cxc,rf_cxr,rf_cxc;
     
+    //count combinations of marker calls in each catergory
+    //n[1] ...n[9] correspond to n1...n9 in Table 2.3 Maliepaard et al. (1997)
+    //n[0] is unused
     N = 0;
     for(i=0; i<c->nind; i++)
     {
         if(m1[i] == MISSING || m2[i] == MISSING) continue;
         N += 1;
-        j = 3 * m1[i] + m2[i];
+        j = 3 * m1[i] + m2[i] + 1;
         n[j] += 1;
     }
     
@@ -512,8 +545,8 @@ void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,un
     //calc ML estimate of rf assuming cxr or rxc phasing
     //see Maliepaard et al. (1997) Table 2.3, case No. 7
     
-    sum1 = n[0] + n[2] + n[4] + n[6] + n[8]; //n[0] ...n[8] correspond to n1...n9 in Table 2.3
-    sum2 = n[1] + n[3] + n[5] + n[7];
+    sum1 = n[1] + n[3] + n[5] + n[7] + n[9]; //n[1] ...n[9] correspond to n1...n9 in Table 2.3
+    sum2 = n[2] + n[4] + n[6] + n[8];
     val = 0.25 - sum1 / (2.0 * (double)N);   //val e [-1/4, 1/4]
     
     lod_cxr = NO_RFLOD;
@@ -541,11 +574,11 @@ void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,un
     rf_cxc = 0.25;
     s = 1.0 - rf_cxc;
 
-    sum3 = sum2 + 2.0 * ((double)n[2] + n[6]);
+    sum3 = sum2 + 2.0 * ((double)n[3] + n[7]);
     
     for(i=0; i<c->grp_em_maxit; i++)
     {
-        r = (sum3 + 2.0*(double)n[4]*rf_cxc*rf_cxc
+        r = (sum3 + 2.0*(double)n[5]*rf_cxc*rf_cxc
                     / (1.0 - 2.0*rf_cxc*s))          // >= 0.5
             / (2.0 * (double)N);
         
@@ -574,7 +607,7 @@ void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,un
     lod_cxc = 0.0;
     val = 2.0 * s; //e [0,1]
                                   //non recomb counts
-    if(val > 0.0) lod_cxc += 2.0*((double)n[0] + n[8]) * LOG10(val);
+    if(val > 0.0) lod_cxc += 2.0*((double)n[1] + n[9]) * LOG10(val);
     
     val = 4.0 * rf_cxc * s; //e [0,1]
     
@@ -582,12 +615,12 @@ void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,un
     if(val > 0.0) lod_cxc += sum2 * LOG10(val);
     
                                      //2 recomb counts
-    if(rf_cxc > 0.0) lod_cxc += 2.0*((double)n[2] + n[6]) * LOG10(2.0 * rf_cxc);
+    if(rf_cxc > 0.0) lod_cxc += 2.0*((double)n[3] + n[7]) * LOG10(2.0 * rf_cxc);
     
     val = 2.0 - 4.0 * rf_cxc * s; //e [1,2]
     assert(val > 0.0);
                        //two or zero recomb count
-    lod_cxc += (double)n[4] * LOG10(val);
+    lod_cxc += (double)n[5] * LOG10(val);
     
     if(lod_cxc > lod_cxr)
     {
@@ -637,6 +670,8 @@ void build_elist(struct conf*c,struct lg*p,struct earray*e)
             if(m1->type == HKTYPE && m2->type == HKTYPE)
             {
                 calc_rflod_hk(c,m1->code,m2->code,&lod,&rf,&cxr_flag);
+                
+                if(c->grp_ignore_cxr && cxr_flag) continue; //ignore cxr / rxc linkage
             }
             //LM vs LM or HK
             else if(m1->data[0] && m2->data[0])
@@ -649,7 +684,7 @@ void build_elist(struct conf*c,struct lg*p,struct earray*e)
                 calc_rflod_simple(c,m1,m2,1,&lod,&rf);
             }
             //LM vs NP if matpat option is active
-            else if(c->grp_detect_matpat)
+            else if(c->grp_matpat_lod > 0.0)
             {
                 if(m1->type == LMTYPE && m2->type == NPTYPE)
                 {
@@ -659,8 +694,10 @@ void build_elist(struct conf*c,struct lg*p,struct earray*e)
                 {
                     calc_rflod_simple2(c,m1,m2,1,0,&lod,&rf);
                 }
+                
+                //apply additional lod threshold
+                if(lod < c->grp_matpat_lod || lod == NO_RFLOD) continue;
             }
-            
 
             if(lod < c->grp_min_lod || lod == NO_RFLOD) continue;
             
@@ -672,22 +709,6 @@ void build_elist(struct conf*c,struct lg*p,struct earray*e)
     }
     
     if(c->flog) fprintf(c->flog,"#%u edges added\n",e->nedges);
-}
-
-/*
-used by qsort to sort the list into descending order by lod
-*/
-int ecomp_func(const void*_p1, const void*_p2)
-{
-    struct edge*p1=NULL;
-    struct edge*p2=NULL;
-    
-    p1 = *((struct edge**)_p1);
-    p2 = *((struct edge**)_p2);
-    
-    if(p1->lod < p2->lod) return 1;
-    if(p1->lod > p2->lod) return -1;
-    return 0;
 }
 
 //sort edges into ascending order by map distance
@@ -754,6 +775,22 @@ unsigned union_groups(struct marker*m1,struct marker*m2)
 }
 
 /*
+used by qsort to sort the list into descending order by lod
+*/
+int ecomp_func(const void*_p1, const void*_p2)
+{
+    struct edge*p1=NULL;
+    struct edge*p2=NULL;
+    
+    p1 = *((struct edge**)_p1);
+    p2 = *((struct edge**)_p2);
+    
+    if(p1->lod < p2->lod) return 1;
+    if(p1->lod > p2->lod) return -1;
+    return 0;
+}
+
+/*
 form linkage groups using edges in order of decreasing lod
 use all edges (including cxr/rxc edges)
 no phasing is performed, just grouping
@@ -764,10 +801,13 @@ void form_groups(struct conf*c,struct lg*p,struct earray*ea,struct map*mp)
     double min_lod_used=-1.0;
     struct edge*e=NULL;
     struct marker*m=NULL;
+
+    //no need to sort edges by LOD if we will use all of them for LG formation
+    //sort edges by LOD, largest LOD values go first
+    //qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_func);
     
+    //initialise to a disconnected forest
     mp->nlgs = p->nmarkers;
-    
-    //initialise union-find variables to a disconnected forest
     for(i=0; i<p->nmarkers; i++)
     {
         m = p->array[i];
@@ -775,9 +815,8 @@ void form_groups(struct conf*c,struct lg*p,struct earray*ea,struct map*mp)
         m->uf_rank = 1;
     }
     
-    //perform unions between groups until the requested number of linkage groups are formed
-    //or until no more (lod-filtered) edges are left
-    for(i=0; i<ea->nedges && mp->nlgs > c->grp_min_lgs; i++)
+    //perform unions between groups until no more (lod-filtered) edges are left
+    for(i=0; i<ea->nedges && mp->nlgs > 1; i++)
     {
         e = ea->array[i];
         
@@ -810,11 +849,12 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     struct edge*e=NULL;
     struct edgelist*p1=NULL;
     struct edgelist*p2=NULL;
-    unsigned i,ntrees,ret;
+    unsigned i,ntrees;
     unsigned nepool,nepoolmax;
     struct edgelist*epool=NULL;
+    char *lab[] = {"mat","pat"};
     
-    //ensure edges are still sorted by decreasing lod
+    //sort edges by decreasing lod
     qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_func);
     
     //printf("phase_markers x=%u\n",x);
@@ -830,18 +870,25 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     {
         m = p->array[i];
         
-        /*
-        each marker begins in its own group with no attached edges
-        */
+        //each marker begins in its own group with no attached edges
         m->uf_parent = m;
         m->uf_rank = 1;
         m->adj_list = NULL;
         m->dfs_marked = 0;
+        
         if(m->data[x])
         {
             ntrees += 1;
             if(m_start == NULL) m_start = m; //a suitable marker for start of dfs
         }
+    }
+    
+    //check we have some markers to phase
+    if(ntrees < 2)
+    {
+        if(c->flog) fprintf(c->flog,"#phasing lg %s(%s) found %d applicable markers, no phasing required\n",
+                            p->name,lab[x],ntrees);
+        return;
     }
     
     //alloc edgelists
@@ -868,6 +915,7 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         if(e->m1->data[x] == NULL || e->m2->data[x] == NULL) continue;
         
         //ignore cxr / rxc hk-hk linkage
+        //since this provides incomplete phasing information
         if(e->cxr_flag) continue;
         
         //check lod is sensible
@@ -875,9 +923,9 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         
         //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
         
-        ret = union_groups(e->m1,e->m2);
-        
-        if(ret == 0) continue; //no union
+        if(union_groups(e->m1,e->m2) == 0) continue;
+
+        ntrees -= 1;
         
         //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
 
@@ -899,17 +947,14 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         append_edge(&e->m2->adj_list,p2);
         
         //printf("%s => %s lod=%f rf=%f\n",e->m1->name,e->m2->name,e->lod,e->rf);
-        
-        ntrees -= 1;
     }
     
-    /*
-    warn if phasing failed to complete for whole lg
-    in which case we should probably split the lg into sub-lgs
-    */
-    if(ntrees > 1 && c->flog) fprintf(c->flog,"#phasing lg %s failed to complete: phasing resolved into %u subgroups\n",p->name,ntrees);
-    
-    if(ntrees == 0) return; //no markers to phase
+    //abort phasing if failed to resolve into a single group
+    if(ntrees > 1)
+    {
+        if(c->flog) fprintf(c->flog,"#phasing lg %s(%s) failed: still split into %u subgroups\n",p->name,lab[x],ntrees);
+        return;
+    }
     
     /*for(i=0; i<c->lg_nmarkers[lg]; i++)
     {
@@ -971,7 +1016,7 @@ void dfs_phase(struct conf*c,struct marker*m,unsigned phase,unsigned x)
 //which could be an indirect route ie not be the direct marker-marker edge itself
 //therefore we look at m->phase[] not the info in the edge itself
 //edges are sorted to give priority to nonhk markers
-void sort_by_dist(struct conf*c,struct earray*ea)
+void distance_and_sort(struct conf*c,struct earray*ea)
 {
     struct edge*e=NULL;
     struct marker*m1=NULL;
@@ -1033,8 +1078,9 @@ void order_markers2(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     struct edge*e=NULL;
     struct edgelist*p1=NULL;
     struct edgelist*p2=NULL;
-    unsigned i,ntrees,ret;
+    unsigned i,ntrees;
     double dist;
+    char *lab[] = {"mat","pat"};
     unsigned nepool,nepoolmax;
     struct edgelist*epool=NULL;
     
@@ -1065,7 +1111,11 @@ void order_markers2(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         }
     }
     
-    if(ntrees == 0) return; //no markers to order
+    if(ntrees == 0)
+    {
+        if(c->flog) fprintf(c->flog,"lg %s(%s) no markers to order\n",p->name,lab[x]);
+        return; //no markers to order
+    }
     
     //DEBUG
     //printf("initial trees= %u\n",ntrees);
@@ -1094,9 +1144,9 @@ void order_markers2(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
         
         //see if the edge joins two separate trees into one
-        ret = union_groups(e->m1,e->m2);
+        if(union_groups(e->m1,e->m2) == 0) continue;
         
-        if(ret == 0) continue; //no union
+        ntrees -= 1;
         
         //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
 
@@ -1114,9 +1164,6 @@ void order_markers2(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
 
         append_edge(&e->m1->adj_list,p1);
         append_edge(&e->m2->adj_list,p2);
-        
-        
-        ntrees -= 1;
         
         //DEBUG
         /*printf("order_marker %s(type=%u,lg=%u,rank=%u) => %s(%u,%u,rank=%u) lod=%f rf=%f ntrees=%u %u/%u\n",
@@ -1140,17 +1187,13 @@ void order_markers2(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     
     if(ntrees > 1)
     {
-        for(i=0; i<p->nmarkers; i++)
+        /*for(i=0; i<p->nmarkers; i++)
         {
             m = p->array[i];
-            m->pos[x] = NO_POSN;           //no map position defined
-        }
+            m->pos[x] = NO_POSN;           //should already be set to this value
+        }*/
         
-        if(c->flog)
-        {
-            if(x == 0) fprintf(c->flog,"#failed to order maternal map backbone\n");
-            else       fprintf(c->flog,"#failed to order paternal map backbone\n");
-        }
+        if(c->flog) fprintf(c->flog,"#lg %s(%s): backbone resolved into %u subgroups\n",p->name,lab[x],ntrees);
         
         return;
     }
@@ -1206,13 +1249,14 @@ void order_markers2(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     {
         m = p->array[i];
         m->dfs_marked = 0;
-        m->pos[x] = NO_POSN;           //no map position defined yet
+        //m->pos[x] = NO_POSN;           //no map position defined yet
     }
     
     //trace path back from last marker
     unsigned count=0;
     dist = 0.0;
     m = m_end;
+    
     while(1)
     {
         m->pos[x] = dist;
@@ -1227,11 +1271,7 @@ void order_markers2(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         m = other(m->dfs_parent,m);
     }
     
-    if(c->flog)
-    {
-        if(x == 0) fprintf(c->flog,"#%u markers on maternal map backbone\n",count);
-        else       fprintf(c->flog,"#%u markers on paternal map backbone\n",count);
-    }
+    if(c->flog) fprintf(c->flog,"#lg %s(%s): %u markers on backbone\n",p->name,lab[x],count);
     
     //for any markers not on the longest path
     //assign position of nearest marker that is on the path

@@ -49,3 +49,4 @@ struct lg* generic_load_merged(struct conf*c,const char*fname,unsigned skip,unsi
 void generic_convert_to_unphased(struct conf*c,struct lg*p);
 void generic_convert_to_phased(struct conf*c,struct lg*p);
 void generic_convert_to_imputed(struct conf*c,struct lg*p);
+void generic_apply_phasing(struct conf*c,struct lg*p);

@@ -8,33 +8,18 @@ export PATH=${PATH}:/home/vicker/git_repos/crosslink/scripts
 
 set -u
 
-FNAME=test_refactored
+FNAME=RGxHA
 #FNAME=test
 SEED=$1
 
-RUN_CREATE=1
-RUN_SAMPLE=1
 RUN_GROUP=1
 RUN_MAP=0
 
-#create map options
-LGS=10
-LGSIZE=100
-MARKERS=1000
-PROB_HK=0.333
-PROB_LM=0.5
-
-#sample map options
-POPSIZE=200
-MISSING=0.0
-ERROR=0.0
-TYPEERR=0.0
-MAPFUNC=1          #1=haldane 2=kosambi
-
 #group options
+GRP_MAPFUNC=1
 GRP_MINLOD=10.0
-GRP_KNN=5
-GRP_MATPATLOD=0
+GRP_KNN=0
+GRP_MATPATLOD=20.0
 GRP_IGNORECXR=1
 
 #gg_map options
@@ -71,30 +56,6 @@ TWOPT_1=0.1
 TWOPT_2=0.0
 MIN_CTR=0
 
-if [ "${RUN_CREATE}" == "1" ]
-then
-    create_map --out ${FNAME}.map\
-              --nmarkers ${MARKERS}\
-              --nlgs ${LGS}\
-              --prng_seed ${SEED}\
-              --lg_size ${LGSIZE}\
-              --prob_hk ${PROB_HK}\
-              --prob_lm ${PROB_LM}
-fi
-
-if [ "${RUN_SAMPLE}" == "1" ]
-then
-    sample_map --inp ${FNAME}.map\
-                  --out ${FNAME}.loc\
-                  --orig ${FNAME}.origloc\
-                  --nind ${POPSIZE}\
-                  --prng_seed ${SEED}\
-                  --prob_missing ${MISSING}\
-                  --prob_error ${ERROR}\
-                  --prob_type_error ${TYPEERR}\
-                  --map_func ${MAPFUNC}
-fi
-
 if [ "${RUN_GROUP}" == "1" ]
 then
     rm -f ${FNAME}_group???.loc ${FNAME}_group???.map
@@ -104,7 +65,7 @@ then
                     --mapbase ${FNAME}_group\
                     --log ${FNAME}_group.log\
                     --prng_seed ${SEED}\
-                    --map_func ${MAPFUNC}\
+                    --map_func ${GRP_MAPFUNC}\
                     --bitstrings 1\
                     --min_lod ${GRP_MINLOD}\
                     --matpat_lod ${GRP_MATPATLOD}\
@@ -122,7 +83,7 @@ then
               --map ${x}.map2\
               --mstmap ${x}.mstmap\
               --prng_seed ${SEED}\
-              --map_func ${MAPFUNC}\
+              --map_func ${GRP_MAPFUNC}\
               --bitstrings 1\
               --ga_gibbs_cycles ${CYCLES}\
               --ga_iters ${GA_ITERS}\

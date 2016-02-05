@@ -885,6 +885,31 @@ void generic_convert_to_imputed(struct conf*c,struct lg*p)
     compress_to_bitstrings(c,p->nmarkers,p->array);
 }
 
+/*
+update m->data and bit strings to reflect marker phases
+*/
+void generic_apply_phasing(struct conf*c,struct lg*p)
+{
+    struct marker*m=NULL;
+    unsigned i,j,x;
+    
+    for(i=0; i<p->nmarkers; i++)
+    {
+        m = p->array[i];
+        
+        for(j=0; j<c->nind; j++)
+        {
+            for(x=0; x<2; x++)
+            {
+                if(!m->orig[x]) continue;
+                if(m->orig[x][j] != MISSING) m->data[x][j] = XOR(m->orig[x][j],m->phase[x]);
+            }
+        }
+    }
+    
+    compress_to_bitstrings(c,p->nmarkers,p->array);
+}
+
 struct marker* generic_load_marker(struct conf*c,FILE*f,unsigned lgctr)
 {
     struct marker*m=NULL;
@@ -1034,8 +1059,8 @@ struct marker* generic_load_marker(struct conf*c,FILE*f,unsigned lgctr)
                 else if(buff2[3*i] != buff2[3*i+1])
                 {
                     //hk / kh
-                    if(buff2[3*i]   == type[2]) m->orig[0][i] = m->data[0][i] = 1;
-                    else                        m->orig[1][i] = m->data[1][i] = 1;
+                    if(buff2[3*i] == type[2]) m->orig[0][i] = m->data[0][i] = 1;
+                    else                      m->orig[1][i] = m->data[1][i] = 1;
                     m->code[i] = HK_CALL;
                 }
                 else if(buff2[3*i] == type[2])
@@ -1164,7 +1189,6 @@ struct lg* generic_load_merged(struct conf*c,const char*fname,unsigned skip,unsi
     assert(skip < p->nmarkers);
     p->array += skip;
     p->nmarkers -= skip;
-    
     if(total && total < p->nmarkers) p->nmarkers = total;
     
     return p;
@@ -1632,7 +1656,7 @@ void comb_map_positions2(struct conf*c,struct lg*p,unsigned flip_check)
     for(i=0; i<p->nmarkers; i++)
     {
         m = p->array[i];
-        m->pos[2] = NO_POSN;
+        //m->pos[2] = NO_POSN;
         if(m->type == HKTYPE) nhk += 1;
     }
     
