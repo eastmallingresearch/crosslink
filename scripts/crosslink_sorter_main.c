@@ -37,7 +37,7 @@ int main(int argc,char*argv[])
     parsedbl(argc,argv,"minlod",&minlod,1,1.0);
     parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
     parseuns(argc,argv,"iters",&iters,1,5000);
-    parseuns(argc,argv,"retries",&retries,1,50000);
+    parseuns(argc,argv,"retries",&retries,1,5000);
     parseend(argc,argv);
     
     //precalc bitmasks for every possible bit position

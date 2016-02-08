@@ -21,7 +21,7 @@ struct marker*other(struct edgelist*p,struct marker*m);
 void append_edge(struct edgelist**list,struct edgelist*p);
 void split_edges(struct earray*ea,struct map*mp);
 int mcomp_func(const void*_m1, const void*_m2);
-void split_markers(struct lg*p,struct map*mp);
+void split_markers(struct conf*c,struct lg*p,struct map*mp);
 void save_lg_markers(struct conf*c,const char*fname,struct lg*p);
 void save_lg_map(const char*fname,struct lg*p);
 void check_phase(struct conf*c,struct map*mp);

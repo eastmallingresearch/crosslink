@@ -831,7 +831,7 @@ void form_groups(struct conf*c,struct lg*p,struct earray*ea,struct map*mp)
     
     if(c->flog) fprintf(c->flog,"#formed %u linkage groups with a min lod of %f\n",mp->nlgs,min_lod_used);
  
-    split_markers(p,mp);
+    split_markers(c,p,mp);
     split_edges(ea,mp);
 }
 
@@ -1674,7 +1674,7 @@ sort markers by linkage group
 set their lg property
 split into separate arrays
 */
-void split_markers(struct lg*p,struct map*mp)
+void split_markers(struct conf*c,struct lg*p,struct map*mp)
 {
     unsigned i,lg;
     int prev,ctr;
@@ -1702,7 +1702,7 @@ void split_markers(struct lg*p,struct map*mp)
             assert(mp->lgs[ctr] = calloc(1,sizeof(struct lg)));
         }
         
-        p->array[i]->lg = ctr;
+        p->array[i]->lg = ctr + c->basenumb;
         mp->lgs[ctr]->nmarkers += 1;
     }
     
@@ -1722,7 +1722,7 @@ void split_markers(struct lg*p,struct map*mp)
     {
         assert(mp->lgs[i]->array = calloc(mp->lgs[i]->nmarkers,sizeof(struct marker*)));
         assert(mp->lgs[i]->name = calloc(21,sizeof(char)));
-        sprintf(mp->lgs[i]->name,"%03d",i);
+        sprintf(mp->lgs[i]->name,"%03d",i+c->basenumb);
     }
     
     //split markers into separate lgs

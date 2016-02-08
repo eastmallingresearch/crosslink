@@ -535,7 +535,7 @@ void load_phased_lg(struct conf*c,const char*fname,const char*lg)
         /*each linkage group must have a header line like:   ; group GROUPNAME markers NMARKERS*/
         assert(sscanf(buff,"%*s %*s %s %*s %u",buff2,&nmarkers) == 2);
         
-        if(strcmp(buff2,lg) == 0) break;
+        if(strcmp(buff2,lg) == 0 || strcmp(lg,"NONE") == 0) break;
     }
 
     /*allocate the marker arrays*/
@@ -819,7 +819,7 @@ void generic_convert_to_phased(struct conf*c,struct lg*p)
                     
                     if(m->data[0][j] != m->data[1][j])
                     {
-                        m->data[0][j] = m->data[1][j] = MISSING;
+                        m->data[0][j] = m->data[1][j] = MISSING; //treat hk/kh as missing initially
                         continue;
                     }
                     

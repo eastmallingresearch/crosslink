@@ -192,6 +192,7 @@ struct conf
     char*mstmap; //output mstmap file
     char*lg;  //which linkage group to process
     char*outbase; //output filename base
+    unsigned basenumb; //basenumber of numbering LGs in crosslink_group
     char*mapbase; //output map filename base
     FILE*flog;
     

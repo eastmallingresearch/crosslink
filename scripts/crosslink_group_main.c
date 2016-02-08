@@ -15,12 +15,13 @@ int main(int argc,char*argv[])
     assert(c = calloc(1,sizeof(struct conf)));
     parsestr(argc,argv,"inp",&c->inp,0,NULL);
     parsestr(argc,argv,"outbase",&c->outbase,1,"NONE");
+    parseuns(argc,argv,"basenumb",&c->basenumb,1,0);
     parsestr(argc,argv,"mapbase",&c->mapbase,1,"NONE");
     parsestr(argc,argv,"log",&c->log,1,"NONE");
     parseuns(argc,argv,"prng_seed",&c->gg_prng_seed,1,0);
     parseuns(argc,argv,"map_func",&c->gg_map_func,1,1);
     parseuns(argc,argv,"randomise_order",&c->gg_randomise_order,1,0);
-    parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,0);
+    parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
     parseuns(argc,argv,"show_pearson",&c->gg_show_pearson,1,0);
     parsedbl(argc,argv,"matpat_lod",&c->grp_matpat_lod,1,0.0);
     parseuns(argc,argv,"check_phase",&c->grp_check_phase,1,0);
@@ -28,7 +29,7 @@ int main(int argc,char*argv[])
     parsedbl(argc,argv,"em_tol",&c->grp_em_tol,1,1e-5);
     parseuns(argc,argv,"em_maxit",&c->grp_em_maxit,1,100);
     //parseuns(argc,argv,"min_lgs",&c->grp_min_lgs,1,1);
-    parseuns(argc,argv,"knn",&c->grp_knn,1,5);
+    parseuns(argc,argv,"knn",&c->grp_knn,1,0);
     parseuns(argc,argv,"ignore_cxr",&c->grp_ignore_cxr,1,0);
     parseend(argc,argv);
     

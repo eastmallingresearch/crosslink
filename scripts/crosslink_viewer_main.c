@@ -90,7 +90,17 @@ int main(int argc,char*argv[])
         if(eve.type == SDL_KEYDOWN)
         {
             if(eve.key.keysym.sym == SDLK_q) break;
-            if(eve.key.keysym.sym == SDLK_ESCAPE) exit(1);
+            if(eve.key.keysym.sym == SDLK_ESCAPE) {SDL_Quit();exit(100);}
+            if(eve.key.keysym.sym == SDLK_0) {SDL_Quit();exit(10);}
+            if(eve.key.keysym.sym == SDLK_1) {SDL_Quit();exit(11);}
+            if(eve.key.keysym.sym == SDLK_2) {SDL_Quit();exit(12);}
+            if(eve.key.keysym.sym == SDLK_3) {SDL_Quit();exit(13);}
+            if(eve.key.keysym.sym == SDLK_4) {SDL_Quit();exit(14);}
+            if(eve.key.keysym.sym == SDLK_5) {SDL_Quit();exit(15);}
+            if(eve.key.keysym.sym == SDLK_6) {SDL_Quit();exit(16);}
+            if(eve.key.keysym.sym == SDLK_7) {SDL_Quit();exit(17);}
+            if(eve.key.keysym.sym == SDLK_8) {SDL_Quit();exit(18);}
+            if(eve.key.keysym.sym == SDLK_9) {SDL_Quit();exit(19);}
         }
 
         //show whole map

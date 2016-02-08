@@ -7,9 +7,15 @@
 
 set -eu
 
-TYPE="-Wall -Wextra -g -I/home/vicker/git_repos/rjvbio"
 
-RJVUTILS=/home/vicker/git_repos/rjvbio/rjv_cutils.c
+if [ "$(hostname)" == "enterprise" ]
+then
+    TYPE="-Wall -Wextra -g -I/home/vicker/rjv_mnt/cluster/git_repos/rjvbio"
+    RJVUTILS=/home/vicker/rjv_mnt/cluster/git_repos/rjvbio/rjv_cutils.c
+else
+    TYPE="-Wall -Wextra -g -I/home/vicker/git_repos/rjvbio"
+    RJVUTILS=/home/vicker/git_repos/rjvbio/rjv_cutils.c
+fi
 
 #build gg source
 for FNAME in gg_utils gg_ga gg_gibbs gg_group
@@ -45,7 +51,7 @@ gcc ${TYPE}\
 #build main executable
 gcc ${TYPE}\
     -o crosslink_map\
-    gg_main.c\
+    crosslink_map_main.c\
     gg_utils.o\
     gg_ga.o\
     gg_group.o\
