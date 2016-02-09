@@ -18,7 +18,8 @@ RUN_REMOVE=0
 RUN_GROUP=0
 RUN_REFINE=0
 RUN_IMPUTEMISSING=0
-RUN_MAP=1
+RUN_MAP=0
+RUN_REMAP=1
 
 #==========REMOVE=============
 if [ "${RUN_REMOVE}" == "1" ]
@@ -103,7 +104,7 @@ fi
 
 #===========IMPUTE MISSING VALUES===============
 #group options
-IMP_MINLOD=1.0
+IMP_MINLOD=0.1
 IMP_GLOB=${FNAME}_*.loc
 IMP_IGNORECXR=1
 IMP_KNN=3
@@ -127,36 +128,35 @@ then
 fi
 
 #==============MAP====================
-#gg_map options
-CYCLES=2
-GG_RAND_ORDER=0
+MAP_CYCLES=5
+MAP_RANDOMISE=0
+MAP_SKIP_ORDER1=1
 
 #ga options
-SKIP_ORDER1=1
-GA_ITERS=1000
-OPTIMISE_DIST=0
+GA_ITERS=1000000
+GA_OPTIMISE_DIST=0
 
 #single marker hop mutation
-PROB_HOP=0.333
-MAX_HOP=0.05
-#segment mutation parameters
-PROB_MOVE=0.5
-MAX_MOVESEG=0.05
-MAX_MOVEDIST=0.1
-PROB_INV=0.5
-MAX_SEG=0.05
+GA_PROB_HOP=0.333
+GA_MAX_HOP=0.5
+#segment move parameters
+GA_PROB_MOVE=0.5
+GA_MAX_MOVESEG=0.5
+GA_MAX_MOVEDIST=0.5
+GA_PROB_INV=0.5
+#segment inversion parameters
+GA_MAX_SEG=0.5
 
 #gibbs options
-SAMPLES=100
-BURNIN=5
-PERIOD=1
-PROB_SEQUENTIAL=0.75
-PROB_UNIDIR=0.75
-MIN_PROB_1=0.1
-MIN_PROB_2=0.0
-TWOPT_1=0.1
-TWOPT_2=0.0
-MIN_CTR=0
+GIBBS_SAMPLES=200
+GIBBS_BURNIN=10
+GIBBS_PERIOD=1
+GIBBS_PROB_SEQUENTIAL=0.75
+GIBBS_PROB_UNIDIR=0.75
+GIBBS_MIN_PROB_1=0.1
+GIBBS_MIN_PROB_2=0.0
+GIBBS_TWOPT_1=0.1
+GIBBS_TWOPT_2=0.0
 
 if [ "${RUN_MAP}" == "1" ]
 then
@@ -168,32 +168,141 @@ then
         echo ${INPNAME}
         
         crosslink_map\
-              --inp ${INPNAME}\
-              --out ${BASENAME}.loc2\
-              --log ${BASENAME}.log2\
-              --prng_seed ${SEED}\
-              --ga_gibbs_cycles ${CYCLES}\
-              --ga_iters ${GA_ITERS}\
-              --ga_optimise_dist ${OPTIMISE_DIST}\
-              --ga_skip_order1 ${SKIP_ORDER1}\
-              --ga_prob_hop ${PROB_HOP}\
-              --ga_max_hop ${MAX_HOP}\
-              --ga_prob_move ${PROB_MOVE}\
-              --ga_max_mvseg ${MAX_MOVESEG}\
-              --ga_max_mvdist ${MAX_MOVEDIST}\
-              --ga_prob_inv ${PROB_INV}\
-              --ga_max_seg ${MAX_SEG}\
-              --gibbs_samples ${SAMPLES}\
-              --gibbs_burnin ${BURNIN}\
-              --gibbs_period ${PERIOD}\
-              --gibbs_prob_sequential ${PROB_SEQUENTIAL}\
-              --gibbs_prob_unidir ${PROB_UNIDIR}\
-              --gibbs_min_ctr ${MIN_CTR}\
-              --gibbs_min_prob_1 ${MIN_PROB_1}\
-              --gibbs_min_prob_2 ${MIN_PROB_2}\
-              --gibbs_twopt_1 ${TWOPT_1}\
-              --gibbs_twopt_2 ${TWOPT_2}
+              --inp             ${INPNAME}\
+              --out             ${BASENAME}.loc2\
+              --log             ${BASENAME}.log2\
+              --prng_seed       ${SEED}\
+              --ga_gibbs_cycles ${MAP_CYCLES}\
+              --randomise_order ${MAP_RANDOMISE}\
+              --ga_iters         ${GA_ITERS}\
+              --ga_optimise_dist ${GA_OPTIMISE_DIST}\
+              --ga_skip_order1   ${MAP_SKIP_ORDER1}\
+              --ga_prob_hop      ${GA_PROB_HOP}\
+              --ga_max_hop       ${GA_MAX_HOP}\
+              --ga_prob_move     ${GA_PROB_MOVE}\
+              --ga_max_mvseg     ${GA_MAX_MOVESEG}\
+              --ga_max_mvdist    ${GA_MAX_MOVEDIST}\
+              --ga_prob_inv      ${GA_PROB_INV}\
+              --ga_max_seg       ${GA_MAX_SEG}\
+              --gibbs_samples         ${GIBBS_SAMPLES}\
+              --gibbs_burnin          ${GIBBS_BURNIN}\
+              --gibbs_period          ${GIBBS_PERIOD}\
+              --gibbs_prob_sequential ${GIBBS_PROB_SEQUENTIAL}\
+              --gibbs_prob_unidir     ${GIBBS_PROB_UNIDIR}\
+              --gibbs_min_prob_1      ${GIBBS_MIN_PROB_1}\
+              --gibbs_min_prob_2      ${GIBBS_MIN_PROB_2}\
+              --gibbs_twopt_1         ${GIBBS_TWOPT_1}\
+              --gibbs_twopt_2         ${GIBBS_TWOPT_2} &
               
-        break
+    done
+fi
+
+#==============REMAP====================
+MAP_CYCLES=5
+MAP_RANDOMISE=0
+MAP_SKIP_ORDER1=1
+
+#ga options
+GA_ITERS=1000000
+GA_OPTIMISE_DIST=0
+GA_MST=1
+GA_MST_MINLOD=1.0
+GA_MST_NONHK=0
+
+#single marker hop mutation
+GA_PROB_HOP=0.333
+GA_MAX_HOP=1.0
+#segment move parameters
+GA_PROB_MOVE=0.5
+GA_MAX_MOVESEG=0.5
+GA_MAX_MOVEDIST=0.5
+GA_PROB_INV=0.5
+#segment inversion parameters
+GA_MAX_SEG=0.5
+
+#gibbs options
+GIBBS_SAMPLES=200
+GIBBS_BURNIN=10
+GIBBS_PERIOD=1
+GIBBS_PROB_SEQUENTIAL=0.75
+GIBBS_PROB_UNIDIR=0.75
+GIBBS_MIN_PROB_1=0.1
+GIBBS_MIN_PROB_2=0.0
+GIBBS_TWOPT_1=0.1
+GIBBS_TWOPT_2=0.0
+
+if [ "${RUN_REMAP}" == "1" ]
+then
+    mkdir -p final_frags
+
+    for INPNAME in ${FNAME}_*knn000.loc2
+    do
+        BASENAME=$(echo ${INPNAME} | sed 's/\.loc2//g')
+        
+        echo "${INPNAME} ESC=abort 1=remap 0=accept 9=leave" 
+        crosslink_viewer --inp ${INPNAME} --datatype imputed
+    
+        RET=$?
+        
+        #error
+        if [ "${RET}" == 1 ]
+        then
+            echo crosslink_viewer error
+            break
+        fi
+
+        #pressed ESCAPE to abort
+        if [ "${RET}" == 100 ]
+        then
+            echo user abort
+            break
+        fi
+        
+        #pressed '0' to accept
+        if [ "${RET}" == "10" ]
+        then
+            echo moving to final_frags directory
+            mv ${INPNAME} final_frags
+            continue
+        fi
+
+        #pressed '9' to leave
+        if [ "${RET}" == "19" ]
+        then
+            echo leaving
+            continue
+        fi
+
+        echo remapping...
+
+        crosslink_map\
+              --inp             ${BASENAME}.loc2\
+              --out             ${BASENAME}.loc2\
+              --log             ${BASENAME}.log2\
+              --prng_seed       ${SEED}\
+              --ga_gibbs_cycles ${MAP_CYCLES}\
+              --randomise_order ${MAP_RANDOMISE}\
+              --ga_iters         ${GA_ITERS}\
+              --ga_optimise_dist ${GA_OPTIMISE_DIST}\
+              --ga_skip_order1   ${MAP_SKIP_ORDER1}\
+              --ga_use_mst       ${GA_MST}\
+              --ga_mst_minlod    ${GA_MST_MINLOD}\
+              --ga_mst_nonhk     ${GA_MST_NONHK}\
+              --ga_prob_hop      ${GA_PROB_HOP}\
+              --ga_max_hop       ${GA_MAX_HOP}\
+              --ga_prob_move     ${GA_PROB_MOVE}\
+              --ga_max_mvseg     ${GA_MAX_MOVESEG}\
+              --ga_max_mvdist    ${GA_MAX_MOVEDIST}\
+              --ga_prob_inv      ${GA_PROB_INV}\
+              --ga_max_seg       ${GA_MAX_SEG}\
+              --gibbs_samples         ${GIBBS_SAMPLES}\
+              --gibbs_burnin          ${GIBBS_BURNIN}\
+              --gibbs_period          ${GIBBS_PERIOD}\
+              --gibbs_prob_sequential ${GIBBS_PROB_SEQUENTIAL}\
+              --gibbs_prob_unidir     ${GIBBS_PROB_UNIDIR}\
+              --gibbs_min_prob_1      ${GIBBS_MIN_PROB_1}\
+              --gibbs_min_prob_2      ${GIBBS_MIN_PROB_2}\
+              --gibbs_twopt_1         ${GIBBS_TWOPT_1}\
+              --gibbs_twopt_2         ${GIBBS_TWOPT_2} &
     done
 fi

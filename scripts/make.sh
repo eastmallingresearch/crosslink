@@ -10,10 +10,10 @@ set -eu
 
 if [ "$(hostname)" == "enterprise" ]
 then
-    TYPE="-Wall -Wextra -g -I/home/vicker/rjv_mnt/cluster/git_repos/rjvbio"
+    TYPE="-Wall -Wextra -O3 -I/home/vicker/rjv_mnt/cluster/git_repos/rjvbio"
     RJVUTILS=/home/vicker/rjv_mnt/cluster/git_repos/rjvbio/rjv_cutils.c
 else
-    TYPE="-Wall -Wextra -g -I/home/vicker/git_repos/rjvbio"
+    TYPE="-Wall -Wextra -O3 -I/home/vicker/git_repos/rjvbio"
     RJVUTILS=/home/vicker/git_repos/rjvbio/rjv_cutils.c
 fi
 

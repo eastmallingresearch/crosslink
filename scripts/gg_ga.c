@@ -479,7 +479,7 @@ void generate_mutation(struct conf*c,struct mutation*op)
         if(move < 1) move = 1;
         if(drand48() < 0.5) move = -move;
     }
-    //segment invert
+    //segment invert (in-place)
     else
     {
         //choose segment size

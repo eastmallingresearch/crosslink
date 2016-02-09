@@ -35,7 +35,7 @@ int main(int argc,char*argv[])
     parsedbl(argc,argv,"minlod",&minlod,1,3.0);
     parsestr(argc,argv,"datatype",&datatype,1,"imputed");
     parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
-    parseuns(argc,argv,"hardware_accel",&hardware,1,1);
+    parseuns(argc,argv,"hardware",&hardware,1,1);
     parseuns(argc,argv,"skip",&skip,1,0);   //load starting from the first marker
     parseuns(argc,argv,"total",&total,1,0); //zero indicates load all markers
     parseend(argc,argv);
