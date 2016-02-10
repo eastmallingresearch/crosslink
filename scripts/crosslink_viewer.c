@@ -222,12 +222,12 @@ void which_markers(int mx,int my,SDL_Rect*img,SDL_Rect*win,int*imgx,int*imgy)
 }
 
 //calc which rectangle of image to blit to which rectangle in the window
-void calc_view(unsigned img_size,unsigned win_size,double img_centre,double img_width,SDL_Rect*img,SDL_Rect*win)
+void calc_view(unsigned img_size,unsigned win_size,double img_centrex,double img_centrey,double img_width,SDL_Rect*img,SDL_Rect*win)
 {
     int winL,winR,imgL,imgR,imgW;
     
-    imgL = floor((double)img_centre - img_width / 2.0);
-    imgR = floor((double)img_centre + img_width / 2.0 - 0.00001);
+    imgL = floor((double)img_centrex - img_width / 2.0);
+    imgR = floor((double)img_centrex + img_width / 2.0 - 0.00001);
     imgW = imgR - imgL + 1;
     
     //printf("imgL=%d, imgR=%d\n",imgL,imgR);
@@ -251,9 +251,40 @@ void calc_view(unsigned img_size,unsigned win_size,double img_centre,double img_
         //printf("winR=%d,imgR=%d\n",winR,imgR);
     }
     
-    img->x = img->y = imgL;
-    img->w = img->h = imgR - imgL + 1;
+    img->x = imgL;
+    img->w = imgR - imgL + 1;
 
-    win->x = win->y = winL;
-    win->w = win->h = winR - winL + 1;
+    win->x = winL;
+    win->w = winR - winL + 1;
+
+    imgL = floor((double)img_centrey - img_width / 2.0);
+    imgR = floor((double)img_centrey + img_width / 2.0 - 0.00001);
+    imgW = imgR - imgL + 1;
+    
+    //printf("imgL=%d, imgR=%d\n",imgL,imgR);
+    
+    winL = 0;
+    winR = win_size - 1;
+    
+    if(imgL < 0)
+    {
+        //some portion of the left will be blank
+        winL = floor(-(double)imgL / imgW * win_size);
+        imgL = 0;
+        //printf("winL=%d,imgL=%d\n",winL,imgL);
+    }
+    
+    if(imgR >= (int)img_size)
+    {
+        //some portion of the right will be blank
+        winR = win_size - 1 - floor(((double)imgR - img_size + 1.0) / imgW * win_size);
+        imgR = img_size - 1;
+        //printf("winR=%d,imgR=%d\n",winR,imgR);
+    }
+    
+    img->y = imgL;
+    img->h = imgR - imgL + 1;
+
+    win->y = winL;
+    win->h = winR - winL + 1;
 }

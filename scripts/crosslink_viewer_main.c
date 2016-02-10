@@ -24,7 +24,7 @@ int main(int argc,char*argv[])
     char*inp=NULL;
     char*datatype=NULL;
     
-    double minlod,base_pix,width_pix;
+    double minlod,xbase_pix,ybase_pix,width_pix;
     int mx,my,markerx,markery;
     uint32_t*buff=NULL;
 
@@ -71,12 +71,12 @@ int main(int argc,char*argv[])
     assert(tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC, p->nmarkers, p->nmarkers));
     SDL_UpdateTexture(tex, NULL, buff, p->nmarkers * sizeof (uint32_t));
     
-    base_pix = (double)p->nmarkers / 2.0;      //control view window
+    xbase_pix = ybase_pix = (double)p->nmarkers / 2.0;      //control view window
     width_pix = (double)p->nmarkers;
 
     while(1)
     {
-        calc_view(p->nmarkers,size,base_pix,width_pix,&src,&dst);
+        calc_view(p->nmarkers,size,xbase_pix,ybase_pix,width_pix,&src,&dst);
         
         //SDL_UpdateTexture(tex, NULL, buff, c->nmarkers * sizeof (uint32_t));
         SDL_RenderClear(ren);
@@ -108,7 +108,7 @@ int main(int argc,char*argv[])
         {
             if(eve.key.keysym.sym == SDLK_RETURN || eve.key.keysym.sym == SDLK_RETURN2)
             {
-                base_pix = (double)p->nmarkers / 2.0;      //reset view window
+                xbase_pix = ybase_pix = (double)p->nmarkers / 2.0;      //reset view window
                 width_pix = (double)p->nmarkers;
             }
         }
@@ -116,21 +116,29 @@ int main(int argc,char*argv[])
         //pan and zoom
         if(eve.type == SDL_KEYDOWN)
         {
-            if(eve.key.keysym.sym == SDLK_UP)
+            if(eve.key.keysym.sym == SDLK_KP_PLUS || eve.key.keysym.sym == SDLK_PLUS  || eve.key.keysym.sym == SDLK_EQUALS)
             {
                 width_pix /= (double)1.02;
             }
-            if(eve.key.keysym.sym == SDLK_DOWN)
+            if(eve.key.keysym.sym == SDLK_KP_MINUS || eve.key.keysym.sym == SDLK_MINUS)
             {
                 width_pix *= (double)1.02;
             }
+            if(eve.key.keysym.sym == SDLK_UP)
+            {
+                ybase_pix -= 0.02 * width_pix;
+            }
+            if(eve.key.keysym.sym == SDLK_DOWN)
+            {
+                ybase_pix += 0.02 * width_pix;
+            }
             if(eve.key.keysym.sym == SDLK_LEFT)
             {
-                base_pix -= 0.02 * width_pix;
+                xbase_pix -= 0.02 * width_pix;
             }
             if(eve.key.keysym.sym == SDLK_RIGHT)
             {
-                base_pix += 0.02 * width_pix;
+                xbase_pix += 0.02 * width_pix;
             }
         }
         
