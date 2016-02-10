@@ -791,6 +791,26 @@ int ecomp_func(const void*_p1, const void*_p2)
 }
 
 /*
+used by qsort to sort the list into descending order by lod
+but putting any cxr edges at the bottom
+*/
+int ecomp_cxr_func(const void*_p1, const void*_p2)
+{
+    struct edge*p1=NULL;
+    struct edge*p2=NULL;
+    
+    p1 = *((struct edge**)_p1);
+    p2 = *((struct edge**)_p2);
+    
+    if(p1->cxr_flag && !p2->cxr_flag) return 1;
+    if(!p1->cxr_flag && p2->cxr_flag) return -1;
+    
+    if(p1->lod < p2->lod) return 1;
+    if(p1->lod > p2->lod) return -1;
+    return 0;
+}
+
+/*
 form linkage groups using edges in order of decreasing lod
 use all edges (including cxr/rxc edges)
 no phasing is performed, just grouping
@@ -836,11 +856,15 @@ void form_groups(struct conf*c,struct lg*p,struct earray*ea,struct map*mp)
 }
 
 /*
-build LOD-MST per LG ignoring cxr / rxc linkage
+build LOD-MST per LG
 use this to phase all markers
 deal with maternal and paternal phases separately
 x=0 => maternal
 x=1 => paternal
+cxr edges, if present, should be sorted to be end of the edge list
+to avoid using them if possible
+if forced to use them, guess coupling phase for maternal and repulsion phase for paternal
+and warn in the logs
 */
 void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
 {
@@ -854,8 +878,8 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     struct edgelist*epool=NULL;
     char *lab[] = {"mat","pat"};
     
-    //sort edges by decreasing lod
-    qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_func);
+    //sort edges by decreasing lod with cxr edges below noncxr
+    qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_cxr_func);
     
     //printf("phase_markers x=%u\n",x);
     /*for(i=0; i<c->lg_nedges[lg]; i++)
@@ -914,9 +938,6 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         //ignore if edge involves information from the wrong parent
         if(e->m1->data[x] == NULL || e->m2->data[x] == NULL) continue;
         
-        //ignore cxr / rxc hk-hk linkage
-        //since this provides incomplete phasing information
-        if(e->cxr_flag) continue;
         
         //check lod is sensible
         assert(e->lod > 0.0);
@@ -927,6 +948,10 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
 
         ntrees -= 1;
         
+        //ignore cxr / rxc hk-hk linkage
+        //since this provides incomplete phasing information
+        if(e->cxr_flag && c->flog) fprintf(c->flog,"#phasing lg %s(%s) warning: using cxr linkage during phasing\n",p->name,lab[x]);
+
         //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
 
         /*
@@ -1003,8 +1028,18 @@ void dfs_phase(struct conf*c,struct marker*m,unsigned phase,unsigned x)
         
         if(!m2->dfs_marked)
         {
-            if(p->e->rf < 0.5) dfs_phase(c,m2,phase,x); //coupling
-            else               dfs_phase(c,m2,!phase,x); //repulsion
+            if(p->e->cxr_flag)
+            {
+                //it could be cxr or rxc, guess it is cxr
+                if(x == 0) dfs_phase(c,m2,phase,x);  //coupling
+                else       dfs_phase(c,m2,!phase,x); //repulsion
+            }
+            else
+            {
+                //use rf to deduce coupling or repulsion phase
+                if(p->e->rf < 0.5) dfs_phase(c,m2,phase,x); //coupling
+                else               dfs_phase(c,m2,!phase,x); //repulsion
+            }
         }
         
         p = p->next;

@@ -33,3 +33,4 @@ void append_knn(struct conf*c,struct missing*z,VARTYPE val,double rf);
 void impute_alloc(struct conf*c,unsigned nmark,struct marker**array);
 void calc_rflod_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,unsigned y,double*_lod,double*_rf);
 void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea);
+int ecomp_cxr_func(const void*_p1, const void*_p2);

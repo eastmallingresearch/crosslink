@@ -2,6 +2,7 @@
 
 #
 # test hk imputation on simulated data
+# use cxr linkage during phasing
 #
 
 export PATH=${PATH}:/home/vicker/git_repos/crosslink/scripts
@@ -9,14 +10,13 @@ export PATH=${PATH}:/home/vicker/rjv_mnt/cluster/git_repos/crosslink/scripts
 
 set -u
 
-FNAME=hktest001
+FNAME=hktest002
 SEED=$1
 
 RUN_REMOVE=1
 RUN_CREATE=1
 RUN_SAMPLE=1
 RUN_GROUP=1
-RUN_MERGE=1
 RUN_MAP=1
 
 if [ "$(pwd)" != "/home/vicker/rjv_mnt/cluster/crosslink/test_hk_imputation" ]
@@ -72,7 +72,7 @@ fi
 #==========GROUP==============
 #group options
 GRP_MINLOD=10.0      #lod to use for grouping and phasing
-GRP_IGNORECXR=1      #whether to ignore cxr and rxc linkage which can be used for grouping but not phasing
+GRP_IGNORECXR=0      #whether to ignore cxr and rxc linkage which can be used for grouping but not phasing
 
 if [ "${RUN_GROUP}" == "1" ]
 then
@@ -84,25 +84,10 @@ then
                     --ignore_cxr ${GRP_IGNORECXR}
 fi
 
-#==========MERGE==============
-#merge the two groups with a phase change for one parental genome
-
-if [ "${RUN_MERGE}" == "1" ]
-then
-    cat ${FNAME}_000.loc > ${FNAME}_100.loc
-    cat ${FNAME}_000.loc > ${FNAME}_101.loc
-    cat ${FNAME}_000.loc > ${FNAME}_110.loc
-    cat ${FNAME}_000.loc > ${FNAME}_111.loc
-    cat ${FNAME}_001.loc                                      >> ${FNAME}_100.loc
-    cat ${FNAME}_001.loc | sed 's/{00}/{01}/g; s/{11}/{10}/g' >> ${FNAME}_101.loc
-    cat ${FNAME}_001.loc | sed 's/{00}/{10}/g; s/{11}/{01}/g' >> ${FNAME}_110.loc
-    cat ${FNAME}_001.loc | sed 's/{00}/{xx}/g; s/{11}/{00}/g; s/{xx}/{11}/g' >> ${FNAME}_111.loc
-fi
-
 #==============MAP====================
 MAP_CYCLES=5
-MAP_RANDOMISE=1
-MAP_SKIP_ORDER1=0
+MAP_RANDOMISE=0
+MAP_SKIP_ORDER1=1
 
 #ga options
 GA_ITERS=300000
