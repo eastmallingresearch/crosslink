@@ -1,5 +1,5 @@
-#ifndef __RJV_GG_COMMONH__
-#define __RJV_GG_COMMONH__
+#ifndef _RJV_CROSSLINK_COMMON_H_
+#define _RJV_CROSSLINK_COMMON_H_
 
 #include <stdio.h>
 #include <stdlib.h>

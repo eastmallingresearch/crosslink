@@ -10,12 +10,13 @@ export PATH=${PATH}:/home/vicker/rjv_mnt/cluster/git_repos/crosslink/scripts
 
 set -u
 
-FNAME=hktest002
+FNAME=hktest003
 SEED=$1
 
 RUN_REMOVE=1
 RUN_CREATE=1
 RUN_SAMPLE=1
+RUN_SPLIT=1
 RUN_GROUP=1
 RUN_MAP=1
 
@@ -28,15 +29,15 @@ fi
 #===========remove previous results
 if [ "${RUN_REMOVE}" == "1" ]
 then
-    rm ${FNAME}*
+    rm -f ${FNAME}*
 fi
 
 #=========create map=========
 MARKERS=100
 NLGS=1
-CENTIMORGANS=100.0
-PROB_HK=1.0
-PROB_LM=0.0
+CENTIMORGANS=10.0
+PROB_HK=0.9
+PROB_LM=0.5
 
 if [ "${RUN_CREATE}" == "1" ]
 then
@@ -69,16 +70,41 @@ then
         --prob_type_error ${TYPEERR}
 fi
 
+#===============split=============
+#split hk from other marker types
+
+if [ "${RUN_SPLIT}" == "1" ]
+then
+    NHK=$(grep -c -e 'hkxhk' ${FNAME}.loc)
+    NLMNP=$(grep -c -e 'lmxll' -e 'nnxnp' ${FNAME}.loc)
+    echo "; group hks markers ${NHK}"       >  ${FNAME}_hkhk.loc
+    grep -e 'hkxhk' ${FNAME}.loc            >> ${FNAME}_hkhk.loc
+    echo "; group lmnps markers ${NLMNP}"   >  ${FNAME}_lmnp.loc
+    grep -e 'lmxll' -e 'nnxnp' ${FNAME}.loc >> ${FNAME}_lmnp.loc
+fi
+
 #==========GROUP==============
 #group options
-GRP_MINLOD=10.0      #lod to use for grouping and phasing
-GRP_IGNORECXR=0      #whether to ignore cxr and rxc linkage which can be used for grouping but not phasing
+GRP_MINLOD=3.0      #lod to use for grouping and phasing
+GRP_IGNORECXR=0      #whether to ignore cxr and rxc linkage which only provides partial phasing information
 
 if [ "${RUN_GROUP}" == "1" ]
 then
-    crosslink_group --inp ${FNAME}.loc\
-                    --outbase ${FNAME}_\
-                    --log ${FNAME}.log\
+    #crosslink_group --inp ${FNAME}.loc\
+    #                --outbase ${FNAME}_\
+    #                --log ${FNAME}.log\
+    #                --prng_seed ${SEED}\
+    #                --min_lod ${GRP_MINLOD}\
+    #                --ignore_cxr ${GRP_IGNORECXR}
+    crosslink_group --inp ${FNAME}_hkhk.loc\
+                    --outbase ${FNAME}_hkhk_\
+                    --log ${FNAME}_hkhk.log\
+                    --prng_seed ${SEED}\
+                    --min_lod ${GRP_MINLOD}\
+                    --ignore_cxr ${GRP_IGNORECXR}
+    crosslink_group --inp ${FNAME}_lmnp.loc\
+                    --outbase ${FNAME}_lmnp_\
+                    --log ${FNAME}_lmnp.log\
                     --prng_seed ${SEED}\
                     --min_lod ${GRP_MINLOD}\
                     --ignore_cxr ${GRP_IGNORECXR}
@@ -118,7 +144,7 @@ GIBBS_TWOPT_2=0.0
 if [ "${RUN_MAP}" == "1" ]
 then
 
-    for INPNAME in ${FNAME}_[0-9][0-9][0-9].loc
+    for INPNAME in ${FNAME}_????_*.loc
     do
         BASENAME=$(echo ${INPNAME} | sed 's/\.loc//g')
         

@@ -10,9 +10,9 @@ all missing data must imputed first
 also runs gibbs sampler to impute inheritance vectors for hk/kh genotypes
 */
 
-#include "gg_utils.h"
-#include "gg_ga.h"
-#include "gg_gibbs.h"
+#include "crosslink_utils.h"
+#include "crosslink_ga.h"
+#include "crosslink_gibbs.h"
 #include "rjv_cutils.h"
 
 int main(int argc,char*argv[])

@@ -1,4 +1,7 @@
-#include "gg_common.h"
+#ifndef _RJV_CROSSLINK_UTILS_H_
+#define _RJV_CROSSLINK_UTILS_H_
+
+#include "crosslink_common.h"
 
 struct marker* new_marker(struct conf*c,char*buff);
 struct marker* create_marker_phased(struct conf*c,char*buff);
@@ -50,3 +53,5 @@ void generic_convert_to_unphased(struct conf*c,struct lg*p);
 void generic_convert_to_phased(struct conf*c,struct lg*p);
 void generic_convert_to_imputed(struct conf*c,struct lg*p);
 void generic_apply_phasing(struct conf*c,struct lg*p);
+
+#endif

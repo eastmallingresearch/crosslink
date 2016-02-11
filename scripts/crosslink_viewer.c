@@ -1,5 +1,5 @@
 #include "crosslink_viewer.h"
-#include "gg_utils.h"
+#include "crosslink_utils.h"
 
 void show_info(struct lg*p,int offset)
 {

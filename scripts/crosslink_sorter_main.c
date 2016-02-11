@@ -9,9 +9,9 @@ assumes fully phased and imputed data
 checks for LM <=> NP linkage
 */
 
-#include "gg_utils.h"
-#include "gg_ga.h"
-#include "gg_gibbs.h"
+#include "crosslink_utils.h"
+#include "crosslink_ga.h"
+#include "crosslink_gibbs.h"
 #include "rjv_cutils.h"
 
 #include <stdlib.h>

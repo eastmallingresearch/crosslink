@@ -1,4 +1,7 @@
-#include "gg_common.h"
+#ifndef _RJV_CROSSLINK_GIBBS_H_
+#define _RJV_CROSSLINK_GIBBS_H_
+
+#include "crosslink_common.h"
 
 void gibbs_impute(struct conf*c);
 unsigned count_hkerrors(struct conf*c);
@@ -14,3 +17,5 @@ int gibbs_comp(const void*phk1, const void*phk2);
 void gibbs_iterate(struct conf*c,unsigned iters,unsigned burnin_flag);
 unsigned gibbs_choose_state(struct conf*c,double p_mat_prev,double p_mat_next,double p_pat_prev,double p_pat_next);
 void gibbs_setstate(struct conf*c);
+
+#endif

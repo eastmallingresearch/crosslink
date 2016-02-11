@@ -2,7 +2,7 @@
 #define _RJV_CROSSLINK_GRAPHICAL_H_
 
 #include <SDL2/SDL.h>
-#include "gg_common.h"
+#include "crosslink_common.h"
 
 //void show_info(struct lg*p,int offset);
 uint32_t*generate_graphical(struct conf*c,struct lg*p,unsigned type);

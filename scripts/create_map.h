@@ -1,3 +1,6 @@
+#ifndef _RJV_CROSSLINK_CREATE_H_
+#define _RJV_CROSSLINK_CREATE_H_
+
 /*swap two values over*/
 #define SWAP(a,b,tmp) (tmp) = (a), (a) = (b), (b) = (tmp)
 
@@ -51,3 +54,5 @@ struct conf
 
 void create_map(struct conf*c);
 void save_map(struct conf*c);
+
+#endif

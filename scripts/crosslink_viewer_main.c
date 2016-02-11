@@ -4,9 +4,9 @@ build using make_viewer.sh script, run from laptop to link appropriate SDL libs
 this version aims to support phased and unphased data using the new generic load functions
 */
 
-#include "gg_utils.h"
-#include "gg_ga.h"
-#include "gg_gibbs.h"
+#include "crosslink_utils.h"
+#include "crosslink_ga.h"
+#include "crosslink_gibbs.h"
 #include "crosslink_viewer.h"
 #include "rjv_cutils.h"
 

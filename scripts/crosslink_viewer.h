@@ -2,7 +2,7 @@
 #define _RJV_CROSSLINK_VIEWER_H_
 
 #include <SDL2/SDL.h>
-#include "gg_common.h"
+#include "crosslink_common.h"
 
 #define setpixelrgb(buff,x,y,w,r,g,b) ((buff)[(y)*(w)+(x)] = ((r)<<16)+((g)<<8)+(b))
 

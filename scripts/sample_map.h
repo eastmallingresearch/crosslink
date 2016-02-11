@@ -1,3 +1,5 @@
+#ifndef _RJV_CROSSLINK_SAMPLE_H_
+#define _RJV_CROSSLINK_SAMPLE_H_
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -64,3 +66,4 @@ double inverse_haldane(double d);
 void random_order(struct conf*c);
 void hide_hk(struct conf*c);
 void apply_errors(struct conf*c);
+#endif

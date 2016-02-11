@@ -1,4 +1,7 @@
-#include "gg_common.h"
+#ifndef _RJV_CROSSLINK_GROUP_H_
+#define _RJV_CROSSLINK_GROUP_H_
+
+#include "crosslink_common.h"
 
 void add_edge2(struct earray*e,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk);
 void add_edge(struct conf*c,struct marker*m1,struct marker*m2,double lod,double rf,unsigned cxr_flag,double cm,unsigned nonhk);
@@ -34,3 +37,5 @@ void impute_alloc(struct conf*c,unsigned nmark,struct marker**array);
 void calc_rflod_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,unsigned y,double*_lod,double*_rf);
 void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea);
 int ecomp_cxr_func(const void*_p1, const void*_p2);
+
+#endif

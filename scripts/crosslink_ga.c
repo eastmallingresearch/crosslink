@@ -1,6 +1,6 @@
-#include "gg_ga.h"
-#include "gg_utils.h"
-#include "gg_group.h"
+#include "crosslink_ga.h"
+#include "crosslink_utils.h"
+#include "crosslink_group.h"
 
 //calculate the 2pt version of the map order optimisation objective
 //(either a quantised version of map distance or a normalised representation of recombination count)
