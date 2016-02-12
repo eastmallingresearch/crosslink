@@ -1,13 +1,5 @@
 /*
-build using make.sh script
-
-genetic map ordering for outbred population having only hk,lm and np type markers
-(using joinmap naming conventions)
-
-this program only deals with one linkage group at a time
-all missing data must imputed first
-
-also runs gibbs sampler to impute inheritance vectors for hk/kh genotypes
+calculate map distances
 */
 
 #include "crosslink_utils.h"

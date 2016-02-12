@@ -15,22 +15,20 @@ int main(int argc,char*argv[])
     assert(c = calloc(1,sizeof(struct conf)));
     parsestr(argc,argv,"inp",&c->inp,0,NULL);
     parsestr(argc,argv,"outbase",&c->outbase,1,"NONE");
-    parseuns(argc,argv,"basenumb",&c->basenumb,1,0);
     parsestr(argc,argv,"mapbase",&c->mapbase,1,"NONE");
+    parsestr(argc,argv,"redun",&c->redun,1,"NONE");
     parsestr(argc,argv,"log",&c->log,1,"NONE");
     parseuns(argc,argv,"prng_seed",&c->gg_prng_seed,1,0);
     parseuns(argc,argv,"map_func",&c->gg_map_func,1,1);
     parseuns(argc,argv,"randomise_order",&c->gg_randomise_order,1,0);
     parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
-    parseuns(argc,argv,"show_pearson",&c->gg_show_pearson,1,0);
     parsedbl(argc,argv,"matpat_lod",&c->grp_matpat_lod,1,0.0);
-    parseuns(argc,argv,"check_phase",&c->grp_check_phase,1,0);
     parsedbl(argc,argv,"min_lod",&c->grp_min_lod,1,3.0);
     parsedbl(argc,argv,"em_tol",&c->grp_em_tol,1,1e-5);
     parseuns(argc,argv,"em_maxit",&c->grp_em_maxit,1,100);
-    //parseuns(argc,argv,"min_lgs",&c->grp_min_lgs,1,1);
     parseuns(argc,argv,"knn",&c->grp_knn,1,0);
     parseuns(argc,argv,"ignore_cxr",&c->grp_ignore_cxr,1,0);
+    parsedbl(argc,argv,"redundancy_lod",&c->grp_redundancy_lod,1,0.0);
     parseend(argc,argv);
     
     //seed random number generator(s)
@@ -85,7 +83,7 @@ int main(int argc,char*argv[])
     if(c->gg_randomise_order) randomise_order(p->nmarkers,p->array);
 
     //assign markers true position, defined by alphabetical sorting by name
-    if(c->gg_show_pearson) set_true_positions(p->nmarkers,p->array);
+    //if(c->gg_show_pearson) set_true_positions(p->nmarkers,p->array);
     
     //assign random uids not related to original file order or true position
     assign_uids(p->nmarkers,p->array);
@@ -93,6 +91,9 @@ int main(int argc,char*argv[])
     //calculate all-vs-all LOD values
     assert(e = calloc(1,sizeof(struct earray)));
     build_elist(c,p,e);
+    
+    //remove any markers marked as redundant by build_elist and associated edges 
+    if(c->grp_redundancy_lod) remove_redundant_markers(c,p,e);
     
     //form linkage groups
     assert(mp = calloc(1,sizeof(struct map)));
@@ -122,11 +123,11 @@ int main(int argc,char*argv[])
         comb_map_positions2(c,mp->lgs[i],1);            //combine mat/pat info with flip check
     }
     
-    //if processing test data with known phase, check for phasing errors
-    if(c->flog && c->grp_check_phase) check_phase(c,mp);
+    //if processing test data check for phasing and ordering errors
+    //if(c->flog && c->grp_check_phase) check_phase(c,mp);
     
     //calc pearson correlation wrt true marker order
-    if(c->flog && c->gg_show_pearson) show_pearson_all(c,mp);
+    //if(c->flog && c->gg_show_pearson) show_pearson_all(c,mp);
     
     //save to file grouped by lg and sorted by approx order
     if(strcmp(c->outbase,"NONE") != 0)

@@ -638,6 +638,220 @@ void calc_rflod_hk(struct conf*c,VARTYPE*m1,VARTYPE*m2,double*_lod,double*_rf,un
     }
 }
 
+//remove edges pointing to redundant markers
+//remove redundant markers and output their names, plus the group of redundant markers they belong to
+//ie output the name of the remaining marker which represents them
+void remove_redundant_markers(struct conf*c,struct lg*p,struct earray*ea)
+{
+    struct edge*e=NULL;
+    struct marker*m=NULL;
+    struct marker*parent=NULL;
+    unsigned i;
+    FILE*f=NULL;
+    
+    //remove edges connected to redundant markers
+    i = 0;
+    while(i < ea->nedges)
+    {
+        e = ea->array[i];
+        
+        if(e->m1->uf_parent == NULL && e->m2->uf_parent == NULL)
+        {
+            //retain this edge
+            i += 1;
+            continue;
+        }
+        
+        //replace with last edge in the list
+        free(e);
+        ea->array[i] = ea->array[ea->nedges-1];
+        ea->nedges -= 1;
+    }
+    
+    //could realloc ea->array here
+
+    //file to receive names of markers that were removed 
+    if(strcmp(c->redun,"NONE") != 0) assert(f = fopen(c->redun,"wb"));
+
+    //remove redundant markers
+    i = 0;
+    while(i<p->nmarkers)
+    {
+        m = p->array[i];
+        
+        if(m->uf_parent == NULL)
+        {
+            i += 1;
+            continue; //retain marker
+        }
+        
+        //find the marker which will represent the removed marker
+        parent = m->uf_parent;
+        while(parent->uf_parent) parent = parent->uf_parent;
+        
+        //record redundant marker name and the name of the remaining marker
+        if(f) fprintf(f,"%s %s\n",m->name,parent->name);
+
+        free(m);
+        p->array[i] = p->array[p->nmarkers-1];
+        p->nmarkers -= 1;
+    }
+
+    //could realloc p->array here
+    
+    if(f) fclose(f);
+}
+
+//return whether p1 or p2 or either can be considered redundant wrt the other
+//1 => only 1 is redundant
+//2 => only 2 is redundant
+//3 => either is redundant with respect to the other
+unsigned find_redundant(struct conf*c,VARTYPE*p1,VARTYPE*p2,double rf)
+{
+    unsigned i,keep1=0,keep2=0;
+    
+    if(rf < 0.5)
+    {
+        //expecting all calls to be equal
+        for(i=0; i<c->nind; i++)
+        {
+            if(p1[i] == p2[i])
+            {
+                //equal or both missing
+                continue;
+            }
+            else if(p1[i] == MISSING)
+            {
+                //m2 not redundant
+                if(keep1) return 0; //neither is redundant
+                keep2 = 1;
+            }
+            else if(p2[i] == MISSING)
+            {
+                //m1 not redundant
+                if(keep2) return 0; //neither is redundant
+                keep1 = 1;
+            }
+            else
+            {
+                //not equal but neither missing
+                //neither marker is redundant
+                return 0;
+            }
+        }
+    }
+    else
+    {
+        //expecting all calls to be different
+        for(i=0; i<c->nind; i++)
+        {
+            if(p1[i] == MISSING && p2[i] == MISSING)
+            {
+                //both missing
+                continue;
+            }
+            else if(p1[i] == MISSING)
+            {
+                //m2 not redundant
+                if(keep1) return 0; //neither is redundant
+                keep2 = 1;
+            }
+            else if(p2[i] == MISSING)
+            {
+                //m1 not redundant
+                if(keep2) return 0; //neither is redundant
+                keep1 = 1;
+            }
+            else if(p1[i] == p2[i])
+            {
+                //equal so neither marker is redundant
+                return 0;
+            }
+        }
+    }
+    
+    if(keep1 == 1)
+    {
+        assert(keep2 == 0);
+        return 2; //2 is redundant
+    }
+    else if(keep2 == 1)
+    {
+        return 1; //1 is redundant
+    }
+    
+    assert(keep1 == 0 && keep2 == 0);
+    
+    //markers contain equivalent information, either can be treated as redundant
+    return 3;
+}
+
+void identify_redundant_markers(struct conf*c,struct marker*m1,struct marker*m2,double rf,unsigned cxr_flag)
+{
+    VARTYPE*p1=NULL;
+    VARTYPE*p2=NULL;
+    unsigned result,result2;
+    
+    //HK vs HK
+    if(m1->type == HKTYPE && m2->type == HKTYPE)
+    {
+        if(cxr_flag) return; //cannot compare directly
+        
+        //compare both pairs of data arrays
+        result  = find_redundant(c,m1->data[0],m2->data[0],rf);
+        result2 = find_redundant(c,m1->data[1],m2->data[1],rf);
+        
+        if(result == 0 || result2 == 0) return; //neither marker is redundant
+        
+        if((result & 0x2) && (result2 & 0x2))
+        {
+            m2->uf_parent = m1; //marker 2 is redundant
+        }
+        else if((result & 0x1) && (result2 & 0x1))
+        {
+            m1->uf_parent = m2; //marker 1 is redundant
+        }
+        
+        return;
+    }
+    
+    //HK vs nonHK
+    if(m1->type == HKTYPE || m2->type == HKTYPE)
+    {
+        return;
+    }
+    //LM vs LM
+    else if(m1->type == LMTYPE && m2->type == LMTYPE)
+    {
+        p1 = m1->data[0];
+        p2 = m2->data[0];
+    }
+    //NP vs NP
+    else if(m1->type == NPTYPE && m2->type == NPTYPE)
+    {
+        p1 = m1->data[1];
+        p2 = m2->data[1];
+    }
+    //LM vs NP
+    else if(m1->type == LMTYPE && m2->type == NPTYPE)
+    {
+        p1 = m1->data[0];
+        p2 = m2->data[1];
+    }
+    //NP vs LM
+    else
+    {
+        assert(m1->type == NPTYPE && m2->type == LMTYPE);
+        p1 = m1->data[1];
+        p2 = m2->data[0];
+    }
+
+    result = find_redundant(c,p1,p2,rf);
+    
+    if(result & 0x2)      m2->uf_parent = m1; //marker 2 (or either) redundant
+    else if(result & 0x1) m1->uf_parent = m2; //marker 1 redundant
+}
+
 /*
 build a list of all lod values above the threshold
 by scanning all-vs-all markers
@@ -650,13 +864,18 @@ void build_elist(struct conf*c,struct lg*p,struct earray*e)
     struct marker*m1=NULL;
     struct marker*m2=NULL;
     
+    //if marker is flagged as redundant set this pointer to the "parent" (less redundant) marker
+    for(i=0; i<p->nmarkers; i++) p->array[i]->uf_parent = NULL;
+    
     for(i=0; i<p->nmarkers-1; i++)
     {
         m1 = p->array[i];
+        if(m1->uf_parent) continue;
         
         for(j=i+1; j<p->nmarkers; j++)
         {
             m2 = p->array[j];
+            if(m2->uf_parent) continue;
             
             lod = NO_RFLOD;
             rf = NO_RFLOD;
@@ -673,33 +892,45 @@ void build_elist(struct conf*c,struct lg*p,struct earray*e)
                 
                 if(c->grp_ignore_cxr && cxr_flag) continue; //ignore cxr / rxc linkage
             }
-            //LM vs LM or HK
-            else if(m1->data[0] && m2->data[0])
+            else
             {
-                calc_rflod_simple(c,m1,m2,0,&lod,&rf);
-            }
-            //NP vs NP or HK
-            else if(m1->data[1] && m2->data[1])
-            {
-                calc_rflod_simple(c,m1,m2,1,&lod,&rf);
-            }
-            //LM vs NP if matpat option is active
-            else if(c->grp_matpat_lod > 0.0)
-            {
-                if(m1->type == LMTYPE && m2->type == NPTYPE)
+                //LM vs LM or HK
+                if(m1->data[0] && m2->data[0])
                 {
-                    calc_rflod_simple2(c,m1,m2,0,1,&lod,&rf);
+                    calc_rflod_simple(c,m1,m2,0,&lod,&rf);
                 }
-                else if(m1->type == NPTYPE && m2->type == LMTYPE)
+                //NP vs NP or HK
+                else if(m1->data[1] && m2->data[1])
                 {
-                    calc_rflod_simple2(c,m1,m2,1,0,&lod,&rf);
+                    calc_rflod_simple(c,m1,m2,1,&lod,&rf);
                 }
-                
-                //apply additional lod threshold
-                if(lod < c->grp_matpat_lod || lod == NO_RFLOD) continue;
+                //LM vs NP if matpat option is active
+                else if(c->grp_matpat_lod > 0.0)
+                {
+                    if(m1->type == LMTYPE && m2->type == NPTYPE)
+                    {
+                        calc_rflod_simple2(c,m1,m2,0,1,&lod,&rf);
+                    }
+                    else if(m1->type == NPTYPE && m2->type == LMTYPE)
+                    {
+                        calc_rflod_simple2(c,m1,m2,1,0,&lod,&rf);
+                    }
+                    
+                    //apply additional lod threshold
+                    if(lod < c->grp_matpat_lod || lod == NO_RFLOD) continue;
+                }
             }
 
             if(lod < c->grp_min_lod || lod == NO_RFLOD) continue;
+            
+            //check for redundant markers
+            if(!cxr_flag && c->grp_redundancy_lod && lod >= c->grp_redundancy_lod && (rf < 1e-4 || rf > 1.0-1e-4))
+            {
+                identify_redundant_markers(c,m1,m2,rf,cxr_flag);
+                
+                if(m1->uf_parent) break;
+                if(m2->uf_parent) continue;
+            }
             
             //DEBUG
             //printf("%s %s lod= %f rf= %f cxrflag= %u\n",m1->name,m2->name,lod,rf,cxr_flag);
@@ -822,9 +1053,10 @@ void form_groups(struct conf*c,struct lg*p,struct earray*ea,struct map*mp)
     struct edge*e=NULL;
     struct marker*m=NULL;
 
-    //no need to sort edges by LOD if we will use all of them for LG formation
+    //no actual need to sort edges by LOD if we will use all of them for LG formation
+    //but useful to be able to report minlod used!
     //sort edges by LOD, largest LOD values go first
-    //qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_func);
+    qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_func);
     
     //initialise to a disconnected forest
     mp->nlgs = p->nmarkers;
@@ -851,7 +1083,7 @@ void form_groups(struct conf*c,struct lg*p,struct earray*ea,struct map*mp)
     
     if(c->flog) fprintf(c->flog,"#formed %u linkage groups with a min lod of %f\n",mp->nlgs,min_lod_used);
  
-    split_markers(c,p,mp);
+    split_markers(p,mp);
     split_edges(ea,mp);
 }
 
@@ -877,6 +1109,7 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     unsigned nepool,nepoolmax;
     struct edgelist*epool=NULL;
     char *lab[] = {"mat","pat"};
+    double minlod;
     
     //sort edges by decreasing lod with cxr edges below noncxr
     qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_cxr_func);
@@ -931,6 +1164,7 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     or until no more edges (ie phasing fails to complete)
     store MST using adjacency lists (the tree is very sparse)
     */
+    minlod = -1.0;
     for(i=0; i<ea->nedges && ntrees>1; i++)
     {
         e = ea->array[i];
@@ -945,6 +1179,8 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
         
         if(union_groups(e->m1,e->m2) == 0) continue;
+        
+        minlod = e->lod;
 
         ntrees -= 1;
         
@@ -974,6 +1210,8 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         //printf("%s => %s lod=%f rf=%f\n",e->m1->name,e->m2->name,e->lod,e->rf);
     }
     
+    if(c->flog) fprintf(c->flog,"#phasing lg %s(%s) with a min lod of %.4lf\n",p->name,lab[x],minlod);
+
     //abort phasing if failed to resolve into a single group
     if(ntrees > 1)
     {
@@ -1709,7 +1947,7 @@ sort markers by linkage group
 set their lg property
 split into separate arrays
 */
-void split_markers(struct conf*c,struct lg*p,struct map*mp)
+void split_markers(struct lg*p,struct map*mp)
 {
     unsigned i,lg;
     int prev,ctr;
@@ -1737,7 +1975,7 @@ void split_markers(struct conf*c,struct lg*p,struct map*mp)
             assert(mp->lgs[ctr] = calloc(1,sizeof(struct lg)));
         }
         
-        p->array[i]->lg = ctr + c->basenumb;
+        p->array[i]->lg = ctr;
         mp->lgs[ctr]->nmarkers += 1;
     }
     
@@ -1757,7 +1995,7 @@ void split_markers(struct conf*c,struct lg*p,struct map*mp)
     {
         assert(mp->lgs[i]->array = calloc(mp->lgs[i]->nmarkers,sizeof(struct marker*)));
         assert(mp->lgs[i]->name = calloc(21,sizeof(char)));
-        sprintf(mp->lgs[i]->name,"%03d",i+c->basenumb);
+        sprintf(mp->lgs[i]->name,"%03d",i);
     }
     
     //split markers into separate lgs

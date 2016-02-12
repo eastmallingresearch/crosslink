@@ -24,7 +24,7 @@ struct marker*other(struct edgelist*p,struct marker*m);
 void append_edge(struct edgelist**list,struct edgelist*p);
 void split_edges(struct earray*ea,struct map*mp);
 int mcomp_func(const void*_m1, const void*_m2);
-void split_markers(struct conf*c,struct lg*p,struct map*mp);
+void split_markers(struct lg*p,struct map*mp);
 void save_lg_markers(struct conf*c,const char*fname,struct lg*p);
 void save_lg_map(const char*fname,struct lg*p);
 void check_phase(struct conf*c,struct map*mp);
@@ -37,5 +37,8 @@ void impute_alloc(struct conf*c,unsigned nmark,struct marker**array);
 void calc_rflod_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,unsigned y,double*_lod,double*_rf);
 void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea);
 int ecomp_cxr_func(const void*_p1, const void*_p2);
+void remove_redundant_markers(struct conf*c,struct lg*p,struct earray*e);
+void identify_redundant_markers(struct conf*c,struct marker*m1,struct marker*m2,double rf,unsigned cxr_flag);
+unsigned find_redundant(struct conf*c,VARTYPE*p1,VARTYPE*p2,double rf);
 
 #endif

@@ -113,10 +113,14 @@ struct marker
 {
     char*name;                  //marker name
     unsigned uid;               //sequential uid not related to file or current ordering
-    unsigned true_posn;         //for test data: position in true map order, defined by alphabetical sorting of marker names
+    unsigned true_posn;         //for test data: position in true map order
     unsigned char type;         //1=lm,2=np,3=hk
     unsigned char phase[2];     //[0]=mat phase [1]=pat phase
     unsigned char oldphase[2];  //used for testing
+    
+    //used for testing against simulated data
+    unsigned orig_phase[2];
+    double   orig_pos;
 
     BITTYPE*bits[2];           //maternal/paternal info condensed into bitstrings
     BITTYPE*mask[2];           //maternal/paternal bitstring representing missing data
@@ -185,14 +189,15 @@ global parameters and the marker list
 */
 struct conf
 {
-    char*inp; //input file
-    char*out; //output file
-    char*log; //log file
-    char*map; //output map file
-    char*mstmap; //output mstmap file
-    char*lg;  //which linkage group to process
+    char*inp;     //input file
+    char*out;     //output file
+    char*log;     //log file
+    char*map;     //output map file
+    char*mstmap;  //output mstmap file
+    char*lg;      //which linkage group to process
     char*outbase; //output filename base
-    unsigned basenumb; //basenumber of numbering LGs in crosslink_group
+    char*redun;   //output file to receive redundant marker names
+    //unsigned basenumb; //basenumber of numbering LGs in crosslink_group
     char*mapbase; //output map filename base
     FILE*flog;
     
@@ -217,6 +222,7 @@ struct conf
     unsigned grp_knn;               //k parameter of kNN imputation
     double   grp_matpat_lod;          //if >0.0, detect and correct incorrect marker typing
     unsigned grp_ignore_cxr;        //ignore cxr and rxc phasing between hk markers
+    double   grp_redundancy_lod;    //remove markers with identical allele calls (ignoring missing) at or above this lod
     
     unsigned ga_gibbs_cycles;//how many overall cycles of ga+gibbs to perform
     unsigned ga_report;      //how often to report ga progress
