@@ -1024,7 +1024,7 @@ struct marker* generic_load_marker(struct conf*c,FILE*f,unsigned lgctr)
                 {
                     //lm or ab
                     m->orig[0][i] = m->data[0][i] = 1;
-                }
+                }//else = 0
             }
             break;
             
@@ -1041,7 +1041,7 @@ struct marker* generic_load_marker(struct conf*c,FILE*f,unsigned lgctr)
                 {
                     //np or ab
                     m->orig[1][i] = m->data[1][i] = 1;
-                }
+                }//else = 0
             }
             break;
             

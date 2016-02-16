@@ -1,6 +1,15 @@
 #include "crosslink_viewer.h"
 #include "crosslink_utils.h"
 
+unsigned find_marker(struct lg*p,char*name)
+{
+    unsigned i;
+    
+    for(i=0; i<p->nmarkers; i++) if(strcmp(p->array[i]->name,name) == 0) return i;//found it
+    
+    return p->nmarkers; //indicates not found
+}
+
 void show_info(struct lg*p,int offset)
 {
     struct marker*m=NULL;

@@ -97,6 +97,7 @@ int main(int argc,char*argv[])
     
     //form linkage groups
     assert(mp = calloc(1,sizeof(struct map)));
+    
     form_groups(c,p,e,mp);
     
     //phase markers per lg / parental origin

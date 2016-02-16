@@ -6,6 +6,7 @@
 
 #define setpixelrgb(buff,x,y,w,r,g,b) ((buff)[(y)*(w)+(x)] = ((r)<<16)+((g)<<8)+(b))
 
+unsigned find_marker(struct lg*p,char*name);
 void show_info(struct lg*p,int offset);
 void show_rf_lod(struct conf*c,struct lg*p,int xoff,int yoff);
 uint32_t*generate_image(struct conf*c,struct lg*p,double minlod);

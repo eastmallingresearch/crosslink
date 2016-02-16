@@ -125,6 +125,8 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
                 m->mask[0] = NULL;
                 m->orig[0] = NULL;
                 changes += 1;
+                
+                if(c->flog) fprintf(c->flog,"#linkage group %s, %s LM->NP\n",p->name,m->name);
             }
         }
         else
@@ -145,6 +147,8 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
                 m->mask[1] = NULL;
                 m->orig[1] = NULL;
                 changes += 1;
+                
+                if(c->flog) fprintf(c->flog,"#linkage group %s, %s NP->LM\n",p->name,m->name);
             }
         }
     }
@@ -1172,9 +1176,6 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
         //ignore if edge involves information from the wrong parent
         if(e->m1->data[x] == NULL || e->m2->data[x] == NULL) continue;
         
-        
-        //check lod is sensible
-        assert(e->lod > 0.0);
         
         //printf("edge: %s => %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
         

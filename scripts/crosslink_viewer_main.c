@@ -13,16 +13,17 @@ this version aims to support phased and unphased data using the new generic load
 int main(int argc,char*argv[])
 {
     struct conf*c=NULL;
+    struct lg*p=NULL;
     SDL_Window* win = NULL;
     SDL_Renderer* ren = NULL;
     SDL_Texture* tex = NULL;
     SDL_Event eve;
     SDL_Rect src,dst;
-    unsigned size;
+    unsigned size,pos;
     unsigned hardware,skip,total;
-    struct lg*p=NULL;
     char*inp=NULL;
     char*datatype=NULL;
+    char*named=NULL;
     
     double minlod,xbase_pix,ybase_pix,width_pix;
     int mx,my,markerx,markery;
@@ -38,6 +39,7 @@ int main(int argc,char*argv[])
     parseuns(argc,argv,"hardware",&hardware,1,1);
     parseuns(argc,argv,"skip",&skip,1,0);   //load starting from the first marker
     parseuns(argc,argv,"total",&total,1,0); //zero indicates load all markers
+    parsestr(argc,argv,"marker",&named,1,"NONE");//named marker
     parseend(argc,argv);
     
     //precalc bitmasks for every possible bit position
@@ -73,6 +75,18 @@ int main(int argc,char*argv[])
     
     xbase_pix = ybase_pix = (double)p->nmarkers / 2.0;      //control view window
     width_pix = (double)p->nmarkers;
+    
+    if(strcmp(named,"NONE") != 0)
+    {
+        //centre initial view on named marker
+        pos = find_marker(p,named);
+        
+        if(pos < p->nmarkers)
+        {
+            xbase_pix = ybase_pix = (double)pos + 0.5;
+            width_pix = (double)15.0;
+        }
+    }
 
     while(1)
     {
