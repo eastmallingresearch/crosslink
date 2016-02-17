@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #
-# apply process rgxha data
-# now with redundancy removal
+# build rgxha map - this version is for the crosslink paper
+# this script comes from the test_rgxha_redundancy.sh script
 #
 
 export PATH=${PATH}:/home/vicker/git_repos/crosslink/scripts
@@ -26,9 +26,9 @@ RUN_PHASE=0
 RUN_MAP1=0
 RUN_VIEW=0
 RUN_REFINE=0
-RUN_MAP2=1
+RUN_MAP2=0
 
-if [ "$(pwd)" != "/home/vicker/rjv_mnt/cluster/crosslink/test_rgxha" ]
+if [ "$(pwd)" != "/home/vicker/rjv_mnt/cluster/crosslink/build_rgxha_map" ]
 then
     echo wrong working directory
     exit
@@ -38,7 +38,7 @@ fi
 if [ "${RUN_REMOVEALL}" == "1" ]
 then
     rm -f ${FNAME}* unsplit/${FNAME}*
-    cp orig/RGxHA.loc .
+    cp orig/${FNAME}.loc .
 fi
 
 #==========prefilter===========
@@ -53,7 +53,7 @@ then
         > ${FNAME}.tmp
     
     #create new file header
-    echo "; group 000 markers $(wc --lines ${FNAME}.tmp)" > ${FNAME}0.loc
+    echo "; group 000 markers $(cat ${FNAME}.tmp|wc --lines)" > ${FNAME}0.loc
 
     #perform type switching
     modify_markers.py ${FNAME}.tmp orig/mat2pat orig/pat2mat >> ${FNAME}0.loc
@@ -93,7 +93,7 @@ then
     cat ${FNAME}_???.loc > ${FNAME}2.loc
     
     echo checking if any PHR markers were type switched
-    cat ./RGxHA.log | grep PHR
+    cat ./${FNAME}.log | grep PHR
     echo done
 fi
 
@@ -227,9 +227,10 @@ then
         
         echo ${INPNAME}
         
-        crosslink_map\
+        nice crosslink_map\
               --inp             ${INPNAME}\
               --out             ${BASENAME}.loc3\
+              --map             ${BASENAME}.map3\
               --log             ${BASENAME}.log3\
               --prng_seed       ${SEED}\
               --ga_gibbs_cycles ${MAP_CYCLES} --randomise_order ${MAP_RANDOMISE} --ga_iters         ${GA_ITERS} --ga_optimise_dist ${GA_OPTIMISE_DIST} --ga_skip_order1   ${MAP_SKIP_ORDER1} --ga_prob_hop      ${GA_PROB_HOP} --ga_max_hop       ${GA_MAX_HOP} --ga_prob_move     ${GA_PROB_MOVE} --ga_max_mvseg     ${GA_MAX_MOVESEG} --ga_max_mvdist    ${GA_MAX_MOVEDIST} --ga_prob_inv      ${GA_PROB_INV} --ga_max_seg       ${GA_MAX_SEG}\
@@ -333,7 +334,7 @@ then
                           --gibbs_samples         ${GIBBS_SAMPLES} --gibbs_burnin          ${GIBBS_BURNIN} --gibbs_period          ${GIBBS_PERIOD} --gibbs_prob_sequential ${GIBBS_PROB_SEQUENTIAL} --gibbs_prob_unidir     ${GIBBS_PROB_UNIDIR} --gibbs_min_prob_1      ${GIBBS_MIN_PROB_1} --gibbs_min_prob_2      ${GIBBS_MIN_PROB_2} --gibbs_twopt_1         ${GIBBS_TWOPT_1} --gibbs_twopt_2         ${GIBBS_TWOPT_2} 
                 done
                 
-                mv ${INPNAME} ${GRP_UNSPLIT}
+                mv ${INPNAME} ${BASENAME}.map3 ${GRP_UNSPLIT}
             fi
         done
         

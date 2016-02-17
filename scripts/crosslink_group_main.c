@@ -8,8 +8,10 @@ int main(int argc,char*argv[])
     struct map*mp=NULL;
     struct lg*p=NULL;
     struct earray*e=NULL;
+    struct weights*w=NULL;
     unsigned i;
     char buff[BUFFER];
+    char*weight_str=NULL;
    
     //parse command line options
     assert(c = calloc(1,sizeof(struct conf)));
@@ -23,6 +25,7 @@ int main(int argc,char*argv[])
     parseuns(argc,argv,"randomise_order",&c->gg_randomise_order,1,0);
     parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
     parsedbl(argc,argv,"matpat_lod",&c->grp_matpat_lod,1,0.0);
+    parsestr(argc,argv,"matpat_weights",&weight_str,1,"01");
     parsedbl(argc,argv,"min_lod",&c->grp_min_lod,1,3.0);
     parsedbl(argc,argv,"em_tol",&c->grp_em_tol,1,1e-5);
     parseuns(argc,argv,"em_maxit",&c->grp_em_maxit,1,100);
@@ -58,6 +61,9 @@ int main(int argc,char*argv[])
 
     //precalc bitmasks for every possible bit position
     init_masks(c);
+    
+    //decode the marker type weights for matpat type error correction
+    w = decode_weights(weight_str);
 
     //open logfile
     if(strcmp(c->log,"NONE") != 0)
@@ -106,7 +112,7 @@ int main(int argc,char*argv[])
     for(i=0; i<mp->nlgs; i++)
     {   
         //fix marker typing errors (ie switch LM <=> NP)
-        if(c->grp_matpat_lod > 0.0) fix_marker_types(c,mp->lgs[i],mp->earrays[i]);
+        if(c->grp_matpat_lod > 0.0) fix_marker_types(c,mp->lgs[i],mp->earrays[i],w);
         
         phase_markers(c,mp->lgs[i],mp->earrays[i],0);
         phase_markers(c,mp->lgs[i],mp->earrays[i],1);

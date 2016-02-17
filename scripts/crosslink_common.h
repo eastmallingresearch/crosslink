@@ -85,6 +85,13 @@ eg SWAP(array[i],array[rand()%n],itmp) will evaluate rand()%n twice to different
 #define CLEAR_BIT(x,i)  ((BITTYPE)(x) & ~(c->precalc_mask[i]) )
 #define FLIP_BIT(x,i)   ((BITTYPE)(x) ^  (c->precalc_mask[i]) )
 
+struct weights
+{
+    unsigned n; //how many marker categories
+    char*tag; //first character of marker name
+    unsigned*weight; //weighting per category
+};
+
 //set of lgs and earrays
 struct map
 {

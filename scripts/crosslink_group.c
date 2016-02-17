@@ -1,6 +1,51 @@
 #include "crosslink_group.h"
 #include "crosslink_utils.h"
 
+//decode the marker category first letters and weights from the string
+//format is: one letter code followed by weight as exactly two digits
+//first two characters are the default weight as two digits
+//weights can be {00,01,...99}, converted to integers {0,1,...99}
+//letter code is the case sensitive first character of the marker name
+//eg 01P03
+// means each marker scores 1, except markers whose name starts with a capital P which score 3
+struct weights*decode_weights(char*weight_str)
+{
+    int ret;
+    unsigned i;
+    struct weights*w=NULL;
+    
+    assert(w = calloc(1,sizeof(struct weights)));
+    
+    assert(strlen(weight_str) >= 2);
+    
+    w->n = (strlen(weight_str)-2) / 3;
+    
+    assert(strlen(weight_str) == 3*w->n + 2);
+    
+    assert(w->tag = calloc(w->n,sizeof(char)));
+    assert(w->weight = calloc(w->n+1,sizeof(unsigned)));
+    
+    //extract first-characters, break into substrings with NULLs
+    for(i=0; i<w->n; i++)
+    {
+        w->tag[i] = weight_str[2 + i * 3];
+        weight_str[2 + i * 3] = '\0';
+    }
+    
+    //extract default weight, store as last weight
+    ret = sscanf(weight_str,"%u",&(w->weight[w->n]));
+    assert(ret == 1);
+    
+    //extract weights
+    for(i=0; i<w->n; i++)
+    {
+        ret = sscanf(&(weight_str[3 + i * 3]),"%u",&(w->weight[i]));
+        assert(ret == 1);
+    }
+    
+    return w;
+}
+
 /*
 fix marker types
 where strong linkage exists between LM and NP markers take this to indicate
@@ -10,9 +55,9 @@ form trees excluding hk markers
 where a tree ends up with a minority of the other type of marker (eg a few LMs in an NP tree)
 switch the type of the minority to the majority
 */
-void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
+void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea,struct weights*w)
 {
-    unsigned i,ntrees,ctr,changes;
+    unsigned i,j,ntrees,ctr,changes;
     unsigned*lmct=NULL;
     unsigned*npct=NULL;
     struct marker*curr=NULL;
@@ -77,9 +122,13 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea)
         
         prev = curr;
         
-        //count lms/nps in the current tree
-        if(m->type == LMTYPE) lmct[ctr] += 1;
-        else                  npct[ctr] += 1;
+        //find which category j the marker belongs to
+        //default category is w->n
+        for(j=0; j<w->n; j++) if(m->name[0] == w->tag[j]) break;
+        
+        //create weighted count of lms and nps in the current tree
+        if(m->type == LMTYPE) lmct[ctr] += w->weight[j];
+        else                  npct[ctr] += w->weight[j];
     }
     
     //for(i=0; i<ntrees; i++) printf("group %u lmct=%u npct=%u\n",i,lmct[i],npct[i]);

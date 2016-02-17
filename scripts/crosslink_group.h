@@ -35,10 +35,10 @@ double impute_est_rf(struct conf*c,struct marker*m1,struct marker*m2,unsigned x)
 void append_knn(struct conf*c,struct missing*z,VARTYPE val,double rf);
 void impute_alloc(struct conf*c,unsigned nmark,struct marker**array);
 void calc_rflod_simple2(struct conf*c,struct marker*m1,struct marker*m2,unsigned x,unsigned y,double*_lod,double*_rf);
-void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea);
+void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea,struct weights*w);
 int ecomp_cxr_func(const void*_p1, const void*_p2);
 void remove_redundant_markers(struct conf*c,struct lg*p,struct earray*e);
 void identify_redundant_markers(struct conf*c,struct marker*m1,struct marker*m2,double rf,unsigned cxr_flag);
 unsigned find_redundant(struct conf*c,VARTYPE*p1,VARTYPE*p2,double rf);
-
+struct weights*decode_weights(char*weight_str);
 #endif
