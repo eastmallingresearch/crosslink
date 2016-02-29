@@ -30,20 +30,20 @@ RUN echo 'crosslink:cl_user_uDk5eI' | chpasswd
 WORKDIR /home/crosslink
 
 #add crosslink source
-COPY crosslink_src crosslink_src
+COPY crosslink crosslink
 COPY rjvbio rjvbio
 
 #change ownership from root to crosslink user
-RUN chown -R crosslink ./crosslink_src
+RUN chown -R crosslink ./crosslink
 RUN chown -R crosslink ./rjvbio
-RUN chgrp -R crosslink ./crosslink_src
+RUN chgrp -R crosslink ./crosslink
 RUN chgrp -R crosslink ./rjvbio
 
 #run as crosslink user
 USER crosslink
 
 #build crosslink inside the container
-RUN cd crosslink_src/scripts && ./make.sh && ./viewer_make.sh
+RUN cd crosslink/scripts && ./make.sh && ./viewer_make.sh
 
 #add crosslink executables to path
-ENV PATH ${PATH}:/home/crosslink/crosslink_src/scripts
+ENV PATH ${PATH}:/home/crosslink/crosslink/scripts
