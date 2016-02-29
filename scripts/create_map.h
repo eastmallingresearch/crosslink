@@ -14,6 +14,8 @@
 #include <assert.h>
 #include <sys/time.h>
 #include <math.h>
+#include <argp.h>
+#include <ctype.h>
 
 /*
 data defining a single marker
@@ -33,22 +35,24 @@ global parameters and the marker list
 */
 struct conf
 {
-    char*out;             //output file
-
+    //command line options
+    char*out;             //output filename
     unsigned prng_seed;   //0 => use system time, >0 => deterministic behaviour
-    unsigned nmarkers;    //number of markers
     unsigned nlgs;        //number of linkage groups
-    double lg_size;       //cM size per LG
-    
+    double map_size;      //total map size (centimorgans)
+    double density;       //marker density (per centimorgan)
     double prob_hk;       /*prob marker is hk*/
     double prob_lm;       /*prob marker is lm given it's not an hk*/
 
-    unsigned hideposn;    //if true do not put true position in marker name
-
+    //derived from map_size and density
+    unsigned nmarkers;    //number of markers
+    double lg_size;       //cM size per LG
+    
     struct marker**map;   /*list of markers*/
     unsigned*nmark;       /*how many markers per lg*/
 };
 
+struct conf*init_conf(int argc, char **argv);
 void create_map(struct conf*c);
 void save_map(struct conf*c);
 

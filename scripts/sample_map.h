@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <argp.h>
+#include <sys/time.h>
+#include <time.h>
 
 #define BUFFER 10000
 
@@ -66,4 +69,5 @@ double inverse_haldane(double d);
 void random_order(struct conf*c);
 void hide_hk(struct conf*c);
 void apply_errors(struct conf*c);
+struct conf*init_conf(int argc, char **argv);
 #endif

@@ -1,38 +1,18 @@
 #include "sample_map.h"
-#include "rjv_cutils.h"
+
+#ifndef NDEBUG
 
 int main(int argc,char*argv[])
 {
     struct conf*c=NULL;
-    assert(c = calloc(1,sizeof(struct conf)));
-    parsestr(argc,argv,"inp",&c->inp,0,NULL);
-    parsestr(argc,argv,"out",&c->out,0,NULL);
-    parsestr(argc,argv,"orig",&c->orig,0,NULL);
-    parseuns(argc,argv,"nind",&c->nind,1,200);
-    parseuns(argc,argv,"prng_seed",&c->prng_seed,1,0);
-    parsedbl(argc,argv,"prob_missing",&c->prob_missing,1,0.0);
-    parsedbl(argc,argv,"prob_error",&c->prob_error,1,0.0);
-    parsedbl(argc,argv,"prob_type_error",&c->prob_type_error,1,0.0);
-    parseuns(argc,argv,"map_func",&c->map_func,1,1);
-    parseend(argc,argv);
     
-    /*seed random number generator(s)*/
-    if(c->prng_seed == 0)
-    {
-        srand48(get_time());
-        srand(get_time()+1234);
-    }
-    else
-    {
-        srand48(c->prng_seed);
-        srand(c->prng_seed+1234);
-    }
+    c = init_conf(argc,argv);
     
     load_map(c);
     
     sample_map(c);
     
-    if(c->orig) save_data(c,c->orig,1);
+    if(c->orig != NULL) save_data(c,c->orig,1);
 
     if(c->prob_missing+c->prob_error+c->prob_type_error > 0.0) apply_errors(c);
     
@@ -42,3 +22,5 @@ int main(int argc,char*argv[])
     
     return 0;
 }
+
+#endif

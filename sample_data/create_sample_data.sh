@@ -24,13 +24,13 @@ NUMB_LGS=10
 PROB_HK=0.333
 PROB_LM=0.5
 
-create_map --out ${FNAME}.map\
-           --nlgs ${NUMB_LGS}\
-           --map_size ${MAP_SIZE}\
-           --density ${MARKER_DENSITY}\
-           --prob_hk ${PROB_HK}\
-           --prob_lm ${PROB_LM}\
-           --prng_seed ${SEED}
+create_map --output-file=${FNAME}.map\
+           --numb-lgs=${NUMB_LGS}\
+           --map-size=${MAP_SIZE}\
+           --marker-density=${MARKER_DENSITY}\
+           --prob-both=${PROB_HK}\
+           --prob-maternal=${PROB_LM}\
+           --random-seed=${SEED}
            
 #simulate genotyping data from the map
 #population size 200 F1 offspring
@@ -40,11 +40,11 @@ PROB_MISSING=0.01
 PROB_ERROR=0.01
 PROB_TYPE_ERR=0.0
 
-sample_map --inp ${FNAME}.map\
-           --out ${FNAME}.loc\
-           --orig ${FNAME}_orig.loc\
-           --nind ${POP_SIZE}\
-           --prob_missing ${PROB_MISSING}\
-           --prob_error ${PROB_ERROR}\
-           --prob_type_err ${PROB_TYPE_ERR}\
-           --prng_seed ${SEED}
+sample_map --input-file=${FNAME}.map\
+           --output-file=${FNAME}.loc\
+           --orig-file=${FNAME}_orig.loc\
+           --samples=${POP_SIZE}\
+           --prob-missing=${PROB_MISSING}\
+           --prob-error=${PROB_ERROR}\
+           --prob-type-err=${PROB_TYPE_ERR}\
+           --random-seed=${SEED}
