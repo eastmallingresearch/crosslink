@@ -29,15 +29,24 @@ map2 = genmap(conf.map2,markerfilter=eval(str(conf.filter2)))
 
 xposn = []
 yposn = []
+col = []
 
 for marker in map1.mkdict.iterkeys():
     if not marker in map2.mkdict: continue
     xposn.append(map1.mkdict[marker].cumposn)
     yposn.append(map2.mkdict[marker].cumposn)
     
+    #get lg offsets in both maps
+    xlg = map1.lgdict[map1.mkdict[marker].lg].offset
+    ylg = map2.lgdict[map2.mkdict[marker].lg].offset
+    
+    #determine colour
+    if (xlg+ylg) % 2 == 0: col.append(1)
+    else:                  col.append(2)
+    
 fig = plt.figure()
 ax = fig.add_subplot(111)
-ax.plot(xposn,yposn,'o')
+ax.scatter(xposn,yposn,c=col,s=20,lw=0)
 lines1 = [x.start+x.size for x in map1.lglist]
 x = map1.lglist[-1]
 max1 = x.start + x.size

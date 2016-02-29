@@ -26,7 +26,7 @@ void create_map(struct conf*c)
     assert(c->map = calloc(c->nmarkers,sizeof(struct marker*)));
     assert(c->nmark = calloc(c->nlgs,sizeof(unsigned)));
     
-    /*create marker*/
+    //create marker
     for(i=0; i<c->nmarkers; i++)
     {
         assert(m = calloc(1,sizeof(struct marker)));
@@ -59,7 +59,7 @@ void create_map(struct conf*c)
         }
     }
     
-    /*sort by lg and pos*/
+    //sort by lg and pos
     qsort(c->map,c->nmarkers,sizeof(struct marker*),comp_func);
 }
 
@@ -79,14 +79,13 @@ void save_map(struct conf*c)
         
         if(c->hideposn == 0)
         {
-            //marker name contains true lg and position
-            sprintf(buff,c->marker_fmt,m->lg,m->pos,m->type_str[1]);
+            //marker name contains true lg, position and type
+            sprintf(buff,"m%03u_%012.7f%c",m->lg,m->pos,m->type_str[1]);
         }
         else
         {
-            //give marker a random name to make sure true position is hidden
-            //include only marker type
-            sprintf(buff,"M%06u%06u%c",rand()%1000000,rand()%1000000,toupper(m->type_str[1]));
+            //give marker a random name to make sure true lg,position and type are hidden
+            sprintf(buff,"M%06u%06u",rand()%1000000,rand()%1000000);
         }
         fprintf(f,"%s %s {%c%c} %3u %8.3f\n",buff,m->type_str,m->phase[0],m->phase[1],m->lg,m->pos);
     }

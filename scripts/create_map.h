@@ -35,9 +35,6 @@ struct conf
 {
     char*out;             //output file
 
-    char*lg_fmt;          //format string for linkage group names
-    char*marker_fmt;      //format string for marker names
-    
     unsigned prng_seed;   //0 => use system time, >0 => deterministic behaviour
     unsigned nmarkers;    //number of markers
     unsigned nlgs;        //number of linkage groups
