@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# build create_map, sample_map and gg_map
+# build create_map, sample_map, crosslink_group and crosslink_map
 # run from the same directory as the source files
 #
 
@@ -9,7 +9,7 @@ set -eu
 
 TYPE="-Wall -Wextra -O3"
 
-#build gg source
+#build shared source files
 for FNAME in crosslink_utils crosslink_ga crosslink_gibbs crosslink_group rjvparser
 do
     gcc ${TYPE} -c ${FNAME}.c -o ${FNAME}.o
@@ -50,4 +50,3 @@ gcc ${TYPE}\
     rjvparser.o\
     crosslink_group_main.c\
     -lm
-    

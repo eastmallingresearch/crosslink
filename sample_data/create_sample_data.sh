@@ -7,7 +7,10 @@
 set -eu
 
 #change this to point towards the crosslink directory containing create_map and sample_map
-export PATH=~/git_repos/crosslink/scripts:${PATH}
+CROSSLINK_PATH=~/git_repos/crosslink/scripts
+
+
+export PATH=${CROSSLINK_PATH}:${PATH}
 
 #500 cM map with an average of 1 marker per centimorgan
 #divided into ten linkage groups of equal size

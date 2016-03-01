@@ -131,7 +131,7 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
     //check for --help
     for(i=0; (int)i<argc; i++)
     {
-        if(strcmp(argv[i],"--help") == 0 || strcmp(argv[i],"-h") == 0)
+        if(strcmp(argv[i],"--help") == 0 || strcmp(argv[i],"-h") == 0  || strcmp(argv[i],"-?") == 0)
         {
             break;
         }
@@ -176,7 +176,7 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
         if(flag == 0)
         {
             rjvparser_help(head,doc);
-            printf("unknown option: %s",argv[i]);
+            printf("unknown option: %s\n",argv[i]);
             exit(0);
         }
         
@@ -210,7 +210,7 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
         
         //failed to parse value
         rjvparser_help(head,doc);
-        printf("failed to parse option: %s",argv[i]);
+        printf("failed to parse option: %s\n",argv[i]);
         exit(0);
     }
     
