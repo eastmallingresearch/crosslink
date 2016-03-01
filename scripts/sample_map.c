@@ -1,82 +1,25 @@
 #include "sample_map.h"
 
+#include "rjvparser.h"
+
 char*type_str[] = {"NULL","<lmxll>","<nnxnp>","<hkxhk>"};
 char*phase_str = "01";
-
-static char myargp_docs[] = "simulate genotype data from an existing map for a given number of F1 offspring";
-
-static struct argp_option myargp_options[] =
-{
-    { "input-file",      'i',  "FILENAME",  0,  "input map file (required)", 0 },
-    { "output-file",     'o',  "FILENAME",  0,  "output genotype file with errors (required)", 0 },
-    { "orig-file",       'g',  "FILENAME",  0,  "output genotype file without any errors  (optional)", 0 },
-    { "random-seed",     'r',  "INTEGER",   0,  "random number generator seed (defaults to using system time)", 0 },
-    { "samples",         's',  "INTEGER",   0,  "number of offspring to simulate (default: 200)", 0 },
-    { "prob-missing",    'm',  "FLOAT",     0,  "probability a genotype call is missing (default: 0.0)", 0 },
-    { "prob-error",      'e',  "FLOAT",     0,  "probability a genotype call is incorrect (default: 0.0)", 0 },
-    { "prob-type-error", 't',  "FLOAT",     0,  "probability a maternal/paternal marker is misclassfied as a paternal/maternal marker (default: 0.0)", 0 },
-    { "map-function",    'f',  "INTEGER",   0,  "1=Haldane, 2=Kosambi (default: 1)", 0 },
-    { 0, 0, 0, 0, 0, 0 }
-};
-
-static error_t myargp_parser(int key, char *arg, struct argp_state*state)
-{
-    struct conf*c = state->input;
-
-    switch(key)
-    {
-        case 'i': //input-file
-            c->inp = arg;
-            break;
-        case 'o': //output-file
-            c->out = arg;
-            break;
-        case 'g': //orig-file
-            c->orig = arg;
-            break;
-        case 'r': //random-seed
-            assert(sscanf(arg,"%u",&c->prng_seed) == 1);
-            break;
-        case 's': //samples
-            assert(sscanf(arg,"%u",&c->nind) == 1);
-            break;
-        case 'm': //prob-missing
-            assert(sscanf(arg,"%lf",&c->prob_missing) == 1);
-            break;
-        case 'e': //prob-error
-            assert(sscanf(arg,"%lf",&c->prob_error) == 1);
-            break;
-        case 't': //prob-type-error
-            assert(sscanf(arg,"%lf",&c->prob_type_error) == 1);
-            break;
-
-        default:
-            return ARGP_ERR_UNKNOWN;
-    }
-    
-    return 0;
-}
-
-static struct argp myargp_argp = { myargp_options, myargp_parser, 0, myargp_docs };
 
 struct conf*init_conf(int argc, char **argv)
 {
     struct conf*c=NULL;
     
     assert(c = calloc(1,sizeof(struct conf)));
-    
-    //set defaults
-    c->nind = 200;
-    c->map_func = 1;
-    c->prob_missing = 0.0;
-    c->prob_error = 0.0;
-    c->prob_type_error = 0.0;
-    
-    //parse args from command line
-    argp_parse (&myargp_argp, argc, argv, 0, 0, c);
-
-    assert(c->inp != NULL);
-    assert(c->out != NULL);
+    rjvparser("input-file|STRING|!|input map file",&c->inp);
+    rjvparser("output-file|STRING|!|output genotype file including any errors",&c->out);
+    rjvparser("orig-file|STRING|-|output genotype file excluding any errors",&c->orig);
+    rjvparser("random-seed|INTEGER|0|random number generator seed, 0=use system time",&c->prng_seed);
+    rjvparser("samples|INTEGER|200|number of offspring to simulate",&c->nind);
+    rjvparser("prob-missing|FLOAT|0.0|probability a genotype call is missing",&c->prob_missing);
+    rjvparser("prob-error|FLOAT|0.0|probability a genotype call is incorrect",&c->prob_error);
+    rjvparser("prob-type-error|FLOAT|0.0|probability a maternal/paternal marker is misclassfied as a paternal/maternal marker",&c->prob_type_error);
+    rjvparser("map-function|INTEGER|1|1=Haldane, 2=Kosambi",&c->map_func);
+    rjvparser2(argc,argv,rjvparser(0,0),"simulate genotype data from an existing map for a given number of F1 offspring");
 
     //seed random number generator
     if(c->prng_seed != 0)

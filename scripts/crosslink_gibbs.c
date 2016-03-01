@@ -606,7 +606,7 @@ void gibbs_iterate(struct conf*c,unsigned iters,unsigned burnin_flag)
 {
     unsigned i,j,k,utmp;
     struct hk*ptmp=NULL;
-    double coeff;
+    double coeff,dval;
     
     if(sort_key_ind == NULL)
     {
@@ -640,7 +640,8 @@ void gibbs_iterate(struct conf*c,unsigned iters,unsigned burnin_flag)
         //resample in a non-random order
         //based on map order (either forward or backward), but deal with individuals in a random order
         c->unidir_mode = 0;
-        if(drand48() < c->gibbs_prob_sequential)
+        dval = drand48();
+        if(dval < c->gibbs_prob_unidir + c->gibbs_prob_sequential)
         {
             for(j=0; j<c->nind; j++)
             {
@@ -657,7 +658,7 @@ void gibbs_iterate(struct conf*c,unsigned iters,unsigned burnin_flag)
             qsort(c->hklist,c->nhk,sizeof(struct hk*),gibbs_comp);
             
             //choose whether to activate unidirectional mode
-            if(drand48() < c->gibbs_prob_unidir) c->unidir_mode = 1;
+            if(dval < c->gibbs_prob_unidir) c->unidir_mode = 1;
         }
         
         //resample each hk state

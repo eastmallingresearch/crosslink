@@ -1,76 +1,21 @@
 #include "create_map.h"
 
-//const char *argp_program_version = "";
-//const char *argp_program_bug_address = "";
-
-static char myargp_docs[] = "uniform random placement of markers on a map using specified constraints";
-
-static struct argp_option myargp_options[] =
-{
-    { "output-file",     'o',  "FILENAME",  0,  "output map file (required)", 0 },
-    { "random-seed",     'r',  "INTEGER",   0,  "random number generator seed (defaults to using system time)", 0 },
-    { "numb-lgs",        'n',  "INTEGER",   0,  "divide map into this number of equally sized linkage groups (default: 10)", 0 },
-    { "map-size",        's',  "FLOAT",     0,  "total map size in centimorgans (default: 100.0)", 0 },
-    { "marker-density",  'd',  "FLOAT",     0,  "average markers per centimorgan (default: 1.0)", 0 },
-    { "prob-both",       'b',  "FLOAT",     0,  "probability marker is heterozygous in both parents (default: 0.3333)", 0 },
-    { "prob-maternal",   'm',  "FLOAT",     0,  "probability marker is heterozygous only in maternal parent (default: 0.3333)", 0 },
-    { 0, 0, 0, 0, 0, 0 }
-};
-
-static error_t myargp_parser(int key, char *arg, struct argp_state*state)
-{
-    struct conf*c = state->input;
-
-    switch(key)
-    {
-        case 'o': //output-file
-            c->out = arg;
-            break;
-        case 'r': //random-seed
-            assert(sscanf(arg,"%u",&c->prng_seed) == 1);
-            break;
-        case 'n': //numb_lgs
-            assert(sscanf(arg,"%u",&c->nlgs) == 1);
-            break;
-        case 's': //map-size
-            assert(sscanf(arg,"%lf",&c->map_size) == 1);
-            break;
-        case 'd': //marker-density
-            assert(sscanf(arg,"%lf",&c->density) == 1);
-            break;
-        case 'b': //prob-both
-            assert(sscanf(arg,"%lf",&c->prob_hk) == 1);
-            break;
-        case 'm': //prob-matermal
-            assert(sscanf(arg,"%lf",&c->prob_lm) == 1);
-            break;
-
-        default:
-            return ARGP_ERR_UNKNOWN;
-    }
-    
-    return 0;
-}
-
-static struct argp myargp_argp = { myargp_options, myargp_parser, 0, myargp_docs };
+#include "rjvparser.h"
 
 struct conf*init_conf(int argc, char **argv)
 {
     struct conf*c=NULL;
     
     assert(c = calloc(1,sizeof(struct conf)));
-    
-    //set default values here
-    c->out = NULL;
-    c->prng_seed = 0;
-    c->nlgs = 10;
-    c->map_size = 100.0;
-    c->density = 1.0;
-    c->prob_hk = 0.333;
-    c->prob_lm = 0.333;
-    
-    //parse args from command line
-    argp_parse (&myargp_argp, argc, argv, 0, 0, c);
+
+    rjvparser("output-file|STRING|!|output map file",&c->out);
+    rjvparser("random-seed|UNSIGNED|0|random number generator seed (0=use system time)",&c->prng_seed);
+    rjvparser("numb-lgs|UNSIGNED|10|divide map into this number of equally sized linkage groups",&c->nlgs);
+    rjvparser("map-size|FLOAT|100.0|total map size in centimorgans",&c->map_size);
+    rjvparser("marker-density|FLOAT|1.0|average markers per centimorgan",&c->density);
+    rjvparser("prob-both|FLOAT|0.3333|probability marker is heterozygous in both parents",&c->prob_hk);
+    rjvparser("prob-maternal|FLOAT|0.333|probability marker is heterozygous only in maternal parent",&c->prob_lm);
+    rjvparser2(argc,argv,rjvparser(0,0),"uniform random placement of markers on a map using specified constraints");
     
     //check for unset options or invalid options
     assert(c->out != NULL);

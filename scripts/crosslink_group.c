@@ -724,7 +724,7 @@ void remove_redundant_markers(struct conf*c,struct lg*p,struct earray*ea)
     //could realloc ea->array here
 
     //file to receive names of markers that were removed 
-    if(strcmp(c->redun,"NONE") != 0) assert(f = fopen(c->redun,"wb"));
+    if(c->redun != NULL) assert(f = fopen(c->redun,"wb"));
 
     //remove redundant markers
     i = 0;

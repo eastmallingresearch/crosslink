@@ -31,13 +31,10 @@ WORKDIR /home/crosslink
 
 #add crosslink source
 COPY crosslink crosslink
-COPY rjvbio rjvbio
 
 #change ownership from root to crosslink user
 RUN chown -R crosslink ./crosslink
-RUN chown -R crosslink ./rjvbio
 RUN chgrp -R crosslink ./crosslink
-RUN chgrp -R crosslink ./rjvbio
 
 #run as crosslink user
 USER crosslink

@@ -51,15 +51,18 @@ struct myop*rjvparser(const char*str,void*pvar)
     {
         switch(p->type[0])
         {
-            case 'S':
+            case 'S': //STRING
                 ppvar = (char**)p->pvar;
                 assert(*ppvar = calloc(strlen(p->def)+1,sizeof(char))); //alloc space for default value
                 strcpy(*ppvar,p->def);
                 break;
-            case 'I':
+            case 'I': //INTEGER
                 assert(sscanf(p->def,"%d",(int*)p->pvar) == 1);
                 break;
-            case 'F':
+            case 'U': //UNSIGNED
+                assert(sscanf(p->def,"%u",(unsigned*)p->pvar) == 1);
+                break;
+            case 'F': //FLOAT
                 assert(sscanf(p->def,"%lf",(double*)p->pvar) == 1);
                 break;
             default:
@@ -104,7 +107,6 @@ struct myop*rjvparser(const char*str,void*pvar)
 
 void rjvparser_help(struct myop*head,char*doc)
 {
-    unsigned i;
     struct myop*p;
     printf("%s\n\n",doc);
     
@@ -127,16 +129,22 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
     char**ppvar=NULL;
     
     //check for --help
-    for(i=0; i<argc; i++) if(strcmp(argv[i],"--help") == 0 || strcmp(argv[i],"-h") == 0) break;
+    for(i=0; (int)i<argc; i++)
+    {
+        if(strcmp(argv[i],"--help") == 0 || strcmp(argv[i],"-h") == 0)
+        {
+            break;
+        }
+    }
     
-    if(i < argc || argc == 1)
+    if((int)i < argc || argc == 1)
     {
         rjvparser_help(head,doc);
         exit(0);
     }
     
     //parse all args
-    for(i=1; i<argc; i++)
+    for(i=1; (int)i<argc; i++)
     {
         p = head;
         flag = 0;
@@ -149,7 +157,7 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
             if(pch == NULL)
             {
                 rjvparser_help(head,doc);
-                printf("malformed option: %s",argv[i]);
+                printf("malformed option: %s\n",argv[i]);
                 exit(0);
             }
             
@@ -184,6 +192,9 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
             case 'I':
                 ret = sscanf(pch+1,"%d",(int*)p->pvar);
                 break;
+            case 'U':
+                ret = sscanf(pch+1,"%u",(unsigned*)p->pvar);
+                break;
             case 'F':
                 ret = sscanf(pch+1,"%lf",(double*)p->pvar);
                 break;
@@ -198,7 +209,7 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
         }
         
         //failed to parse value
-        rjvparse_help(head,doc);
+        rjvparser_help(head,doc);
         printf("failed to parse option: %s",argv[i]);
         exit(0);
     }

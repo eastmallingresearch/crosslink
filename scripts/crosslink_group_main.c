@@ -1,6 +1,6 @@
 #include "crosslink_group.h"
 #include "crosslink_utils.h"
-#include "rjv_cutils.h"
+#include "rjvparser.h"
 
 int main(int argc,char*argv[])
 {
@@ -15,36 +15,37 @@ int main(int argc,char*argv[])
    
     //parse command line options
     assert(c = calloc(1,sizeof(struct conf)));
-    parsestr(argc,argv,"inp",&c->inp,0,NULL);
-    parsestr(argc,argv,"outbase",&c->outbase,1,"NONE");
-    parsestr(argc,argv,"mapbase",&c->mapbase,1,"NONE");
-    parsestr(argc,argv,"redun",&c->redun,1,"NONE");
-    parsestr(argc,argv,"log",&c->log,1,"NONE");
-    parseuns(argc,argv,"prng_seed",&c->gg_prng_seed,1,0);
-    parseuns(argc,argv,"map_func",&c->gg_map_func,1,1);
-    parseuns(argc,argv,"randomise_order",&c->gg_randomise_order,1,0);
-    parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
-    parsedbl(argc,argv,"matpat_lod",&c->grp_matpat_lod,1,0.0);
-    parsestr(argc,argv,"matpat_weights",&weight_str,1,"01");
-    parsedbl(argc,argv,"min_lod",&c->grp_min_lod,1,3.0);
-    parsedbl(argc,argv,"em_tol",&c->grp_em_tol,1,1e-5);
-    parseuns(argc,argv,"em_maxit",&c->grp_em_maxit,1,100);
-    parseuns(argc,argv,"knn",&c->grp_knn,1,0);
-    parseuns(argc,argv,"ignore_cxr",&c->grp_ignore_cxr,1,0);
-    parsedbl(argc,argv,"redundancy_lod",&c->grp_redundancy_lod,1,0.0);
-    parseend(argc,argv);
+    rjvparser("inp|STRING|!|input genotype file",&c->inp);
+    rjvparser("outbase|STRING|-|basename for output genotype files",&c->outbase);
+    rjvparser("mapbase|STRING|-|basename for output map files",&c->mapbase);
+    rjvparser("redun|STRING|-|filename for outputting marker redundancy information",&c->redun);
+    rjvparser("log|STRING|-|filename for outputting logging information",&c->log);
+    rjvparser("prng_seed|UNSIGNED|0|random number generator seed, 0=use system time",&c->gg_prng_seed);
+    rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane,2=Kosambi",&c->gg_map_func);
+    rjvparser("randomise_order|UNSIGNED|0|start from a random initial marker ordering",&c->gg_randomise_order);
+    rjvparser("bitstrings|UNSIGNED|0|use bitstring data representation internally",&c->gg_bitstrings);
+    rjvparser("matpat_lod|FLOAT|0.0|minimum LOD used to identify spurious linkage between maternal and paternal markers, 0.0=disable",&c->grp_matpat_lod);
+    rjvparser("matpat_weights|STRING|01|conditional weightings to give markers when correcting marker typing errors\n\teg 01P03L05 gives default weight of 1 but 3 to markers starting with P and 5 for those starting with L",&weight_str);
+    rjvparser("min_lod|FLOAT|3.0|minimum linkage LOD to use when forming linkage groups",&c->grp_min_lod);
+    rjvparser("em_tol|FLOAT|1e-5|for 2 point rf calculations, convergence tolerance for EM algorithm",&c->grp_em_tol);
+    rjvparser("em_maxit|UNSIGNED|100|for 2 point rf calculations, max EM iterations",&c->grp_em_maxit);
+    rjvparser("knn|UNSIGNED|0|how many nearest neighbours to use for kNN missing data imputation, 0=disable imputation",&c->grp_knn);
+    rjvparser("ignore_cxr|UNSIGNED|0|1=use cxr and rxc linkage during grouping",&c->grp_ignore_cxr);
+    rjvparser("redundancy_lod|FLOAT|0.0|minimum linkage LOD to use when identifying redundant markers, 0.0=disable",&c->grp_redundancy_lod);
+    rjvparser2(argc,argv,rjvparser(0,0),"form markers into linkage groups, phase, impute missing values, correct marker typing errors, perform approximate ordering");
     
-    //seed random number generator(s)
-    if(c->gg_prng_seed == 0)
+    //seed random number generator
+    if(c->gg_prng_seed != 0)
     {
-        srand48(get_time());
-        srand(get_time()+1234);
+        srand(c->gg_prng_seed);
     }
     else
     {
-        srand48(c->gg_prng_seed);
-        srand(c->gg_prng_seed+1234);
+        struct timeval tv;
+        gettimeofday(&tv,NULL);
+        srand(tv.tv_sec * 1000000 + tv.tv_usec);
     }
+    srand48(rand());
     
     //set up genetic mapping function
     switch(c->gg_map_func)
@@ -66,7 +67,7 @@ int main(int argc,char*argv[])
     w = decode_weights(weight_str);
 
     //open logfile
-    if(strcmp(c->log,"NONE") != 0)
+    if(c->log != NULL)
     {
         c->flog = fopen(c->log,"wb");
         if(c->flog == NULL)
@@ -137,7 +138,7 @@ int main(int argc,char*argv[])
     //if(c->flog && c->gg_show_pearson) show_pearson_all(c,mp);
     
     //save to file grouped by lg and sorted by approx order
-    if(strcmp(c->outbase,"NONE") != 0)
+    if(c->outbase != NULL)
     {
         for(i=0; i<mp->nlgs; i++)
         {
@@ -147,7 +148,7 @@ int main(int argc,char*argv[])
     }
     
     //save approx map positions
-    if(strcmp(c->mapbase,"NONE") != 0)
+    if(c->mapbase != NULL)
     {
         for(i=0; i<mp->nlgs; i++)
         {

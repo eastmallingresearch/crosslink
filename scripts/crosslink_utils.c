@@ -535,7 +535,8 @@ void load_phased_lg(struct conf*c,const char*fname,const char*lg)
         /*each linkage group must have a header line like:   ; group GROUPNAME markers NMARKERS*/
         assert(sscanf(buff,"%*s %*s %s %*s %u",buff2,&nmarkers) == 2);
         
-        if(strcmp(buff2,lg) == 0 || strcmp(lg,"NONE") == 0) break;
+        if(lg == NULL) break;
+        if(strcmp(buff2,lg) == 0) break;
     }
 
     /*allocate the marker arrays*/

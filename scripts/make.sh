@@ -7,17 +7,10 @@
 
 set -eu
 
-if [ "$(hostname)" == "enterprise" ]
-then
-    TYPE="-Wall -Wextra -O3 -I/home/vicker/rjv_mnt/cluster/git_repos/rjvbio"
-    RJVUTILS=/home/vicker/rjv_mnt/cluster/git_repos/rjvbio/rjv_cutils.c
-else
-    TYPE="-Wall -Wextra -O3 -I/home/vicker/git_repos/rjvbio"
-    RJVUTILS=/home/vicker/git_repos/rjvbio/rjv_cutils.c
-fi
+TYPE="-Wall -Wextra -O3"
 
 #build gg source
-for FNAME in crosslink_utils crosslink_ga crosslink_gibbs crosslink_group
+for FNAME in crosslink_utils crosslink_ga crosslink_gibbs crosslink_group rjvparser
 do
     gcc ${TYPE} -c ${FNAME}.c -o ${FNAME}.o
 done
@@ -27,7 +20,7 @@ gcc ${TYPE}\
     -o create_map\
     create_map_main.c\
     create_map.c\
-    ${RJVUTILS}\
+    rjvparser.o\
     -lm
 
 #build sample_map
@@ -35,19 +28,10 @@ gcc ${TYPE}\
     -o sample_map\
     sample_map_main.c\
     sample_map.c\
-    ${RJVUTILS}\
+    rjvparser.o\
     -lm
 
-#build gg_group
-gcc ${TYPE}\
-    -o crosslink_group\
-    crosslink_group.o\
-    crosslink_utils.o\
-    crosslink_group_main.c\
-    ${RJVUTILS}\
-    -lm
-    
-#build main executable
+#build crosslink_map
 gcc ${TYPE}\
     -o crosslink_map\
     crosslink_map_main.c\
@@ -55,24 +39,15 @@ gcc ${TYPE}\
     crosslink_ga.o\
     crosslink_group.o\
     crosslink_gibbs.o\
-    ${RJVUTILS}\
+    rjvparser.o\
     -lm
 
-#build map distance utility
+#build crosslink_group
 gcc ${TYPE}\
-    -o crosslink_calc_dist\
-    crosslink_calc_dist.c\
-    crosslink_utils.o\
-    crosslink_ga.o\
+    -o crosslink_group\
     crosslink_group.o\
-    crosslink_gibbs.o\
-    ${RJVUTILS}\
-    -lm
-
-#build lg fragment sorter utility
-gcc ${TYPE}\
-    -o crosslink_sorter\
-    crosslink_sorter_main.c\
     crosslink_utils.o\
-    ${RJVUTILS}\
+    rjvparser.o\
+    crosslink_group_main.c\
     -lm
+    

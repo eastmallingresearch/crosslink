@@ -13,7 +13,8 @@ also runs gibbs sampler to impute inheritance vectors for hk/kh genotypes
 #include "crosslink_utils.h"
 #include "crosslink_ga.h"
 #include "crosslink_gibbs.h"
-#include "rjv_cutils.h"
+#include "rjvparser.h"
+// #include "rjv_cutils.h"
 
 int main(int argc,char*argv[])
 {
@@ -24,70 +25,72 @@ int main(int argc,char*argv[])
    
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
-    parsestr(argc,argv,"inp",&c->inp,0,NULL);
-    parsestr(argc,argv,"out",&c->out,1,"NONE");
-    parsestr(argc,argv,"lg",&c->lg,1,"NONE");
-    parsestr(argc,argv,"log",&c->log,1,"NONE");
-    parsestr(argc,argv,"map",&c->map,1,"NONE");
-    parsestr(argc,argv,"mstmap",&c->mstmap,1,"NONE");
     
-    parseuns(argc,argv,"prng_seed",&c->gg_prng_seed,1,0);
-    parseuns(argc,argv,"map_func",&c->gg_map_func,1,1);
-    parseuns(argc,argv,"randomise_order",&c->gg_randomise_order,1,0);
-    parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,0);
-    parseuns(argc,argv,"show_pearson",&c->gg_show_pearson,1,0);
-    parseuns(argc,argv,"show_hkcheck",&c->gg_show_hkcheck,1,0);
-    parseuns(argc,argv,"show_width",&c->gg_show_width,1,9999999);
-    parseuns(argc,argv,"show_height",&c->gg_show_height,1,9999999);
-    parseuns(argc,argv,"show_counters",&c->gg_show_counters,1,0);
-    parseuns(argc,argv,"show_initial",&c->gg_show_initial,1,0);
-    parseuns(argc,argv,"show_bits",&c->gg_show_bits,1,0);
-    parseuns(argc,argv,"pause",&c->gg_pause,1,0);
+    rjvparser("inp|STRING|!|name of input loc file",&c->inp); //required
+    rjvparser("lg|STRING|-|name of linkage group to process",&c->lg); //defunct?
+    rjvparser("out|STRING|-|name of output loc file",&c->out);        //optional,if unassigned will be set to NULL
+    rjvparser("log|STRING|-|name of output log file",&c->log);
+    rjvparser("map|STRING|-|name of output map file",&c->map);
+    rjvparser("mstmap|STRING|-|name of output mstmap file",&c->mstmap);
     
-    parseuns(argc,argv,"ga_gibbs_cycles",&c->ga_gibbs_cycles,1,10);
-    parseuns(argc,argv,"ga_report",&c->ga_report,1,0);
-    parseuns(argc,argv,"ga_iters",&c->ga_iters,1,10000);
-    parseuns(argc,argv,"ga_use_mst",&c->ga_use_mst,1,0);
-    parsedbl(argc,argv,"ga_mst_minlod",&c->ga_mst_minlod,1,3.0);
-    parseuns(argc,argv,"ga_mst_nonhk",&c->ga_mst_nonhk,1,1);
-    parseuns(argc,argv,"ga_optimise_dist",&c->ga_optimise_dist,1,0);
-    parsedbl(argc,argv,"ga_prob_hop",&c->ga_prob_hop,1,0.5);
-    parsedbl(argc,argv,"ga_max_hop",&c->ga_max_hop,1,0.1);
-    parsedbl(argc,argv,"ga_prob_move",&c->ga_prob_move,1,0.5);
-    parsedbl(argc,argv,"ga_max_mvseg",&c->ga_max_mvseg,1,0.05);
-    parsedbl(argc,argv,"ga_max_mvdist",&c->ga_max_mvdist,1,0.05);
-    parsedbl(argc,argv,"ga_prob_inv",&c->ga_prob_inv,1,0.5);
-    parsedbl(argc,argv,"ga_max_seg",&c->ga_max_seg,1,0.05);
-    parseuns(argc,argv,"ga_cache",&c->ga_cache,1,1);
-    parsedbl(argc,argv,"ga_em_tol",&c->ga_em_tol,1,1e-5);
-    parseuns(argc,argv,"ga_em_maxit",&c->ga_em_maxit,1,100);
-    parseuns(argc,argv,"ga_skip_order1",&c->ga_skip_order1,1,0);
+    rjvparser("prng_seed|UNSIGNED|0|random number generator seed, 0=use system time",&c->gg_prng_seed);
+    rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane,2=Kosambi",&c->gg_map_func);
+    rjvparser("randomise_order|UNSIGNED|0|start from a random initial marker ordering",&c->gg_randomise_order);
+    rjvparser("bitstrings|UNSIGNED|0|use bitstring data representation internally",&c->gg_bitstrings);
+    rjvparser("show_pearson|UNSIGNED|0|log pearson correlation",&c->gg_show_pearson);
+    rjvparser("show_hkcheck|UNSIGNED|0|log hk imputation inforamation",&c->gg_show_hkcheck);
+    rjvparser("show_width|UNSIGNED|9999999|width of debug output",&c->gg_show_width);
+    rjvparser("show_height|UNSIGNED|9999999|height of debug output",&c->gg_show_height);
+    rjvparser("show_counters|UNSIGNED|0|log information about Gibbs imputation",&c->gg_show_counters);
+    rjvparser("show_initial|UNSIGNED|0|show initial state",&c->gg_show_initial);
+    rjvparser("show_bits|UNSIGNED|0|show bit states",&c->gg_show_bits);
+    rjvparser("pause|UNSIGNED|0|pause each iteration",&c->gg_pause);
     
-    parseuns(argc,argv,"gibbs_samples",&c->gibbs_samples,1,10000);
-    parseuns(argc,argv,"gibbs_burnin",&c->gibbs_burnin,1,1000);
-    parseuns(argc,argv,"gibbs_period",&c->gibbs_period,1,1000);
-    parseuns(argc,argv,"gibbs_report",&c->gibbs_report,1,0);
-    parsedbl(argc,argv,"gibbs_prob_sequential",&c->gibbs_prob_sequential,1,0.5);
-    parsedbl(argc,argv,"gibbs_prob_unidir",&c->gibbs_prob_unidir,1,0.5);
-    parsedbl(argc,argv,"gibbs_min_prob_1",&c->gibbs_min_prob_1,1,0.0);
-    parsedbl(argc,argv,"gibbs_min_prob_2",&c->gibbs_min_prob_2,1,0.0);
-    parsedbl(argc,argv,"gibbs_twopt_1",&c->gibbs_twopt_1,1,0.0);
-    parsedbl(argc,argv,"gibbs_twopt_2",&c->gibbs_twopt_2,1,0.0);
-    parseuns(argc,argv,"gibbs_min_ctr",&c->gibbs_min_ctr,1,0);
+    rjvparser("ga_gibbs_cycles|UNSIGNED|10|number of GA-Gibbs cycles",&c->ga_gibbs_cycles);
+    rjvparser("ga_report|UNSIGNED|0|GA log reporting period, 0=disabled",&c->ga_report);
+    rjvparser("ga_iters|UNSIGNED|100000|number of GA iterations per GA-Gibbs cycle",&c->ga_iters);
+    rjvparser("ga_use_mst|UNSIGNED|0|how many GA-Gibbs cycles to perform initial MST ordering before the GA (0=none,N=up to and including the Nth cycle)",&c->ga_use_mst);
+    rjvparser("ga_mst_minlod|FLOAT|3.0|min LOD for MST construction",&c->ga_mst_minlod);
+    rjvparser("ga_mst_nonhk|UNSIGNED|1|prioritise non-hk linkage when building the MST",&c->ga_mst_nonhk);
+    rjvparser("ga_optimise_dist|UNSIGNED|0|0=optimse map total recombination events, 1=optimise total map distance",&c->ga_optimise_dist);
+    rjvparser("ga_prob_hop|FLOAT|0.333|probability a mutation moves a single marker",&c->ga_prob_hop);
+    rjvparser("ga_max_hop|FLOAT|0.1|max distance a single marker can move as proportion of whole linkage group",&c->ga_max_hop);
+    rjvparser("ga_prob_move|FLOAT|0.333|probability a mutation moves a block of multiple markers",&c->ga_prob_move);
+    rjvparser("ga_max_mvseg|FLOAT|0.1|max number of markers in the block as proportion of whole linkage group",&c->ga_max_mvseg);
+    rjvparser("ga_max_mvdist|FLOAT|0.1|max distance the block of markers can move as proportion of whole linkage group",&c->ga_max_mvdist);
+    rjvparser("ga_prob_inv|FLOAT|0.5|probability the block of markers also inverts as well as moves",&c->ga_prob_inv);
+    rjvparser("ga_max_seg|FLOAT|0.1|for in-place inversion mutations, max number of markers to be inverted as proportion of whole linkage group",&c->ga_max_seg);
+    rjvparser("ga_cache|UNSIGNED|1|1=use cache of rf values in GA",&c->ga_cache);
+    rjvparser("ga_em_tol|FLOAT|1e-5|for 2 point rf calculations, convergence tolerance for EM algorithm",&c->ga_em_tol);
+    rjvparser("ga_em_maxit|UNSIGNED|100|for 2 point rf calculations, max EM iterations",&c->ga_em_maxit);
+    rjvparser("ga_skip_order1|UNSIGNED|0|1=skip first GA ordering, go straight to Gibbs using the marker order from the input file",&c->ga_skip_order1);
     
-    parseend(argc,argv);
+    rjvparser("gibbs_samples|UNSIGNED|500|number of Gibbs samples to collect per GA-Gibbs cycle",&c->gibbs_samples);
+    rjvparser("gibbs_burnin|UNSIGNED|20|Gibbs burn in cycles",&c->gibbs_burnin);
+    rjvparser("gibbs_period|UNSIGNED|1|Gibbs cycles per sample",&c->gibbs_period);
+    rjvparser("gibbs_report|UNSIGNED|0|Gibbs log reporting period, 0=disabled",&c->gibbs_report);
+    rjvparser("gibbs_prob_sequential|FLOAT|0.333|probability Gibbs cycle uses sequential mode",&c->gibbs_prob_sequential);
+    rjvparser("gibbs_prob_unidir|FLOAT|0.333|probability Gibbs cycle uses unidirectional mode",&c->gibbs_prob_unidir);
+    rjvparser("gibbs_min_prob_1|FLOAT|0.1|minimum permitted probability of a state transition at the start of burn in period",&c->gibbs_min_prob_1);
+    rjvparser("gibbs_min_prob_2|FLOAT|0.0|minimum permitted probability of a state transition by the end of burn in period",&c->gibbs_min_prob_2);
+    rjvparser("gibbs_twopt_1|FLOAT|0.1|weighting given to two point rf at start of burn in period",&c->gibbs_twopt_1);
+    rjvparser("gibbs_twopt_2|FLOAT|0.0|weighting given to two point rf by the end of burn in period",&c->gibbs_twopt_2);
+    rjvparser("gibbs_min_ctr|UNSIGNED|0|minimum sample counter value to trigger imputation of the state, 0=always impute",&c->gibbs_min_ctr);
     
-    /*seed random number generator(s)*/
-    if(c->gg_prng_seed == 0)
+    rjvparser2(argc,argv,rjvparser(0,0),"make final map ordering, impute missing hk information");
+    
+    //seed random number generator
+    if(c->gg_prng_seed != 0)
     {
-        srand48(get_time());
-        srand(get_time()+1234);
+        srand(c->gg_prng_seed);
     }
     else
     {
-        srand48(c->gg_prng_seed);
-        srand(c->gg_prng_seed+1234);
+        struct timeval tv;
+        gettimeofday(&tv,NULL);
+        srand(tv.tv_sec * 1000000 + tv.tv_usec);
     }
+    srand48(rand());
     
     //set up genetic mapping function
     switch(c->gg_map_func)
@@ -106,7 +109,7 @@ int main(int argc,char*argv[])
     init_masks(c);
     
     /*open logfile*/
-    if(strcmp(c->log,"NONE") != 0)
+    if(c->log != NULL)
     {
         c->flog = fopen(c->log,"wb");
         if(c->flog == NULL)
@@ -187,7 +190,7 @@ int main(int argc,char*argv[])
     comb_map_positions(c,c->nmarkers,c->array,0,0);
     
     //output final marker ordering
-    if(strcmp(c->out,"NONE") != 0)
+    if(c->out != NULL)
     {
         if(c->flog) fprintf(c->flog,"#saving marker data and ordering to %s\n",c->out);
         
@@ -202,7 +205,7 @@ int main(int argc,char*argv[])
     }
 
     //output final map positions
-    if(strcmp(c->map,"NONE") != 0)
+    if(c->map != NULL)
     {
         if(c->flog) fprintf(c->flog,"#saving map positions to %s\n",c->map);
         
@@ -217,7 +220,7 @@ int main(int argc,char*argv[])
         fclose(f);
     }
 
-    if(strcmp(c->log,"NONE") != 0) fclose(c->flog);
+    if(c->log != NULL) fclose(c->flog);
 
     return 0;
 }

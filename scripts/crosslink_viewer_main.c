@@ -8,7 +8,7 @@ this version aims to support phased and unphased data using the new generic load
 #include "crosslink_ga.h"
 #include "crosslink_gibbs.h"
 #include "crosslink_viewer.h"
-#include "rjv_cutils.h"
+#include "rjvparser.h"
 
 int main(int argc,char*argv[])
 {
@@ -31,16 +31,16 @@ int main(int argc,char*argv[])
 
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
-    parsestr(argc,argv,"inp",&inp,0,NULL);
-    parseuns(argc,argv,"window_size",&size,1,1000);
-    parsedbl(argc,argv,"minlod",&minlod,1,3.0);
-    parsestr(argc,argv,"datatype",&datatype,1,"imputed");
-    parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
-    parseuns(argc,argv,"hardware",&hardware,1,1);
-    parseuns(argc,argv,"skip",&skip,1,0);   //load starting from the first marker
-    parseuns(argc,argv,"total",&total,1,0); //zero indicates load all markers
-    parsestr(argc,argv,"marker",&named,1,"NONE");//named marker
-    parseend(argc,argv);
+    rjvparser("inp|STRING|!|input genotype file",&inp);
+    rjvparser("window_size|UNSIGNED|1000|window size (pixels)",&size);
+    rjvparser("minlod|FLOAT|3.0|LOD values below this threshold appear completely black",&minlod);
+    rjvparser("datatype|STRING|imputed|state of the genotype data: imputed, phased, unphased",&datatype);
+    rjvparser("bitstrings|UNSIGNED|1|1=use bitstring representation of the data internally",&c->gg_bitstrings);
+    rjvparser("hardware|UNSIGNED|0|1=use hardware graphical acceleration when available",&hardware);
+    rjvparser("skip|UNSIGNED|0|how many markers to skip at the start of the genotype file",&skip);   //load starting from the first marker
+    rjvparser("total|UNSIGNED|0|how many markers to load in total, 0=load all",&total); //zero indicates load all markers
+    rjvparser("marker|STRING|-|named marker to centre intial view on",&named);//named marker
+    rjvparser2(argc,argv,rjvparser(0,0),"presents a graphical view of rf and LOD values");
     
     //precalc bitmasks for every possible bit position
     init_masks(c);
@@ -76,7 +76,7 @@ int main(int argc,char*argv[])
     xbase_pix = ybase_pix = (double)p->nmarkers / 2.0;      //control view window
     width_pix = (double)p->nmarkers;
     
-    if(strcmp(named,"NONE") != 0)
+    if(named!= NULL)
     {
         //centre initial view on named marker
         pos = find_marker(p,named);

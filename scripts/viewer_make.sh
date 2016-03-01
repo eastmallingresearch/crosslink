@@ -23,7 +23,7 @@ gcc ${TYPE}\
     crosslink_group.c\
     crosslink_viewer.c\
     crosslink_viewer_main.c\
-    ${RJVUTILS}\
+    rjvparser.c\
     -lSDL2 -lm
 
 gcc ${TYPE}\
@@ -37,5 +37,5 @@ gcc ${TYPE}\
     crosslink_viewer.c\
     crosslink_graphical.c\
     crosslink_graphical_main.c\
-    ${RJVUTILS}\
+    rjvparser.c\
     -lSDL2 -lm

@@ -450,9 +450,12 @@ unsigned inc_events(struct conf*c,struct mutation*op,struct marker**dst)
 void generate_mutation(struct conf*c,struct mutation*op)
 {
     int size,move;
+    double dval;
+
+    dval = drand48();
 
     //hop mutation (segment move with size = 1, inv = 0)
-    if(drand48() < c->ga_prob_hop)
+    if(dval < c->ga_prob_hop)
     {
         size = 1;
         op->inv = 0; //might run faster with inv=1 to prevent call to memcpy?
@@ -463,7 +466,7 @@ void generate_mutation(struct conf*c,struct mutation*op)
         if(drand48() < 0.5) move = -move;
     }
     //segment move
-    if(drand48() < c->ga_prob_move)
+    else if(dval < c->ga_prob_hop+c->ga_prob_move)
     {
         //choose segment size
         size = (int)round(drand48() * (double)c->nmarkers * c->ga_max_mvseg);
@@ -625,7 +628,7 @@ void mst_approx_order(struct conf*c)
     comb_map_positions(c,c->nmarkers,c->array,0,1);
     
     //output mst map approx ordering before ga optimisation
-    if(strcmp(c->mstmap,"NONE") != 0)
+    if(c->mstmap != NULL)
     {
         f = fopen(c->mstmap,"wb");
         if(f == NULL)

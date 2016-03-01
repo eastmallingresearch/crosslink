@@ -9,7 +9,7 @@ view markers in map order
 #include "crosslink_gibbs.h"
 #include "crosslink_graphical.h"
 #include "crosslink_viewer.h"
-#include "rjv_cutils.h"
+#include "rjvparser.h"
 
 int main(int argc,char*argv[])
 {
@@ -35,15 +35,15 @@ int main(int argc,char*argv[])
 
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
-    parsestr(argc,argv,"inp",&inp,0,NULL);
-    parseuns(argc,argv,"sizex",&sizex,1,1000);
-    parseuns(argc,argv,"sizey",&sizey,1,1000);
-    parsestr(argc,argv,"datatype",&datatype,1,"imputed");
-    parseuns(argc,argv,"bitstrings",&c->gg_bitstrings,1,1);
-    parseuns(argc,argv,"hardware",&hardware,1,1);
-    parseuns(argc,argv,"skip",&skip,1,0);   //load starting from the first marker
-    parseuns(argc,argv,"total",&total,1,0); //zero indicates load all markers
-    parseend(argc,argv);
+    rjvparser("inp|STRING|!|input genotype file",&inp);
+    rjvparser("sizex|UNSIGNED|1000|window width (pixels)",&sizex);
+    rjvparser("sizey|UNSIGNED|1000|window height (pixels)",&sizey);
+    rjvparser("datatype|STRING|imputed|state of the genotype data: imputed, phased, unphased",&datatype);
+    rjvparser("bitstrings|UNSIGNED|1|1=use bitstring representation of the data internally",&c->gg_bitstrings);
+    rjvparser("hardware|UNSIGNED|0|1=use hardware graphical acceleration when available",&hardware);
+    rjvparser("skip|UNSIGNED|0|how many markers to skip at the start of the genotype file",&skip);   //load starting from the first marker
+    rjvparser("total|UNSIGNED|0|how many markers to load in total, 0=load all",&total); //zero indicates load all markers
+    rjvparser2(argc,argv,rjvparser(0,0),"presents a graphical view of the sample genotypes in their current order");
     
     //precalc bitmasks for every possible bit position
     init_masks(c);

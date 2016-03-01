@@ -10,6 +10,7 @@
     rjvparser("out|STRING|-|name of output file",&out); // -=optional (no default)
     rjvparser("orig|STRING|ORIGINAL|name of original file",&orig); // with default value
     rjvparser("size|INTEGER|-|number of items",&size);// no default value provided
+    rjvparser("iters|UNSIGNED|-|number of items",&size);// no default value provided
     rjvparser("density|FLOAT|1.0|item density",&density);
     rjvparser2(argc,argv,rjvparser(0,0),"this is the main doc string");
 */
