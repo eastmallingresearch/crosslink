@@ -1,6 +1,9 @@
 # build from the same directory as this Dockerfile using:
 # docker build -t rjvickerstaff/crosslink:0.1 . 
-#to launch use: docker run -it -u crosslink rjvickerstaff/crosslink:0.1
+#to launch into commandline use:
+#  docker run -it -u crosslink rjvickerstaff/crosslink:0.1
+#to launch vnc server:
+#  docker run -p 5900 rjvickerstaff/crosslink:0.1 x11vnc -forever -usepw -create
 
 #the most recent (as of 2016-02-26) ubuntu LTS version
 FROM ubuntu:14.04
@@ -18,7 +21,8 @@ RUN apt-get upgrade -y
 
 #install new packages
 RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev
-RUN apt-get install -y nano x11vnc xvfb
+RUN apt-get install -y nano openssh-server
+#RUN apt-get install -y x11vnc xvfb
 
 #set root password
 RUN echo 'root:cl_root_uDk5eI' | chpasswd
@@ -43,8 +47,8 @@ USER crosslink
 RUN cd crosslink/scripts && ./make.sh && ./viewer_make.sh
 
 #setup vnc
-RUN mkdir ~/.vnc
-RUN x11vnc -storepasswd crosslink1848 ~/.vnc/passwd
+#RUN mkdir ~/.vnc
+#RUN x11vnc -storepasswd crosslink1848 ~/.vnc/passwd
 
 #add crosslink executables to path
 ENV PATH ${PATH}:/home/crosslink/crosslink/scripts
