@@ -18,7 +18,7 @@ RUN apt-get upgrade -y
 
 #install new packages
 RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev
-RUN apt-get install -y nano
+RUN apt-get install -y nano x11vnc xvfb
 
 #set root password
 RUN echo 'root:cl_root_uDk5eI' | chpasswd
@@ -41,6 +41,10 @@ USER crosslink
 
 #build crosslink inside the container
 RUN cd crosslink/scripts && ./make.sh && ./viewer_make.sh
+
+#setup vnc
+RUN mkdir ~/.vnc
+RUN x11vnc -storepasswd crosslink1848 ~/.vnc/passwd
 
 #add crosslink executables to path
 ENV PATH ${PATH}:/home/crosslink/crosslink/scripts
