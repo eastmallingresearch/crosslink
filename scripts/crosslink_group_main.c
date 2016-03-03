@@ -23,14 +23,14 @@ int main(int argc,char*argv[])
     rjvparser("prng_seed|UNSIGNED|0|random number generator seed, 0=use system time",&c->gg_prng_seed);
     rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane,2=Kosambi",&c->gg_map_func);
     rjvparser("randomise_order|UNSIGNED|0|start from a random initial marker ordering",&c->gg_randomise_order);
-    rjvparser("bitstrings|UNSIGNED|0|use bitstring data representation internally",&c->gg_bitstrings);
+    rjvparser("bitstrings|UNSIGNED|1|use bitstring data representation internally",&c->gg_bitstrings);
     rjvparser("matpat_lod|FLOAT|0.0|minimum LOD used to identify spurious linkage between maternal and paternal markers, 0.0=disable",&c->grp_matpat_lod);
     rjvparser("matpat_weights|STRING|01|conditional weightings to give markers when correcting marker typing errors\n\teg 01P03L05 gives default weight of 1 but 3 to markers starting with P and 5 for those starting with L",&weight_str);
     rjvparser("min_lod|FLOAT|3.0|minimum linkage LOD to use when forming linkage groups",&c->grp_min_lod);
     rjvparser("em_tol|FLOAT|1e-5|for 2 point rf calculations, convergence tolerance for EM algorithm",&c->grp_em_tol);
     rjvparser("em_maxit|UNSIGNED|100|for 2 point rf calculations, max EM iterations",&c->grp_em_maxit);
     rjvparser("knn|UNSIGNED|0|how many nearest neighbours to use for kNN missing data imputation, 0=disable imputation",&c->grp_knn);
-    rjvparser("ignore_cxr|UNSIGNED|0|1=use cxr and rxc linkage during grouping",&c->grp_ignore_cxr);
+    rjvparser("ignore_cxr|UNSIGNED|0|1=ignore cxr and rxc linkage during grouping",&c->grp_ignore_cxr);
     rjvparser("redundancy_lod|FLOAT|0.0|minimum linkage LOD to use when identifying redundant markers, 0.0=disable",&c->grp_redundancy_lod);
     rjvparser2(argc,argv,rjvparser(0,0),"form markers into linkage groups, phase, impute missing values, correct marker typing errors, perform approximate ordering");
     

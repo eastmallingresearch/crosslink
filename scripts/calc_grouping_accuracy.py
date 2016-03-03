@@ -10,9 +10,9 @@ if len(sys.argv) < 2:
     print "usage: calc_grouping_accuracy.py <correctly_grouped_loci> <test_loci> [<test_loci>...]"
     exit(0)
 
+#load correctly grouped markers
 orig = []
 total_markers = 0
-
 f = open(sys.argv[1])
 for line in f:
     if line.startswith(';'):
@@ -23,7 +23,7 @@ for line in f:
     total_markers += 1
 f.close()
     
-
+#load markers being tested
 test = []
 for fname in sys.argv[2:]:
     f = open(fname)
@@ -38,6 +38,9 @@ for fname in sys.argv[2:]:
 orig.sort(key=lambda x:len(x),reverse=True)
 test.sort(key=lambda x:len(x),reverse=True)
 
+#for each original lg, by decreasing size
+#find the test lg with most markers from it, assign this as "correct" and then remove it
+#count total markers in the "correct" lg
 total = 0
 for lg in orig:
     best_ct = -1
@@ -56,4 +59,5 @@ for lg in orig:
     
     if len(test) == 0: break
     
+#score is proportion of correctly assigned markers
 print float(total) / total_markers

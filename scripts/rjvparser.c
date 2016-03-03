@@ -158,7 +158,7 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
             {
                 rjvparser_help(head,doc);
                 printf("malformed option: %s\n",argv[i]);
-                exit(0);
+                exit(1);
             }
             
             len = pch - argv[i] - 2;
@@ -177,8 +177,10 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
         {
             rjvparser_help(head,doc);
             printf("unknown option: %s\n",argv[i]);
-            exit(0);
+            exit(1);
         }
+        
+        pch += 1; //skip past the = to the option's value
         
         //parse the option's value
         switch(p->type[0])
@@ -186,17 +188,17 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
             case 'S':
                 ppvar = (char**)p->pvar;
                 if(*ppvar != NULL) free(*ppvar); //free any previous value
-                assert(*ppvar = calloc(strlen(pch+1),sizeof(char)));
-                ret = sscanf(pch+1,"%s",*ppvar);
+                assert(*ppvar = calloc(strlen(pch)+1,sizeof(char)));
+                ret = sscanf(pch,"%s",*ppvar);
                 break;
             case 'I':
-                ret = sscanf(pch+1,"%d",(int*)p->pvar);
+                ret = sscanf(pch,"%d",(int*)p->pvar);
                 break;
             case 'U':
-                ret = sscanf(pch+1,"%u",(unsigned*)p->pvar);
+                ret = sscanf(pch,"%u",(unsigned*)p->pvar);
                 break;
             case 'F':
-                ret = sscanf(pch+1,"%lf",(double*)p->pvar);
+                ret = sscanf(pch,"%lf",(double*)p->pvar);
                 break;
             default:
                 assert(0);
@@ -211,7 +213,7 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
         //failed to parse value
         rjvparser_help(head,doc);
         printf("failed to parse option: %s\n",argv[i]);
-        exit(0);
+        exit(1);
     }
     
     //check for unassigned options

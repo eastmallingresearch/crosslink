@@ -201,7 +201,6 @@ struct conf
     char*log;     //log file
     char*map;     //output map file
     char*mstmap;  //output mstmap file
-    char*lg;      //which linkage group to process
     char*outbase; //output filename base
     char*redun;   //output file to receive redundant marker names
     //unsigned basenumb; //basenumber of numbering LGs in crosslink_group
@@ -221,13 +220,12 @@ struct conf
     unsigned gg_show_bits;        //debug option: show no. current state each gibbs sample
     unsigned gg_pause;            //wait for ENTER after printing bits
 
-    double   grp_min_lod;           //min LOD score to consider as linkage
-    //unsigned grp_min_lgs;           //min lgs to allows
+    double   grp_min_lod;           //min LOD score to consider for grouping
     double   grp_em_tol;            //tolerance, EM assumed to have converged once change is <= this value
     unsigned grp_em_maxit;          //max EM iterations before giving up
     unsigned grp_check_phase;       //for test data with known phase, check for phasing errors
     unsigned grp_knn;               //k parameter of kNN imputation
-    double   grp_matpat_lod;          //if >0.0, detect and correct incorrect marker typing
+    double   grp_matpat_lod;        //if >0.0, detect and correct incorrect marker typing
     unsigned grp_ignore_cxr;        //ignore cxr and rxc phasing between hk markers
     double   grp_redundancy_lod;    //remove markers with identical allele calls (ignoring missing) at or above this lod
     

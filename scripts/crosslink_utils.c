@@ -1168,9 +1168,12 @@ struct lg* generic_load_merged(struct conf*c,const char*fname,unsigned skip,unsi
     //load all data into separate lgs
     generic_load_all(c,fname,&nlgs,&lgs);
     
+    assert(nlgs > 0);
+    
+    //name merged lg after the first lg in the set
     assert(p = calloc(1,sizeof(struct lg)));
-    assert(p->name = calloc(10,sizeof(char)));
-    strcpy(p->name,"merged");
+    assert(p->name = calloc(strlen(lgs[0]->name)+1,sizeof(char)));
+    strcpy(p->name,lgs[0]->name);
     
     //merge into a single chimeric "lg"
     for(i=0; i<nlgs; i++)

@@ -26,9 +26,8 @@ int main(int argc,char*argv[])
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
     
-    rjvparser("inp|STRING|!|name of input loc file",&c->inp); //required
-    rjvparser("lg|STRING|-|name of linkage group to process",&c->lg); //defunct?
-    rjvparser("out|STRING|-|name of output loc file",&c->out);        //optional,if unassigned will be set to NULL
+    rjvparser("inp|STRING|!|name of input loc file",&c->inp);
+    rjvparser("out|STRING|-|name of output loc file",&c->out);
     rjvparser("log|STRING|-|name of output log file",&c->log);
     rjvparser("map|STRING|-|name of output map file",&c->map);
     rjvparser("mstmap|STRING|-|name of output mstmap file",&c->mstmap);
@@ -36,7 +35,7 @@ int main(int argc,char*argv[])
     rjvparser("prng_seed|UNSIGNED|0|random number generator seed, 0=use system time",&c->gg_prng_seed);
     rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane,2=Kosambi",&c->gg_map_func);
     rjvparser("randomise_order|UNSIGNED|0|start from a random initial marker ordering",&c->gg_randomise_order);
-    rjvparser("bitstrings|UNSIGNED|0|use bitstring data representation internally",&c->gg_bitstrings);
+    rjvparser("bitstrings|UNSIGNED|1|use bitstring data representation internally",&c->gg_bitstrings);
     rjvparser("show_pearson|UNSIGNED|0|log pearson correlation",&c->gg_show_pearson);
     rjvparser("show_hkcheck|UNSIGNED|0|log hk imputation inforamation",&c->gg_show_hkcheck);
     rjvparser("show_width|UNSIGNED|9999999|width of debug output",&c->gg_show_width);
@@ -134,9 +133,6 @@ int main(int argc,char*argv[])
     assert(c->elist = calloc(c->nedgemax,sizeof(struct edge*)));
     assert(c->mutant = calloc(c->nmarkers,sizeof(struct marker*)));
 
-    //load phased marker data from the requested lg only
-    //load_phased_lg(c,c->inp,c->lg);
-    
     //report what data was loaded
     if(c->flog) fprintf(c->flog,"#loaded %u markers %u individuals from file %s\n",c->nmarkers,c->nind,c->inp);
     
@@ -200,7 +196,7 @@ int main(int argc,char*argv[])
             printf("unable to open file %s for output\n",c->out);
             exit(1);
         }
-        print_order(c,c->lg,c->nmarkers,c->array,f);
+        print_order(c,p->name,c->nmarkers,c->array,f);
         fclose(f);
     }
 
@@ -216,7 +212,7 @@ int main(int argc,char*argv[])
             exit(1);
         }
 
-        print_map(c->nmarkers,c->array,f,0,c->lg);
+        print_map(c->nmarkers,c->array,f,0,p->name);
         fclose(f);
     }
 
