@@ -178,6 +178,8 @@ int main(int argc,char*argv[])
         if(c->flog) fflush(c->flog);
     }
     
+    if(c->gg_bitstrings) compress_to_bitstrings(c,c->nmarkers,c->array);
+    
     //produce maternal and paternal map positions from the current ordering
     indiv_map_positions(c,c->array,0);
     indiv_map_positions(c,c->array,1);

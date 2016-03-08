@@ -653,7 +653,7 @@ void load_phased_all(struct conf*c,const char*fname,unsigned skip,unsigned total
     
     assert(c->nmarkers > 0);
     
-    compress_to_bitstrings(c,c->nmarkers,c->array);
+    if(c->gg_bitstrings) compress_to_bitstrings(c,c->nmarkers,c->array);
     
     fclose(f);
 }
@@ -741,7 +741,7 @@ void load_imputed_by_lg(struct conf*c,const char*fname)
         ctr += 1;
     }
     
-    for(i=0; i<c->nlgs; i++) compress_to_bitstrings(c,c->lg_nmarkers[i],c->lg_markers[i]);
+    if(c->gg_bitstrings) for(i=0; i<c->nlgs; i++) compress_to_bitstrings(c,c->lg_nmarkers[i],c->lg_markers[i]);
     
     fclose(f);
 }
@@ -783,7 +783,7 @@ void generic_convert_to_unphased(struct conf*c,struct lg*p)
         }
     }
     
-    compress_to_bitstrings(c,p->nmarkers,p->array);
+    if(c->gg_bitstrings) compress_to_bitstrings(c,p->nmarkers,p->array);
 }
 
 void generic_convert_to_phased(struct conf*c,struct lg*p)
@@ -836,7 +836,7 @@ void generic_convert_to_phased(struct conf*c,struct lg*p)
         }
     }
     
-    compress_to_bitstrings(c,p->nmarkers,p->array);
+    if(c->gg_bitstrings) compress_to_bitstrings(c,p->nmarkers,p->array);
 }
 
 void generic_convert_to_imputed(struct conf*c,struct lg*p)
@@ -883,7 +883,7 @@ void generic_convert_to_imputed(struct conf*c,struct lg*p)
         }
     }
     
-    compress_to_bitstrings(c,p->nmarkers,p->array);
+    if(c->gg_bitstrings) compress_to_bitstrings(c,p->nmarkers,p->array);
 }
 
 /*
@@ -908,7 +908,7 @@ void generic_apply_phasing(struct conf*c,struct lg*p)
         }
     }
     
-    compress_to_bitstrings(c,p->nmarkers,p->array);
+    if(c->gg_bitstrings) compress_to_bitstrings(c,p->nmarkers,p->array);
 }
 
 struct marker* generic_load_marker(struct conf*c,FILE*f,unsigned lgctr)
@@ -1590,6 +1590,7 @@ void indiv_map_positions(struct conf*c,struct marker**marray,unsigned x)
         {
             //find distance to previous marker
             calc_RN_simple(c,marray[prev],marray[i],x,&R,&N);
+            if(N == 0) printf("DEBUG!! %s %s\n",marray[prev]->name,marray[i]->name);
             assert(N != 0);
             rf = (double)R / N;
             if(rf > MAX_RF) rf = MAX_RF;

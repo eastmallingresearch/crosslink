@@ -1,6 +1,24 @@
 #include "crosslink_viewer.h"
 #include "crosslink_utils.h"
 
+//white,red,yellow,green,cyan,blue,black
+unsigned palette[13][3] =
+{
+    {255,255,255},
+    {255,128,128},
+    {255,  0,  0},
+    {255,128,  0},
+    {255,255,  0},
+    {128,255,  0},
+    {  0,255,  0},
+    {  0,255,128},
+    {  0,255,255},
+    {  0,128,255},      
+    {  0,  0,255},      
+    {  0,  0,128},
+    { 32, 32, 32}
+};
+
 //search for marker by name
 unsigned find_marker(struct lg*p,char*name)
 {
@@ -92,18 +110,23 @@ void show_rf_lod(struct conf*c,struct lg*p,int xoff,int yoff)
     }
 }
 
-//compare all against all markers, calculate image pixel value based on rf and lod info
-uint32_t*generate_image(struct conf*c,struct lg*p,double minlod)
+//compare all against all markers calculate image pixel value based on rf and lod info
+//lower triangle: colours: rf, brightness: lod, distinguish maternal/paternal
+//upper triangle: colours: quantised map distance, brightness: remainder of map distance, merge maternal/paternal
+uint32_t*generate_image(struct conf*c,struct lg*p)
 {
     uint32_t*buff=NULL;
-    unsigned i,j,x,R,N,S,val[3],val2[3],tmpval;
+    unsigned i,j,x,R,N,S,low[3],upp[3],tmpval;
     struct marker*m1=NULL;
     struct marker*m2=NULL;
-    double rf,s,lod;
+    double rf,s,lod,dist,d[2];
+    unsigned band;
     
     //pixel buffer
     assert(buff = calloc(p->nmarkers*p->nmarkers,sizeof(uint32_t)));
     
+    //low[3] is RGB for lower triangle
+    //upp[3] is RGB for upper triangle
     printf("generating...\n");
     for(i=0; i<p->nmarkers; i++)
     {
@@ -112,38 +135,26 @@ uint32_t*generate_image(struct conf*c,struct lg*p,double minlod)
         {
             m2 = p->array[j];
             
-            val[2] = 0;
+            low[0] = low[1] = low[2] = 0;
+            upp[0] = upp[1] = upp[2] = 0;
             
             //generate checkerboard pattern denoting linkage group boundaries
             //in the blue channel of the "LOD" part of the graph
-            if((m1->lg & 0x1) ^ (m2->lg & 0x1)) val2[2] = 64;
-            else                                val2[2] = 0;
+            if((m1->lg & 0x1) ^ (m2->lg & 0x1)) upp[2] = 64;
+            else                                upp[2] = 0;
             
-            //for LM vs NP comparisions, compare the information anyway
+            //for LM vs NP comparisions, compare the information anyway (otherwise it's just always black)
             //strong linkage will indicate we likely have an error in the marker typing
-            //display as yellow (otherwise it's just always black)
+            //display as yellow
             if((m1->type == LMTYPE && m2->type == NPTYPE) || (m1->type == NPTYPE && m2->type == LMTYPE))
             {
                 if(m1->type == LMTYPE) calc_RN_simple2(c,m1,m2,0,1,&R,&N);
                 else                   calc_RN_simple2(c,m1,m2,1,0,&R,&N);
 
-                val[0] = val[1] = 0;
-                val2[0] = val2[1] = 0;
                 if(N > 0)
                 {
+                    //calculate rf and linkage LOD
                     rf = (double)R / N;
-                    if(rf <= 0.5)
-                    {
-                        //coupling linkage, yellow
-                        val[0] = val[1] = (0.5 - rf) * 2.0 * 255.999;
-                    }
-                    else
-                    {
-                        //repulsion linkage, blue
-                        val[2] = (rf - 0.5) * 2.0 * 255.999;
-                    }
-                    
-                    //calculate linkage LOD
                     s = 1.0 - rf;
                     S = N - R;
                     
@@ -151,35 +162,37 @@ uint32_t*generate_image(struct conf*c,struct lg*p,double minlod)
                     if(s > 0.0) lod += S * log10(2.0*s);
                     if(rf > 0.0) lod += R * log10(2.0*rf);
                     
-                    if(lod >= minlod) val2[0] = val2[1] = tanh(lod/50.0) * 255.999;
+                    //lower triangle: rf and lod info
+                    if(rf <= 0.5)
+                    {
+                        //coupling linkage, yellow
+                        //low[0] = low[1] = (0.5 - rf) * 2.0 * 255.999;
+                        low[0] = low[1] = tanh(lod*LOD_BRIGHTNESS_SCALE) * (255.999 - LOD_BRIGHTNESS_MIN)
+                                          + LOD_BRIGHTNESS_MIN;
+                    }
+                    else
+                    {
+                        //repulsion linkage, blue
+                        low[2] = tanh(lod*LOD_BRIGHTNESS_SCALE) *  (255.999 - LOD_BRIGHTNESS_MIN)
+                                          + LOD_BRIGHTNESS_MIN;
+                    }
                 }
+                
+                dist = -1.0;
             }
             else
             {
+                dist = 0.0;
+                d[0] = d[1] = -1.0;
                 for(x=0; x<2; x++)
                 {
-                    val[x] = 0;
-                    val2[x] = 0;
                     if(m1->data[x] && m2->data[x])
                     {
                         calc_RN_simple(c,m1,m2,x,&R,&N);
                         if(N > 0)
                         {
+                            //calculate rf and linkage LOD
                             rf = (double)R / N;
-                            if(rf <= 0.5)
-                            {
-                                //coupling linkage, red or green
-                                val[x] = (0.5 - rf) * 2.0 * 255.999;
-                            }
-                            else
-                            {
-                                //repulsion linkage, blue
-                                //indicate the strongest repulsion value of the two
-                                tmpval = (rf - 0.5) * 2.0 * 255.999;
-                                if(val[2] < tmpval) val[2] = tmpval;
-                            }
-                            
-                            //calculate linkage LOD
                             s = 1.0 - rf;
                             S = N - R;
                             
@@ -187,18 +200,50 @@ uint32_t*generate_image(struct conf*c,struct lg*p,double minlod)
                             if(s > 0.0) lod += S * log10(2.0*s);
                             if(rf > 0.0) lod += R * log10(2.0*rf);
                             
-                            //DEBUG code
-                            //printf("%s %s %lf\n",m1->name,m2->name,lod);
-                            
-                            if(lod >= minlod) val2[x] = tanh(lod/50.0) * 255.999;
+                            //lower triangle: rf and lod info
+                            if(rf <= 0.49999)
+                            {
+                                //coupling linkage, red or green
+                                low[x] = tanh(lod*LOD_BRIGHTNESS_SCALE) * (255.999 - LOD_BRIGHTNESS_MIN)
+                                                  + LOD_BRIGHTNESS_MIN;
+                                d[x] = haldane(rf);
+                            }
+                            else
+                            {
+                                //repulsion linkage, blue
+                                //indicate the strongest repulsion value of the two
+                                tmpval = tanh(lod*LOD_BRIGHTNESS_SCALE) *  (255.999 - LOD_BRIGHTNESS_MIN)
+                                                  + LOD_BRIGHTNESS_MIN;
+                                if(low[2] < tmpval) low[2] = tmpval;
+                                d[x] = haldane(0.49999);
+                            }
                         }
                     }
                 }
+                
+                if(d[0] >= 0.0) dist += d[0];
+                if(d[1] >= 0.0) dist += d[1];
+                
+                if(d[0] >= 0.0 && d[1] >= 0.0) dist /= 2.0;
+            }
+
+            //upper triangle: map distance
+            if(dist < 0.0)
+            {
+                upp[0] = upp[1] = upp[2] = 0;
+            }
+            else
+            {
+                band = round(dist / DIST_BAND);
+                if(band > 12) band = 12;
+                upp[0] = palette[band][0];
+                upp[1] = palette[band][1];
+                upp[2] = palette[band][2];
             }
             
             //buff[y*width+x] = (r<<16)+(g<<8)+b;
-            setpixelrgb(buff,i,j,p->nmarkers,val[0],val[1],val[2]);//rf
-            if(i!=j) setpixelrgb(buff,j,i,p->nmarkers,val2[0],val2[1],val2[2]);//lod
+            setpixelrgb(buff,i,j,p->nmarkers,low[0],low[1],low[2]);//rf, lower
+            if(i!=j) setpixelrgb(buff,j,i,p->nmarkers,upp[0],upp[1],upp[2]);//lod, upper
         }
     }
     

@@ -56,8 +56,13 @@ corr = {}
 for lg in posn_info.iterkeys():
     corr[lg] = np.cov(np.array(posn_info[lg]).T)[0][1]
 
+#create sorted conversion information
+olist = [[origlg,newlg,str(corr[origlg] < 0.0)] for origlg,newlg in conv.iteritems()]
+
+olist.sort(key=lambda x:imap.lgdict[x[0]].markers,reverse=True) #minor sort by input lg size
+olist.sort(key=lambda x:x[1])                    #major sort by ref lg name
+
 #output conversion information
 fout = open(conf.out,'wb')
-for origlg,newlg in conv.iteritems():
-    fout.write(origlg + ',' + newlg + ',' + str(corr[origlg] < 0.0) + '\n')
+for x in olist: fout.write(','.join(x) + '\n')
 fout.close()

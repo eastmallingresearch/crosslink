@@ -25,7 +25,8 @@ int main(int argc,char*argv[])
     char*datatype=NULL;
     char*named=NULL;
     
-    double minlod,xbase_pix,ybase_pix,width_pix;
+    //double minlod;
+    double xbase_pix,ybase_pix,width_pix;
     int mx,my,markerx,markery;
     uint32_t*buff=NULL;
 
@@ -33,7 +34,7 @@ int main(int argc,char*argv[])
     assert(c = calloc(1,sizeof(struct conf)));
     rjvparser("inp|STRING|!|input genotype file",&inp);
     rjvparser("window_size|UNSIGNED|1000|window size (pixels)",&size);
-    rjvparser("minlod|FLOAT|3.0|LOD values below this threshold appear completely black",&minlod);
+    //rjvparser("minlod|FLOAT|3.0|LOD values below this threshold appear completely black",&minlod);
     rjvparser("datatype|STRING|imputed|state of the genotype data: imputed, phased, unphased",&datatype);
     rjvparser("bitstrings|UNSIGNED|1|1=use bitstring representation of the data internally",&c->gg_bitstrings);
     rjvparser("hardware|UNSIGNED|0|1=use hardware graphical acceleration when available",&hardware);
@@ -56,7 +57,7 @@ int main(int argc,char*argv[])
     else                                     assert(0);
     
     //render image from the rflod data
-    buff = generate_image(c,p,minlod);
+    buff = generate_image(c,p);
     
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -64,7 +65,7 @@ int main(int argc,char*argv[])
         return 1;
     }
     
-    assert(win = SDL_CreateWindow("rflod viewer",0,0,size,size,SDL_WINDOW_SHOWN));
+    assert(win = SDL_CreateWindow(inp,0,0,size,size,SDL_WINDOW_SHOWN));
     
     if(hardware) assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED));
     else         assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE));

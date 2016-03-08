@@ -9,7 +9,12 @@ set -eu
 #TYPE="-Wall -Wextra -O3"
 TYPE="-Wall -Wextra -g"
 
-gcc ${TYPE}\
+#select alternative colour scheme
+#AUX="-DALTCOLSCHEME"
+AUX=""
+
+
+gcc ${TYPE} ${AUX}\
     -o crosslink_viewer\
     crosslink_utils.c\
     crosslink_ga.c\
@@ -20,7 +25,7 @@ gcc ${TYPE}\
     rjvparser.c\
     -lSDL2 -lm
 
-gcc ${TYPE}\
+gcc ${TYPE} ${AUX}\
     -o crosslink_graphical\
     crosslink_utils.c\
     crosslink_ga.c\
