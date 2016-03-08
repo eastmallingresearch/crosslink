@@ -1,16 +1,17 @@
 #!/usr/bin/python
 
 #
-# measure how many markers were placed in correct linkage groups
+# find proportion of markers placed in correct linkage groups
+# AND phased correctly
 #
 
 import sys
 
 if len(sys.argv) < 2:
-    print "usage: calc_grouping_accuracy.py <correctly_grouped_loci> <test_loci> [<test_loci>...]"
+    print "usage: calc_phasing_accuracy.py <original_loci> <test_loci> [<test_loci>...]"
     exit(0)
 
-#load correctly grouped markers
+#load original markers
 orig = []
 total_markers = 0
 f = open(sys.argv[1])
@@ -18,8 +19,11 @@ for line in f:
     if line.startswith(';'):
         orig.append({})
         continue
-    uid = line.strip().split()[0]
-    orig[-1][uid] = True
+    tok = line.strip().split()
+    uid = tok[0]
+    phase = tok[2][1:-1]
+    
+    orig[-1][uid] = phase
     total_markers += 1
 f.close()
     
@@ -31,8 +35,10 @@ for fname in sys.argv[2:]:
         if line.startswith(';'):
             test.append({})
             continue
-        uid = line.strip().split()[0]
-        test[-1][uid] = True
+        tok = line.strip().split()
+        uid = tok[0]
+        phase = tok[2][1:-1]
+        test[-1][uid] = phase
     f.close()
     
 orig.sort(key=lambda x:len(x),reverse=True)
@@ -41,7 +47,8 @@ test.sort(key=lambda x:len(x),reverse=True)
 #for each original lg, by decreasing size
 #find the test lg with most markers from it, assign this as "correct" and then remove it
 #count total markers in the "correct" lg
-total = 0
+total_errors = 0
+total_count = 0
 for lg in orig:
     best_ct = -1
     best_i = -1
@@ -54,10 +61,25 @@ for lg in orig:
             best_ct = ct
             best_i = i
             
-    total += best_ct
+    #test[best_i] == lg (from orig)
+    #check mat/pat phasing
+    for x in [0,1]:
+        errors=0
+        count=0
+        for uid in test[best_i].iterkeys():
+            if uid in lg:
+               if lg[uid][x] == '-': continue
+               count += 1
+               if test[best_i][uid][x] !=  lg[uid][x]: errors += 1
+               
+        if errors > count / 2: total_errors += count - errors  #treat as antiphase
+        else:                  total_errors += errors
+        
+        total_count += count
+            
     del test[best_i]
     
     if len(test) == 0: break
     
 #score is proportion of correctly assigned markers
-print "%.10f"%(float(total) / total_markers)
+print "%.10f"%(float(total_errors) / total_count)

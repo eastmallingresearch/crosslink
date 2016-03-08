@@ -1,6 +1,7 @@
 #include "crosslink_viewer.h"
 #include "crosslink_utils.h"
 
+//search for marker by name
 unsigned find_marker(struct lg*p,char*name)
 {
     unsigned i;
@@ -10,6 +11,7 @@ unsigned find_marker(struct lg*p,char*name)
     return p->nmarkers; //indicates not found
 }
 
+//print information about a single marker to the console
 void show_info(struct lg*p,int offset)
 {
     struct marker*m=NULL;
@@ -31,6 +33,7 @@ void show_info(struct lg*p,int offset)
     }
 }
 
+//calculate and print rf and lod information to console
 void show_rf_lod(struct conf*c,struct lg*p,int xoff,int yoff)
 {
     struct marker*m1=NULL;
@@ -89,6 +92,7 @@ void show_rf_lod(struct conf*c,struct lg*p,int xoff,int yoff)
     }
 }
 
+//compare all against all markers, calculate image pixel value based on rf and lod info
 uint32_t*generate_image(struct conf*c,struct lg*p,double minlod)
 {
     uint32_t*buff=NULL;
