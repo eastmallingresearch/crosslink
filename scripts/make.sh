@@ -43,6 +43,17 @@ gcc ${TYPE}\
     rjvparser.o\
     -lm
 
+#build crosslink_pos
+gcc ${TYPE}\
+    -o crosslink_pos\
+    crosslink_pos_main.c\
+    crosslink_utils.o\
+    crosslink_ga.o\
+    crosslink_group.o\
+    crosslink_gibbs.o\
+    rjvparser.o\
+    -lm
+    
 #build crosslink_group
 gcc ${TYPE}\
     -o crosslink_group\

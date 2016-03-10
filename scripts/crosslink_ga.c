@@ -726,6 +726,8 @@ void order_map(struct conf*c)
     //compress data into bitstrings
     if(c->gg_bitstrings) compress_to_bitstrings(c,c->nmarkers,c->array);
     
+    if(c->nmarkers < 2) return;
+    
     //produce an initial approx ordering using the MST method
     if(c->cycle_ctr > 0)
     {

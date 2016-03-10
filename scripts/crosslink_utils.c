@@ -1590,7 +1590,6 @@ void indiv_map_positions(struct conf*c,struct marker**marray,unsigned x)
         {
             //find distance to previous marker
             calc_RN_simple(c,marray[prev],marray[i],x,&R,&N);
-            if(N == 0) printf("DEBUG!! %s %s\n",marray[prev]->name,marray[i]->name);
             assert(N != 0);
             rf = (double)R / N;
             if(rf > MAX_RF) rf = MAX_RF;

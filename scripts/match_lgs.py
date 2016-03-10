@@ -10,9 +10,11 @@ ap = argparse.ArgumentParser(description=__doc__,formatter_class=argparse.Argume
 ap.add_argument('--inp',default=None,type=str,help='input map file')
 ap.add_argument('--ref',default=None,type=str,help='reference map file')
 ap.add_argument('--out',default=None,type=str,help='output file showing which reference LG each input LG corresponds to, and whether orientation is reversed')
+ap.add_argument('--out2',default=None,type=str,help='output file showing merger candidates')
 conf = ap.parse_args()
 
 import sys
+import math
 import numpy as np
 from mapping_funcs import *
 
@@ -54,7 +56,10 @@ for lg in lg_info.iterkeys():
 #to decide whether to flip the LG or not
 corr = {}
 for lg in posn_info.iterkeys():
-    corr[lg] = np.cov(np.array(posn_info[lg]).T)[0][1]
+    if len(posn_info[lg]) == 1:
+        corr[lg] = 0.0
+    else:
+        corr[lg] = np.cov(np.array(posn_info[lg]).T)[0][1]
 
 #create sorted conversion information
 olist = [[origlg,newlg,str(corr[origlg] < 0.0)] for origlg,newlg in conv.iteritems()]
@@ -65,4 +70,16 @@ olist.sort(key=lambda x:x[1])                    #major sort by ref lg name
 #output conversion information
 fout = open(conf.out,'wb')
 for x in olist: fout.write(','.join(x) + '\n')
+fout.close()
+
+#output candidates for merging
+minfo = {}
+for origlg,newlg in conv.iteritems():
+    if not newlg in minfo: minfo[newlg] = []
+    minfo[newlg].append(origlg)
+    
+fout = open(conf.out2,'wb')
+for newlg in minfo:
+    if len(minfo[newlg]) < 2: continue
+    fout.write(' '.join(minfo[newlg]) + '\n')
 fout.close()

@@ -28,7 +28,9 @@ int main(int argc,char*argv[])
     //double minlod;
     double xbase_pix,ybase_pix,width_pix;
     int mx,my,markerx,markery;
-    uint32_t*buff=NULL;
+    uint32_t*buff_mat=NULL;
+    uint32_t*buff_pat=NULL;
+    uint32_t*buff_com=NULL;
 
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
@@ -56,8 +58,10 @@ int main(int argc,char*argv[])
     else if(strcmp(datatype,"imputed") == 0) generic_convert_to_imputed(c,p);
     else                                     assert(0);
     
-    //render image from the rflod data
-    buff = generate_image(c,p);
+    //render images from the rflod data
+    buff_com = generate_image(c,p,0); //combined info
+    buff_mat = generate_image(c,p,1); //maternal only
+    buff_pat = generate_image(c,p,2); //paternal only
     
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
     {
@@ -72,7 +76,7 @@ int main(int argc,char*argv[])
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest"); //"linear" or "nearest"
     //assert(tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING, c->nmarkers, c->nmarkers));
     assert(tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STATIC, p->nmarkers, p->nmarkers));
-    SDL_UpdateTexture(tex, NULL, buff, p->nmarkers * sizeof (uint32_t));
+    SDL_UpdateTexture(tex, NULL, buff_com, p->nmarkers * sizeof (uint32_t));
     
     xbase_pix = ybase_pix = (double)p->nmarkers / 2.0;      //control view window
     width_pix = (double)p->nmarkers;
@@ -128,6 +132,14 @@ int main(int argc,char*argv[])
             }
         }
         
+        //change view mode
+        if(eve.type == SDL_KEYDOWN && (eve.key.keysym.sym == SDLK_c || eve.key.keysym.sym == SDLK_m || eve.key.keysym.sym == SDLK_p))
+        {
+            if(eve.key.keysym.sym == SDLK_c) SDL_UpdateTexture(tex, NULL, buff_com, p->nmarkers * sizeof (uint32_t));
+            if(eve.key.keysym.sym == SDLK_m) SDL_UpdateTexture(tex, NULL, buff_mat, p->nmarkers * sizeof (uint32_t));
+            if(eve.key.keysym.sym == SDLK_p) SDL_UpdateTexture(tex, NULL, buff_pat, p->nmarkers * sizeof (uint32_t));
+        }
+
         //pan and zoom
         if(eve.type == SDL_KEYDOWN)
         {

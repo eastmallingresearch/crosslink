@@ -19,7 +19,7 @@
 unsigned find_marker(struct lg*p,char*name);
 void show_info(struct lg*p,int offset);
 void show_rf_lod(struct conf*c,struct lg*p,int xoff,int yoff);
-uint32_t*generate_image(struct conf*c,struct lg*p);
+uint32_t*generate_image(struct conf*c,struct lg*p,unsigned mode);
 void which_markers(int mx,int my,SDL_Rect*img,SDL_Rect*win,int*imgx,int*imgy);
 void calc_view(unsigned img_size,unsigned win_size,double img_centrex,double img_centrey,double img_width,SDL_Rect*img,SDL_Rect*win);
 

@@ -113,7 +113,7 @@ void show_rf_lod(struct conf*c,struct lg*p,int xoff,int yoff)
 //compare all against all markers calculate image pixel value based on rf and lod info
 //lower triangle: colours: rf, brightness: lod, distinguish maternal/paternal
 //upper triangle: colours: quantised map distance, brightness: remainder of map distance, merge maternal/paternal
-uint32_t*generate_image(struct conf*c,struct lg*p)
+uint32_t*generate_image(struct conf*c,struct lg*p,unsigned mode)
 {
     uint32_t*buff=NULL;
     unsigned i,j,x,R,N,S,low[3],upp[3],tmpval;
@@ -135,9 +135,30 @@ uint32_t*generate_image(struct conf*c,struct lg*p)
         {
             m2 = p->array[j];
             
+            if(i == j)
+            {
+                switch(m1->type)
+                {
+                    case LMTYPE:
+                        setpixelrgb(buff,i,j,p->nmarkers,255,0,0);
+                        break;
+                    case NPTYPE:
+                        setpixelrgb(buff,i,j,p->nmarkers,0,255,0);
+                        break;
+                    case HKTYPE:
+                        setpixelrgb(buff,i,j,p->nmarkers,255,255,0);
+                        break;
+                }
+                
+                continue;
+            }
+            
             low[0] = low[1] = low[2] = 0;
             upp[0] = upp[1] = upp[2] = 0;
             
+            dist = -1.0;
+            d[0] = d[1] = -1.0;
+
             //generate checkerboard pattern denoting linkage group boundaries
             //in the blue channel of the "LOD" part of the graph
             if((m1->lg & 0x1) ^ (m2->lg & 0x1)) upp[2] = 64;
@@ -177,13 +198,9 @@ uint32_t*generate_image(struct conf*c,struct lg*p)
                                           + LOD_BRIGHTNESS_MIN;
                     }
                 }
-                
-                dist = -1.0;
             }
             else
             {
-                dist = 0.0;
-                d[0] = d[1] = -1.0;
                 for(x=0; x<2; x++)
                 {
                     if(m1->data[x] && m2->data[x])
@@ -220,11 +237,23 @@ uint32_t*generate_image(struct conf*c,struct lg*p)
                         }
                     }
                 }
-                
-                if(d[0] >= 0.0) dist += d[0];
-                if(d[1] >= 0.0) dist += d[1];
-                
-                if(d[0] >= 0.0 && d[1] >= 0.0) dist /= 2.0;
+            }
+            
+            switch(mode)
+            {
+                case 0: //combined
+                    if(d[0] >= 0.0 && d[1] >= 0.0) dist = (d[0] + d[1]) / 2.0;
+                    else if(d[0] >= 0.0)           dist = d[0];
+                    else if(d[1] >= 0.0)           dist = d[1];
+                    break;
+                case 1: //maternal only
+                    if(d[0] >= 0.0) dist = d[0];
+                    low[1] = 0;
+                    break;
+                case 2: //paternal only
+                    if(d[1] >= 0.0) dist = d[1];
+                    low[0] = 0;
+                    break;
             }
 
             //upper triangle: map distance
@@ -241,9 +270,8 @@ uint32_t*generate_image(struct conf*c,struct lg*p)
                 upp[2] = palette[band][2];
             }
             
-            //buff[y*width+x] = (r<<16)+(g<<8)+b;
-            setpixelrgb(buff,i,j,p->nmarkers,low[0],low[1],low[2]);//rf, lower
-            if(i!=j) setpixelrgb(buff,j,i,p->nmarkers,upp[0],upp[1],upp[2]);//lod, upper
+            setpixelrgb(buff,i,j,p->nmarkers,low[0],low[1],low[2]);//rf-lod, lower
+            setpixelrgb(buff,j,i,p->nmarkers,upp[0],upp[1],upp[2]);//distance, upper
         }
     }
     
