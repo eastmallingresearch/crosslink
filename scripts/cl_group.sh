@@ -5,15 +5,14 @@
 set -eu
 
 CL_INPUT_FILE=$1
-CL_OUTPUT_BASE=$2
+CL_OUTPUT_DIR=$2
 CL_GROUP_MINLOD=$3
 
-echo ${CL_GROUP_MINLOD}
+mkdir -p ${CL_OUTPUT_DIR}
 
-#remove any stale files
-rm -f ${CL_OUTPUT_BASE}???.loc
+rm -f ${CL_OUTPUT_DIR}/*.loc
 
 crosslink_group\
         --inp=${CL_INPUT_FILE}\
-        --outbase=${CL_OUTPUT_BASE}\
+        --outbase=${CL_OUTPUT_DIR}/\
         --min_lod=${CL_GROUP_MINLOD}

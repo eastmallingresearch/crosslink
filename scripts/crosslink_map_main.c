@@ -180,12 +180,15 @@ int main(int argc,char*argv[])
     
     if(c->gg_bitstrings) compress_to_bitstrings(c,c->nmarkers,c->array);
     
-    //produce maternal and paternal map positions from the current ordering
-    indiv_map_positions(c,c->array,0);
-    indiv_map_positions(c,c->array,1);
-    
-    //produce combined map positions
-    comb_map_positions(c,c->nmarkers,c->array,0,0);
+    if(c->map != NULL)
+    {
+        //produce maternal and paternal map positions from the current ordering
+        indiv_map_positions(c,c->array,0);
+        indiv_map_positions(c,c->array,1);
+        
+        //produce combined map positions
+        comb_map_positions(c,c->nmarkers,c->array,0,0);
+    }
     
     //output final marker ordering
     if(c->out != NULL)

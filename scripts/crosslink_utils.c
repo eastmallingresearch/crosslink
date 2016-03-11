@@ -1693,15 +1693,18 @@ void comb_map_positions(struct conf*c,unsigned n,struct marker**marray,unsigned 
         if(m->type == HKTYPE) nhk += 1;
     }
     
-    if(nhk < 2)
+    if(flip_check)
     {
-        if(c->flog) fprintf(c->flog,"#lg %u has less than 2 hk markers, cannot produce combined map\n",lg);
-        return;
-    }
+        if(nhk < 2)
+        {
+            if(c->flog) fprintf(c->flog,"#lg %u has less than 2 hk markers, cannot produce combined map\n",lg);
+            return;
+        }
     
-    //flip paternal map positions if reversed wrt maternal
-    //does nothing if less than two hk markers in this lg
-    if(flip_check) check_invert_paternal(n,marray);
+        //flip paternal map positions if reversed wrt maternal
+        //does nothing if less than two hk markers in this lg
+        check_invert_paternal(n,marray);
+    }
     
     //interpolate / extrapolate lm/np positions from averaged hk positions
     combine_maps(n,marray);
@@ -1771,7 +1774,7 @@ void combine_maps(unsigned n,struct marker**marray)
     }
     
     //combined map needs at least 2 hks per lg
-    assert(nhk > 1);
+    if(nhk == 0) return;
 
     //interpolate / extrapolate positions of lm/np markers
     //based on flanking hk markers

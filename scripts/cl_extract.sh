@@ -5,8 +5,8 @@
 set -eu
 
 CL_INPUT_FILE=$1
-CL_OUTPUT_FILE=$2
-CL_REDUN_FILE=$3
+CL_REDUN_FILE=$2
+CL_OUTPUT_FILE=$3
 
 #make temporary directory for the output
 MYTMPDIR=$(mktemp -d)

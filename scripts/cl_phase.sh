@@ -1,25 +1,16 @@
 #!/bin/bash
 
-#phase a single linkage group
+#phase all loc files in a given directory
 
 set -u
 
-CL_INPUT_FILE=$1
-CL_OUTPUT_FILE=$2
+CL_INPUT_DIR=$1
+CL_OUTPUT_DIR=$2
 
-#make temporary directory for the output
-MYTMPDIR=$(mktemp -d)
+mkdir -p ${CL_OUTPUT_DIR}
 
-crosslink_group --inp=${CL_INPUT_FILE}\
-                --outbase=${MYTMPDIR}/tmp_\
-                --min_lod=0.0
-                
-#aggregate markers into single file again
-cat ${MYTMPDIR}/tmp_???.loc | grep -v '^;' > ${MYTMPDIR}/all
-NMARKERS=$(cat ${MYTMPDIR}/all | wc --lines)
-echo "; group NONE markers ${NMARKERS}" > ${CL_OUTPUT_FILE}
-cat ${MYTMPDIR}/all >> ${CL_OUTPUT_FILE}
-
-#clean up temporary files
-rm -f ${MYTMPDIR}/tmp_???.loc ${MYTMPDIR}/all
-rmdir ${MYTMPDIR}
+for INPNAME in ${CL_INPUT_DIR}/*.loc
+do
+    OUTNAME=${CL_OUTPUT_DIR}/$(basename ${INPNAME})
+    cl_phase_inner.sh   ${INPNAME}   ${OUTNAME}
+done

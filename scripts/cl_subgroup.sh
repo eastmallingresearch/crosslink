@@ -6,8 +6,9 @@
 set -eu
 
 CL_INPUT_FILE=$1
-CL_OUTPUT_BASE=$2
-CL_CONF_FILE=$3
+CL_SUBGROUP_MINLOD=$2
+CL_OUTPUT_BASE=$3
+CL_CONF_FILE=$4
 
 #example parameters
 #CL_MAP_RANDOMISE=0
@@ -44,22 +45,20 @@ MYTMPDIR=$(mktemp -d)
 #initial grouping
 crosslink_group\
         --inp=${CL_INPUT_FILE}\
-        --outbase=${MYTMPDIR}/tmp_\
+        --outbase=${MYTMPDIR}/\
         --min_lod=${CL_SUBGROUP_MINLOD}
 
 #phase and map each new subgroup
-for INPNAME in ${MYTMPDIR}/tmp_???.loc
+for INPNAME in ${MYTMPDIR}/???.loc
 do
-    BASENAME=${INPNAME:0:${#INPNAME}-4}
-    
     #phase
     crosslink_group --inp=${INPNAME}\
-                    --outbase=${BASENAME}_\
+                    --outbase=${INPNAME}\
                     --min_lod=0.0
                     
     #order and hkimpute
     crosslink_map\
-        --inp=${BASENAME}_000.loc --out=${INPNAME}\
+        --inp=${INPNAME}000.loc --out=${INPNAME}\
         --randomise_order=${CL_MAP_RANDOMISE} --ga_gibbs_cycles=${CL_MAP_CYCLES}\
         --ga_iters=${CL_GA_ITERS} --ga_optimise_dist=${CL_GA_OPTIMISEDIST} --ga_skip_order1=${CL_GA_SKIPORDER1}\
         --ga_use_mst=${CL_GA_USEMST} --ga_mst_minlod=${CL_GA_MSTMINLOD} --ga_mst_nonhk=${CL_GA_MSTNONHK}\
@@ -72,11 +71,11 @@ do
         --gibbs_twopt_1=${CL_GIBBS_TWOPT1} --gibbs_twopt_2=${CL_GIBBS_TWOPT2}
         
     #move to final position
-    LGNUMB=${INPNAME:${#INPNAME}-7:3}
+    LGNUMB=$(basename --suffix=.loc ${INPNAME})
     
     cat ${INPNAME} > ${CL_OUTPUT_BASE}${LGNUMB}.loc
 done
 
 #clean up temp files
-rm ${MYTMPDIR}/tmp_???.loc ${MYTMPDIR}/tmp_???_000.loc
+rm ${MYTMPDIR}/*.loc
 rmdir ${MYTMPDIR}

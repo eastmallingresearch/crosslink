@@ -4,12 +4,15 @@
 
 set -eu
 
-CL_INPUT_FILE=$1
-CL_OUTPUT_FILE=$2
-CL_CONF_FILE=$3
+CL_INPUT_DIR=$1
+CL_OUTPUT_DIR=$2
 
-#source parameter values
-source ${CL_CONF_FILE}
+mkdir -p ${CL_OUTPUT_DIR}
 
-crosslink_pos\
-  --inp=${CL_INPUT_FILE} --map=${CL_OUTPUT_FILE}
+rm -f ${CL_OUTPUT_DIR}/*.map
+
+for INPNAME in ${CL_INPUT_DIR}/*.loc
+do
+    OUTNAME=${CL_OUTPUT_DIR}/$(basename --suffix=.loc ${INPNAME}).map
+    crosslink_pos   --inp=${INPNAME}   --out=${OUTNAME}
+done
