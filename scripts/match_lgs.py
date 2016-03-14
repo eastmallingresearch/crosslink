@@ -2,6 +2,7 @@
 
 '''
 match up LGs between two maps based on the numbers of shared markers
+also work out if map orientations are reverse
 '''
 
 import argparse

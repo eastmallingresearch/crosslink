@@ -21,6 +21,7 @@ int main(int argc,char*argv[])
     rjvparser("inp|STRING|!|name of input loc file",&c->inp);
     rjvparser("out|STRING|-|name of output map file",&c->out);
     
+    rjvparser("seed|UNSIGNED|1|random number generator seed, 0=use system time",&c->gg_prng_seed);
     rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane,2=Kosambi",&c->gg_map_func);
     rjvparser("bitstrings|UNSIGNED|1|use bitstring data representation internally",&c->gg_bitstrings);
     

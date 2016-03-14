@@ -10,8 +10,6 @@ CL_GROUP_MINLOD=$3
 
 mkdir -p ${CL_OUTPUT_DIR}
 
-rm -f ${CL_OUTPUT_DIR}/*.loc
-
 crosslink_group\
         --inp=${CL_INPUT_FILE}\
         --outbase=${CL_OUTPUT_DIR}/\

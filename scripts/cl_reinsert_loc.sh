@@ -11,11 +11,10 @@ CL_OUTPUT_DIR=$4
 CL_CONF_FILE=$5
 
 mkdir -p ${CL_OUTPUT_DIR}
-rm -f ${CL_OUTPUT_DIR}/*
 
 for INPNAME in ${CL_INPUT_DIR}/*.loc
 do
-    cl_reinsert_inner.sh\
+    cl_reinsert_loc_inner.sh\
         ${INPNAME}\
         ${CL_ALLLOCI_FILE}\
         ${CL_REDUN_FILE}\

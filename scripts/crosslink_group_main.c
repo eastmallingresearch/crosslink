@@ -20,7 +20,7 @@ int main(int argc,char*argv[])
     rjvparser("mapbase|STRING|-|basename for output map files",&c->mapbase);
     rjvparser("redun|STRING|-|filename for outputting marker redundancy information",&c->redun);
     rjvparser("log|STRING|-|filename for outputting logging information",&c->log);
-    rjvparser("prng_seed|UNSIGNED|0|random number generator seed, 0=use system time",&c->gg_prng_seed);
+    rjvparser("seed|UNSIGNED|1|random number generator seed, 0=use system time",&c->gg_prng_seed);
     rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane,2=Kosambi",&c->gg_map_func);
     rjvparser("randomise_order|UNSIGNED|0|start from a random initial marker ordering",&c->gg_randomise_order);
     rjvparser("bitstrings|UNSIGNED|1|use bitstring data representation internally",&c->gg_bitstrings);

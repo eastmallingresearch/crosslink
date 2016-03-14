@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#attempt to subdivide an existing lg using a new LOD
+#break a linkage group into two after a given marker
 
 set -eu
 
 CL_INPUT_FILE=$1
-CL_SUBGROUP_MINLOD=$2
+CL_MARKER_NAME=$2
 CL_OUTPUT_DIR=$3
 CL_CONF_FILE=$4
 
@@ -13,24 +13,7 @@ source ${CL_CONF_FILE}
 
 MYTMPDIR=$(mktemp -d)
 
-#initial grouping
-crosslink_group\
-        --inp=${CL_INPUT_FILE}\
-        --outbase=${MYTMPDIR}/\
-        --min_lod=${CL_SUBGROUP_MINLOD}
-
-#count number of subgroups
-NFILES=$(compgen -G "${MYTMPDIR}/*.loc" | wc --lines)
-
-if [ "${NFILES}" == "1" ]
-then
-    echo no subgroups formed at LOD ${CL_SUBGROUP_MINLOD}
-    rm ${MYTMPDIR}/*.loc
-    rmdir ${MYTMPDIR}
-    exit
-fi
-
-echo ${NFILES} subgroups formed at LOD ${CL_SUBGROUP_MINLOD}
+break_linkage_group.py ${CL_INPUT_FILE} ${CL_MARKER_NAME} ${MYTMPDIR}/000.loc  ${MYTMPDIR}/001.loc
 
 #phase and map each new subgroup
 for INPNAME in ${MYTMPDIR}/*.loc

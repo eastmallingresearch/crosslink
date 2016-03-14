@@ -7,20 +7,18 @@ set -eu
 CL_INPUT_DIR=$1
 CL_VSREF_FILE=$2
 CL_OUTPUT_DIR=$3
-CL_OUTPUT_PREFIX=$4
 
 mkdir -p ${CL_OUTPUT_DIR}
-rm -f ${CL_OUTPUT_DIR}/*
 
 MYTMPDIR=$(mktemp -d)
 
 #rename and reorient (if required) all loc files
 for INPNAME in ${CL_INPUT_DIR}/*.loc
 do
-    OLDLG=$(echo ${INPNAME} | egrep -o -e '([0-9]{3}_?)*')
-    NEWLG=$(cat ${CL_VSREF_FILE} | grep -Fw ${OLDLG} | awk -v FS=',' '{print $2}')
-    REVERSE=$(cat ${CL_VSREF_FILE} | grep -Fw ${OLDLG} | awk -v FS=',' '{print $3}')
-    OUTNAME=${CL_OUTPUT_DIR}/${CL_OUTPUT_PREFIX}_${NEWLG}.loc
+    OLDLG=$(basename --suffix=.loc ${INPNAME})
+    NEWLG=$(cat ${CL_VSREF_FILE} | grep "^${OLDLG}," | awk -v FS=',' '{print $2}')
+    REVERSE=$(cat ${CL_VSREF_FILE} | grep "^${OLDLG}," | awk -v FS=',' '{print $3}')
+    OUTNAME=${CL_OUTPUT_DIR}/${NEWLG}.loc
     
     #reverse order if required
     if [ "${REVERSE}" == "True" ]

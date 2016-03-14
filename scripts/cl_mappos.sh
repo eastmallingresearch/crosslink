@@ -9,8 +9,6 @@ CL_OUTPUT_DIR=$2
 
 mkdir -p ${CL_OUTPUT_DIR}
 
-rm -f ${CL_OUTPUT_DIR}/*.map
-
 for INPNAME in ${CL_INPUT_DIR}/*.loc
 do
     OUTNAME=${CL_OUTPUT_DIR}/$(basename --suffix=.loc ${INPNAME}).map
