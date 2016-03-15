@@ -23,14 +23,12 @@ do
     #reverse order if required
     if [ "${REVERSE}" == "True" ]
     then
-        tac ${INPNAME} | grep -v '^;' > ${MYTMPDIR}/tmp
+        tac ${INPNAME} > ${MYTMPDIR}/tmp
     else
-        cat ${INPNAME} | grep -v '^;' > ${MYTMPDIR}/tmp
+        cat ${INPNAME} > ${MYTMPDIR}/tmp
     fi
     
-    #create header
-    echo "; group ${NEWLG} markers $(cat ${MYTMPDIR}/tmp | wc --lines)" > ${OUTNAME}
-    cat ${MYTMPDIR}/tmp >> ${OUTNAME}
+    cat ${MYTMPDIR}/tmp > ${OUTNAME}
 done
 
 #clean up tmp

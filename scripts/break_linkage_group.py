@@ -15,14 +15,11 @@ data=[]
 f = open(inp)
 
 for line in f:
-    if line.startswith(';'): continue #skip header
-    
     tok = line.strip().split()
     data.append(tok)
     
     if tok[0] == uid:
         fout = open(out1,'wb')
-        fout.write('; group NONE markers %d\n'%len(data))
         for row in data: fout.write(' '.join(row) + '\n')
         fout.close()
         data = []
@@ -30,7 +27,6 @@ for line in f:
 f.close()
 
 fout = open(out2,'wb')
-fout.write('; group NONE markers %d\n'%len(data))
 for row in data: fout.write(' '.join(row) + '\n')
 fout.close()
 

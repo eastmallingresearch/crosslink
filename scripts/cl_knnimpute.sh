@@ -18,16 +18,13 @@ source ${CL_CONF_FILE}
 MYTMPDIR=$(mktemp -d)
 
 crosslink_group --inp=${CL_INPUT_FILE}\
-                --outbase=${MYTMPDIR}/tmp_\
+                --outbase=${MYTMPDIR}/\
                 --min_lod=${CL_GROUP_MINLOD}\
                 --knn=${CL_GROUP_KNN}
 
 #aggregate markers into single file again
-cat ${MYTMPDIR}/tmp_???.loc | grep -v '^;' > ${MYTMPDIR}/all
-NMARKERS=$(cat ${MYTMPDIR}/all | wc --lines)
-echo "; group NONE markers ${NMARKERS}" > ${CL_OUTPUT_FILE}
-cat ${MYTMPDIR}/all >> ${CL_OUTPUT_FILE}
+cat ${MYTMPDIR}/*.loc > ${CL_OUTPUT_FILE}
 
 #clean up temporary files
-rm -f ${MYTMPDIR}/tmp_???.loc ${MYTMPDIR}/all
+rm -f ${MYTMPDIR}/*.loc
 rmdir ${MYTMPDIR}

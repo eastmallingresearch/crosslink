@@ -19,23 +19,19 @@ OUTNAME=${CL_OUTPUT_DIR}/${CL_LGLIST// /_}.loc
 for LGNAME in ${CL_LGLIST}
 do
     INPNAME=${CL_INPUT_DIR}/${LGNAME}.loc
-    cat ${INPNAME} | grep -v '^;' >> ${MYTMPDIR}/tmp
+    cat ${INPNAME} >> ${MYTMPDIR}/tmp
     mv ${INPNAME} ${INPNAME/.loc/.old}
 done
 
-#make header
-echo "; group NONE markers $(cat ${MYTMPDIR}/tmp | wc --lines)" > ${MYTMPDIR}/tmp2
-cat ${MYTMPDIR}/tmp >> ${MYTMPDIR}/tmp2
-
 #rephase
 crosslink_group\
-    --inp=${MYTMPDIR}/tmp2\
-    --outbase=${MYTMPDIR}/tmp3_\
+    --inp=${MYTMPDIR}/tmp\
+    --outbase=${MYTMPDIR}/\
     --min_lod=0.0
 
 #reorder and hkimpute
 crosslink_map\
-    --inp=${MYTMPDIR}/tmp3_000.loc --out=${OUTNAME}\
+    --inp=${MYTMPDIR}/000.loc --out=${OUTNAME}\
     --randomise_order=${CL_MAP_RANDOMISE} --ga_gibbs_cycles=${CL_MAP_CYCLES}\
     --ga_iters=${CL_GA_ITERS} --ga_optimise_dist=${CL_GA_OPTIMISEDIST} --ga_skip_order1=${CL_GA_SKIPORDER1}\
     --ga_use_mst=${CL_GA_USEMST} --ga_mst_minlod=${CL_GA_MSTMINLOD} --ga_mst_nonhk=${CL_GA_MSTNONHK}\
@@ -48,5 +44,5 @@ crosslink_map\
     --gibbs_twopt_1=${CL_GIBBS_TWOPT1} --gibbs_twopt_2=${CL_GIBBS_TWOPT2}
 
 #clean up temp files
-rm ${MYTMPDIR}/tmp  ${MYTMPDIR}/tmp2  ${MYTMPDIR}/tmp3_000.loc
+rm ${MYTMPDIR}/tmp  ${MYTMPDIR}/000.loc
 rmdir ${MYTMPDIR}

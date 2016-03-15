@@ -13,18 +13,14 @@ CL_BADMARKER_FILE=$3
 #make temporary directory
 MYTMPDIR=$(mktemp -d)
 
-#remove "bad" markers and file header
+#remove "bad" markers
 cat ${CL_INPUT_FILE}\
     | grep -vF -f ${CL_BADMARKER_FILE}\
-    | grep -v '^;'\
     | cat\
-    > ${MYTMPDIR}/tmp.loc
-
-#create new file header
-echo "; group NONE markers $(cat ${MYTMPDIR}/tmp.loc | wc --lines )"\
-    > ${CL_OUTPUT_FILE}
-cat ${MYTMPDIR}/tmp.loc >> ${CL_OUTPUT_FILE}
+    > ${MYTMPDIR}/tmp
+    
+cat ${MYTMPDIR}/tmp > ${CL_OUTPUT_FILE}
 
 #clean up temporary files
-rm -f ${MYTMPDIR}/tmp.loc
+rm -f ${MYTMPDIR}/tmp
 rmdir ${MYTMPDIR}

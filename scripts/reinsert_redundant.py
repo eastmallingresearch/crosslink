@@ -32,7 +32,6 @@ f.close()
 markers = {}
 f = open(conf.all)
 for line in f:
-    if line.startswith(';'): continue
     tok = line.strip().split()
     uid = tok[0]
     assert not uid in markers
@@ -43,7 +42,6 @@ f.close()
 #insert redundant markers after their associated framework marker
 f = open(conf.inp)
 for line in f:
-    if line.startswith(';'): continue #filter out grouping headers - will need to be regenerated
     tok = line.strip().split()
     uid = tok[0]
     print line,                       #output nonredundant marker

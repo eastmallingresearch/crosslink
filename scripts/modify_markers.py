@@ -33,10 +33,6 @@ f.close()
 
 f = open(inpname)
 for line in f:
-    if line.startswith(';'):
-        print line,
-        continue
-        
     tok = line.strip().split()
     uid = tok[0]
     

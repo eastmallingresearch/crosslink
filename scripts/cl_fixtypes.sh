@@ -19,17 +19,14 @@ MYTMPDIR=$(mktemp -d)
 
 #fix typing errors
 crosslink_group --inp=${CL_INPUT_FILE}\
-                --outbase=${MYTMPDIR}/tmp_\
+                --outbase=${MYTMPDIR}/\
                 --min_lod=${CL_GROUP_MINLOD}\
                 --matpat_lod=${CL_GROUP_MATPATLOD}\
                 --matpat_weights=${CL_MATPAT_WEIGHTS}
 
 #aggregate markers into single lg again
-cat ${MYTMPDIR}/tmp_???.loc | grep -v '^;' > ${MYTMPDIR}/all
-NMARKERS=$(cat ${MYTMPDIR}/all | wc --lines)
-echo "; group NONE markers ${NMARKERS}" > ${CL_OUTPUT_FILE}
-cat ${MYTMPDIR}/all >> ${CL_OUTPUT_FILE}
+cat ${MYTMPDIR}/*.loc > ${CL_OUTPUT_FILE}
 
 #clean up temporary files
-rm -f ${MYTMPDIR}/tmp_???.loc ${MYTMPDIR}/all
+rm -f ${MYTMPDIR}/*.loc
 rmdir ${MYTMPDIR}

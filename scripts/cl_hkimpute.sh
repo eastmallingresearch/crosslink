@@ -15,7 +15,7 @@ source ${CL_CONF_FILE}
 MYTMPDIR=$(mktemp -d)
 
 crosslink_map\
-  --inp=${CL_INPUT_FILE} --out=${MYTMPDIR}/tmp.loc\
+  --inp=${CL_INPUT_FILE} --out=${MYTMPDIR}/tmp\
   --ga_gibbs_cycles=1 --ga_iters=0 --ga_skip_order1=1\
   --gibbs_samples=${CL_GIBBS_SAMPLES} --gibbs_burnin=${CL_GIBBS_BURNIN} --gibbs_period=${CL_GIBBS_PERIOD}\
   --gibbs_prob_sequential=${CL_GIBBS_PROBSEQUEN} --gibbs_prob_unidir=${CL_GIBBS_PROBUNIDIR}\
@@ -24,7 +24,8 @@ crosslink_map\
 
 #allow output file to overwrite input file
 rm -f ${CL_OUTPUT_FILE}
-mv ${MYTMPDIR}/tmp.loc ${CL_OUTPUT_FILE}
+cat ${MYTMPDIR}/tmp > ${CL_OUTPUT_FILE}
 
 #clean up temporary dir
+rm ${MYTMPDIR}/tmp
 rmdir ${MYTMPDIR}

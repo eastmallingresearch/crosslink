@@ -18,27 +18,19 @@ source ${CL_CONF_FILE}
 #make temporary directory for the output
 MYTMPDIR=$(mktemp -d)
 
-#remove "bad" markers and file header
+#remove "bad" markers
 cat ${CL_INPUT_FILE}\
     | grep -vF -f ${CL_BAD_MARKERS}\
-    | grep -v '^;'\
     | cat\
-    > ${MYTMPDIR}/tmp.loc
-
-#create new file header
-echo "; group 000 markers $(cat ${MYTMPDIR}/tmp.loc | wc --lines )"\
-    > ${MYTMPDIR}/tmp2.loc
+    > ${MYTMPDIR}/tmp
 
 #perform type switching
 modify_markers.py\
-    ${MYTMPDIR}/tmp.loc\
+    ${MYTMPDIR}/tmp\
     ${CL_MAT2PAT_MARKERS}\
     ${CL_PAT2MAT_MARKERS}\
-    >> ${MYTMPDIR}/tmp2.loc
-
-#allow overwriting of input file
-cat ${MYTMPDIR}/tmp2.loc > ${CL_OUTPUT_FILE}
+    >> ${CL_OUTPUT_FILE}
 
 #clean up temporary files
-rm -f ${MYTMPDIR}/tmp.loc ${MYTMPDIR}/tmp2.loc
+rm -f ${MYTMPDIR}/tmp
 rmdir ${MYTMPDIR}
