@@ -2078,7 +2078,7 @@ void save_lg_markers(struct conf*c,const char*fname,struct lg*p)
     
     assert(f = fopen(fname,"wb"));
     
-    fprintf(f,"; group %s markers %u\n",p->name,p->nmarkers);
+    //fprintf(f,"; group %s markers %u\n",p->name,p->nmarkers);
     for(i=0; i<p->nmarkers; i++)
     {
         m = p->array[i];

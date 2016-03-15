@@ -14,7 +14,7 @@ int mpos_comp(const void*p1,const void*p2);
 void set_true_positions(unsigned n,struct marker**array);
 void random_bitstring(struct conf*c,BITTYPE*bits);
 //void print_order(struct conf*c,struct marker**array,FILE*f);
-void print_order(struct conf*c,const char*name,unsigned nmarkers,struct marker**marray,FILE*f);
+void print_order(struct conf*c,unsigned nmarkers,struct marker**marray,FILE*f);
 void utils_count_events(struct conf*c,VARTYPE*d1,VARTYPE*d2,unsigned*R,unsigned*N);
 void print_map(unsigned n,struct marker**array,FILE*f,unsigned lg_numb,const char*lg_name);
 int mpos_printorder(const void*p1,const void*p2);
@@ -54,4 +54,7 @@ void generic_convert_to_phased(struct conf*c,struct lg*p);
 void generic_convert_to_imputed(struct conf*c,struct lg*p);
 void generic_apply_phasing(struct conf*c,struct lg*p);
 
+struct lg* noheader_lg(struct conf*c,const char*fname);
+struct marker*noheader_marker(struct conf*c,FILE*f);
+struct lg* noheader_merged(struct conf*c,char*fnames,unsigned skip,unsigned total);
 #endif

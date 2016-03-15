@@ -49,7 +49,8 @@ int main(int argc,char*argv[])
     init_masks(c);
 
     //load all data from file, treat as a single lg
-    p = generic_load_merged(c,inp,skip,total);
+    //p = generic_load_merged(c,inp,skip,total);
+    p = noheader_merged(c,inp,skip,total);
     
     //convert to phased / unphased, imputed / unimputed form
     //and compress to bitstrings
@@ -125,25 +126,25 @@ int main(int argc,char*argv[])
             }
             
             //which between phased and phased view
-            if(eve.key.keysym.sym == SDLK_z)
+            if(eve.key.keysym.sym == SDLK_z) //toggle phase information
             {
                 iphased = !iphased;
                 ibuff = itype + 3 * iphased;
                 SDL_UpdateTexture(tex, NULL, buff[ibuff], p->nmarkers * sizeof (uint32_t));
             }
-            if(eve.key.keysym.sym == SDLK_m)
+            if(eve.key.keysym.sym == SDLK_m) //switch to maternal view
             {
                 itype = 0;
                 ibuff = itype + 3 * iphased;
                 SDL_UpdateTexture(tex, NULL, buff[ibuff], p->nmarkers * sizeof (uint32_t));
             }
-            if(eve.key.keysym.sym == SDLK_p)
+            if(eve.key.keysym.sym == SDLK_p) //switch to paternal view
             {
                 itype = 1;
                 ibuff = itype + 3 * iphased;
                 SDL_UpdateTexture(tex, NULL, buff[ibuff], p->nmarkers * sizeof (uint32_t));
             }
-            if(eve.key.keysym.sym == SDLK_b)
+            if(eve.key.keysym.sym == SDLK_c) //switch to combined view
             {
                 itype = 2;
                 ibuff = itype + 3 * iphased;

@@ -57,7 +57,8 @@ int main(int argc,char*argv[])
     init_masks(c);
     
     //load all data from file, treat as a single lg
-    p = generic_load_merged(c,c->inp,0,0);
+    //p = generic_load_merged(c,c->inp,0,0);
+    p = noheader_lg(c,c->inp);
     
     //treat as phased
     generic_convert_to_imputed(c,p);

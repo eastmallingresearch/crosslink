@@ -182,6 +182,8 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
         
         pch += 1; //skip past the = to the option's value
         
+        //printf("DEBUG:|%s|\n",pch);
+        
         //parse the option's value
         switch(p->type[0])
         {
@@ -189,7 +191,9 @@ void rjvparser2(int argc,char**argv,struct myop*head,char*doc)
                 ppvar = (char**)p->pvar;
                 if(*ppvar != NULL) free(*ppvar); //free any previous value
                 assert(*ppvar = calloc(strlen(pch)+1,sizeof(char)));
-                ret = sscanf(pch,"%s",*ppvar);
+                //ret = sscanf(pch,"%s",*ppvar); //only gets the first token
+                strcpy(*ppvar,pch); //allows strings containing spaces, eg --inp="A B C"
+                ret = 1;
                 break;
             case 'I':
                 ret = sscanf(pch,"%d",(int*)p->pvar);

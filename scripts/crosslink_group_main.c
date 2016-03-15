@@ -78,7 +78,8 @@ int main(int argc,char*argv[])
     }
 
     //load all data from file, treat as a single lg
-    p = generic_load_merged(c,c->inp,0,0);
+    //p = generic_load_merged(c,c->inp,0,0);
+    p = noheader_lg(c,c->inp);
     
     //treat as unphased
     generic_convert_to_unphased(c,p);

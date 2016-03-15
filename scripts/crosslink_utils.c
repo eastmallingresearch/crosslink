@@ -3,6 +3,8 @@
 #include <math.h>
 #include <termios.h>
 #include <unistd.h>
+//#define _GNU_SOURCE
+//#include <string.h>
 
 struct marker* new_marker(struct conf*c,char*buff)
 {
@@ -1198,6 +1200,289 @@ struct lg* generic_load_merged(struct conf*c,const char*fname,unsigned skip,unsi
     return p;
 }
 
+struct marker*noheader_marker(struct conf*c,FILE*f)
+{
+    struct marker*m=NULL;
+    char buff[BUFFER];
+    char*buff2=NULL;
+    char name[BUFFER];
+    char type[BUFFER];
+    char phase[BUFFER];
+    size_t namelen;
+    unsigned i;
+    
+    if(fgets(buff,BUFFER,f) == NULL) return NULL; //end of file
+
+    assert(m = calloc(1,sizeof(struct marker)));
+    
+    //m->lg = lgctr;
+    
+    //set all 3 map positions to missing
+    m->pos[0] = NO_POSN;
+    m->pos[1] = NO_POSN;
+    m->pos[2] = NO_POSN;
+    
+    //separate marker name, type and phase
+    assert(sscanf(buff,"%s %s %s",name,type,phase) == 3);
+    
+    //copy marker name
+    namelen = strlen(name);
+    assert(m->name = calloc(namelen+1,sizeof(char)));
+    strcpy(m->name,name);
+    
+    if(c->nind == 0)
+    {
+        //calculate the number of individuals from the line length
+        c->nind = (strlen(buff) - namelen - 14) / 3;
+        c->nvar = (c->nind + BITSIZE - 1) / BITSIZE;
+    }
+    else
+    {
+        //check length of line is correct for the given marker name length and nind eg:
+        //'NAME <hkxhk> {01} hk hk... hk hk\n'
+        assert(strlen(buff) == namelen + 14 + 3*c->nind);
+    }
+    
+    //set type and phase
+    //alloc memory
+    if(type[1] != type[2] && type[4] != type[5])
+    {
+        //<hkxhk> or <abxab>
+        m->type = HKTYPE;
+        
+        if(phase[1] == '1') m->phase[0] = m->oldphase[0] = 1;
+        if(phase[2] == '1') m->phase[1] = m->oldphase[1] = 1;
+        
+        assert(m->bits[0] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->bits[1] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->mask[0] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->mask[1] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->data[0] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->data[1] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->orig[0] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->orig[1] = calloc(c->nind,sizeof(VARTYPE)));
+        
+        assert(m->code = calloc(c->nind,sizeof(VARTYPE)));
+    }
+    else if(type[1] != type[2] && type[4] == type[5])
+    {
+        //<lmxll> or <abxaa>
+        m->type = LMTYPE;
+        
+        if(phase[1] == '1') m->phase[0] = m->oldphase[0] = 1;
+        
+        assert(m->bits[0] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->mask[0] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->data[0] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->orig[0] = calloc(c->nind,sizeof(VARTYPE)));
+     }
+    else if(type[1] == type[2] && type[4] != type[5])
+    {
+        //<nnxnp> or <aaxab>
+        m->type = NPTYPE;
+        
+        if(phase[2] == '1') m->phase[1] = m->oldphase[1] = 1;
+        
+        assert(m->bits[1] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->mask[1] = calloc(c->nvar,sizeof(BITTYPE)));
+        assert(m->data[1] = calloc(c->nind,sizeof(VARTYPE)));
+        assert(m->orig[1] = calloc(c->nind,sizeof(VARTYPE)));
+    }
+    else
+    {
+        //unsupported marker type
+        assert(0);
+    }
+    
+    //read in individual genotype calls
+    //data must be two characters per individual separated by one space
+    buff2 = buff + 14 + strlen(m->name);
+    
+    //marker segtype
+    switch(m->type)
+    {
+        //<lmxll> ll lm --
+        case LMTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff2[3*i] == '-' || buff2[3*i+1] == '-')
+                {
+                    //missing
+                    m->orig[0][i] = m->data[0][i] = MISSING;
+                }
+                else if(buff2[3*i] != buff2[3*i+1])
+                {
+                    //lm or ab
+                    m->orig[0][i] = m->data[0][i] = 1;
+                }//else = 0
+            }
+            break;
+            
+        //<nnxnp> nn np --
+        case NPTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff2[3*i] == '-' || buff2[3*i+1] == '-')
+                {
+                    //missing
+                    m->orig[1][i] = m->data[1][i] = MISSING;
+                }
+                else if(buff2[3*i] != buff2[3*i+1])
+                {
+                    //np or ab
+                    m->orig[1][i] = m->data[1][i] = 1;
+                }//else = 0
+            }
+            break;
+            
+        //<hkxhk> hh hk kh kk --
+        case HKTYPE:
+            for(i=0; i<c->nind; i++)
+            {
+                if(buff2[3*i] == '-' || buff2[3*i+1] == '-')
+                {
+                    //missing
+                    m->orig[0][i] = m->data[0][i] = MISSING;
+                    m->orig[1][i] = m->data[1][i] = MISSING;
+                    m->code[i] = MISSING;
+                }
+                else if(buff2[3*i] != buff2[3*i+1])
+                {
+                    //hk / kh
+                    if(buff2[3*i] == type[2]) m->orig[0][i] = m->data[0][i] = 1;
+                    else                      m->orig[1][i] = m->data[1][i] = 1;
+                    m->code[i] = HK_CALL;
+                }
+                else if(buff2[3*i] == type[2])
+                {
+                    //kk
+                    m->orig[0][i] = m->data[0][i] = 1;
+                    m->orig[1][i] = m->data[1][i] = 1;
+                    m->code[i] = KK_CALL;
+                }
+                else
+                {
+                    //hh
+                    m->orig[0][i] = m->data[0][i] = 0;
+                    m->orig[1][i] = m->data[1][i] = 0;
+                    m->code[i] = HH_CALL;
+                }
+            }
+            break;
+            
+        default:
+            assert(0);
+    }
+    
+    return m;
+}
+
+//load all markers from multiple files
+//merge into a single struct lg, but give markers a lg number indicating which
+//file they can from originally
+struct lg* noheader_merged(struct conf*c,char*fnames,unsigned skip,unsigned total)
+{
+    struct lg*p=NULL;
+    struct lg*ptmp=NULL;
+    char*pch=NULL;
+    char*buff=NULL;
+    char*buff2=NULL;
+    unsigned ctr=0,i;
+    
+    assert(p = calloc(1,sizeof(struct lg)));
+    p->array = NULL;
+    p->nmarkers = 0;
+    
+    //make copy of filename to avoid altering the original
+    assert(buff = calloc(strlen(fnames)+1,sizeof(char)));
+    strcpy(buff,fnames);
+    buff2 = buff;//start of next filename
+    
+    //printf("DEBUG |%s|\n",fnames);
+    
+    while(1)
+    {
+        //find end of next filename
+        pch = strchr(buff2,' ');
+        
+        if(pch != NULL) *pch = '\0'; //terminate the string
+        
+        //printf("DEBUG |%s|\n",buff2);
+        
+        //load linkage group
+        ptmp = noheader_lg(c,buff2);
+        
+        //append to main group, tag markers with lg counter
+        assert(p->array = realloc(p->array,(p->nmarkers+ptmp->nmarkers)*sizeof(struct marker*)));
+        for(i=0; i<ptmp->nmarkers; i++)
+        {
+            ptmp->array[i]->lg = ctr;
+            p->array[i+p->nmarkers] = ptmp->array[i];
+        }
+        p->nmarkers += ptmp->nmarkers;
+        
+        ctr += 1;
+        
+        if(pch == NULL) break; //no more filenames
+        
+        //move to start of next filename
+        if(pch != NULL) buff2 = pch + 1;
+    }
+    
+    //hide unwanted markers
+    assert(skip < p->nmarkers);
+    p->array += skip;
+    p->nmarkers -= skip;
+    if(total && total < p->nmarkers) p->nmarkers = total;
+    
+    return p;
+}
+
+//load all markers from a file into a single lg
+//assuming the file has no header of any kind
+struct lg* noheader_lg(struct conf*c,const char*fname)
+{
+    struct lg*p=NULL;
+    unsigned i=0,nmax=10;
+    struct marker*m=NULL;
+    char*pch;
+    FILE*f=NULL;
+    
+    assert(f = fopen(fname,"rb"));
+
+    assert(p = calloc(1,sizeof(struct lg)));
+    assert(p->array = calloc(nmax,sizeof(struct marker*)));
+    
+    pch = strrchr(fname,'/');
+    if(pch != NULL) fname = pch+1;
+    assert(p->name = calloc(strlen(fname)+1,sizeof(char)));
+    strcpy(p->name,fname);
+    pch = strrchr(p->name,'.');
+    if(pch != NULL) *pch = '\0';
+    
+    //load markers until end of file
+    while(1)
+    {
+        m = noheader_marker(c,f);
+        if(m == NULL) break;
+        
+        if(i >= nmax)
+        {
+            nmax *= 2;
+            assert(p->array = realloc(p->array,nmax*sizeof(struct marker*)));
+        }
+        
+        p->array[i] = m;
+        i += 1;
+    }
+    
+    fclose(f);
+    
+    p->nmarkers = i;
+    
+    return p;
+}
+
 //count hk genotypes and allocate data structures for them
 void alloc_hks(struct conf*c)
 {
@@ -1487,13 +1772,13 @@ void create_random_map(struct conf*c)
 /*
 print the ordered linkage group to file
 */
-void print_order(struct conf*c,const char*name,unsigned nmarkers,struct marker**marray,FILE*f)
+void print_order(struct conf*c,unsigned nmarkers,struct marker**marray,FILE*f)
 {
     struct marker*m=NULL;
     unsigned i,j;
     
     //fprintf(f,"; group %s markers %u\n",c->lg,c->nmarkers);
-    fprintf(f,"; group %s markers %u\n",name,nmarkers);
+    //fprintf(f,"; group %s markers %u\n",name,nmarkers);
     for(i=0; i<nmarkers; i++)
     {
         m = marray[i];

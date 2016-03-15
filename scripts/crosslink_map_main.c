@@ -119,7 +119,8 @@ int main(int argc,char*argv[])
     }
 
     //load all data from file, treat as a single lg
-    p = generic_load_merged(c,c->inp,0,0);
+    //p = generic_load_merged(c,c->inp,0,0);
+    p = noheader_lg(c,c->inp);
     
     //treat as phased
     generic_convert_to_phased(c,p);
@@ -201,7 +202,7 @@ int main(int argc,char*argv[])
             printf("unable to open file %s for output\n",c->out);
             exit(1);
         }
-        print_order(c,p->name,c->nmarkers,c->array,f);
+        print_order(c,c->nmarkers,c->array,f);
         fclose(f);
     }
 

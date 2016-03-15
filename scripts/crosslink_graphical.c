@@ -58,11 +58,6 @@ uint32_t*generate_graphical(struct conf*c,struct lg*p,unsigned type)
             
                 if(data != NULL)
                 {
-                    //generate checkerboard pattern denoting linkage group boundaries
-                    //in the blue channel of the "LOD" part of the graph
-                    //if((m1->lg & 0x1) ^ (m2->lg & 0x1)) val2[2] = 64;
-                    //else                                val2[2] = 0;
-
                     if(data[j] == MISSING)
                     {
                         rgb[0] = 127;
@@ -76,6 +71,14 @@ uint32_t*generate_graphical(struct conf*c,struct lg*p,unsigned type)
                 }
             }
             
+            //generate banding pattern denoting linkage group boundaries
+            //in the blue channel
+            if(m->lg & 0x1)
+            {
+                rgb[2] += 120;
+                if(rgb[2] > 255) rgb[2] = 255;
+            }
+
             setpixelrgb(buff,i,j,p->nmarkers,rgb[0],rgb[1],rgb[2]);
         }
     }

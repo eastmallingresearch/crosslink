@@ -159,10 +159,6 @@ uint32_t*generate_image(struct conf*c,struct lg*p,unsigned mode)
             dist = -1.0;
             d[0] = d[1] = -1.0;
 
-            //generate checkerboard pattern denoting linkage group boundaries
-            //in the blue channel of the "LOD" part of the graph
-            if((m1->lg & 0x1) ^ (m2->lg & 0x1)) upp[2] = 64;
-            else                                upp[2] = 0;
             
             //for LM vs NP comparisions, compare the information anyway (otherwise it's just always black)
             //strong linkage will indicate we likely have an error in the marker typing
@@ -270,6 +266,16 @@ uint32_t*generate_image(struct conf*c,struct lg*p,unsigned mode)
                 upp[2] = palette[band][2];
             }
             
+            //generate checkerboard pattern denoting linkage group boundaries
+            //in the blue channel of the "LOD" part of the graph
+            if((m1->lg & 0x1) ^ (m2->lg & 0x1))
+            {
+                low[2] += 50;
+                if(low[2] > 255) low[2] = 255;
+                upp[2] += 50;
+                if(upp[2] > 255) upp[2] = 255;
+            }
+
             setpixelrgb(buff,i,j,p->nmarkers,low[0],low[1],low[2]);//rf-lod, lower
             setpixelrgb(buff,j,i,p->nmarkers,upp[0],upp[1],upp[2]);//distance, upper
         }

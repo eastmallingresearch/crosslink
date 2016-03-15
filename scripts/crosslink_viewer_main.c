@@ -34,9 +34,8 @@ int main(int argc,char*argv[])
 
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
-    rjvparser("inp|STRING|!|input genotype file",&inp);
+    rjvparser("inp|STRING|!|input genotype file(s)",&inp);
     rjvparser("window_size|UNSIGNED|1000|window size (pixels)",&size);
-    //rjvparser("minlod|FLOAT|3.0|LOD values below this threshold appear completely black",&minlod);
     rjvparser("datatype|STRING|imputed|state of the genotype data: imputed, phased, unphased",&datatype);
     rjvparser("bitstrings|UNSIGNED|1|1=use bitstring representation of the data internally",&c->gg_bitstrings);
     rjvparser("hardware|UNSIGNED|0|1=use hardware graphical acceleration when available",&hardware);
@@ -48,8 +47,8 @@ int main(int argc,char*argv[])
     //precalc bitmasks for every possible bit position
     init_masks(c);
 
-    //load all data from file, treat as a single lg
-    p = generic_load_merged(c,inp,skip,total);
+    //load all data from multiple files, treat as a single lg
+    p = noheader_merged(c,inp,skip,total);
     
     //convert to phased / unphased, imputed / unimputed form
     //and compress to bitstrings
