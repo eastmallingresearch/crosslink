@@ -21,5 +21,6 @@ void ga_build_elist(struct conf*c);
 void mst_approx_order(struct conf*c);
 int ecomp_mapdist_only(const void*_p1, const void*_p2);
 double calc_2pt_rf(struct conf*c,struct marker*m1,struct marker*m2,unsigned x);
+double calc_global(struct conf*c,struct marker**array);
 
 #endif

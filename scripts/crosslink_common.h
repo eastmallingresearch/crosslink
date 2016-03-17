@@ -128,6 +128,8 @@ struct marker
     //used for testing against simulated data
     unsigned orig_phase[2];
     double   orig_pos;
+    
+    int matpat_pos[2]; //current positions in the paternal and maternal ordering
 
     BITTYPE*bits[2];           //maternal/paternal info condensed into bitstrings
     BITTYPE*mask[2];           //maternal/paternal bitstring representing missing data
@@ -236,6 +238,7 @@ struct conf
     double   ga_mst_minlod;  //min lod to use in MST
     unsigned ga_mst_nonhk;   //prioritise nonhk edges in MST
     unsigned ga_optimise_dist;    //optimise map order using total map distance rather than total recombinations
+    unsigned ga_optimise_global;    //optimise a global measure of map order quality
     unsigned ga_skip_order1; //skip first ordering (assume input ordering is good enough for first hk imputation step)
     double   ga_prob_hop;    //prob mutation is a single marker relocation
     double   ga_max_hop;     //max distance marker can move as proportion of total marker count

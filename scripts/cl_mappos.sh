@@ -11,6 +11,6 @@ mkdir -p ${CL_OUTPUT_DIR}
 
 for INPNAME in ${CL_INPUT_DIR}/*.loc
 do
-    OUTNAME=${CL_OUTPUT_DIR}/$(basename --suffix=.loc ${INPNAME}).map
+    OUTNAME=${CL_OUTPUT_DIR}/$(basename ${INPNAME/%loc/map})  #replace back end of string
     crosslink_pos   --inp=${INPNAME}   --out=${OUTNAME}
 done

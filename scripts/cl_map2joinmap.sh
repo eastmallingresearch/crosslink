@@ -12,7 +12,7 @@ rm -f ${CL_OUTPUT_FILE}
 for INPNAME in ${CL_INPUT_DIR}/*.map
 do
     #extract LG name
-    LG=$(basename --suffix=.map ${INPNAME})
+    LG=$(basename ${INPNAME} .map)
     
     #group header
     echo "group ${LG}" >> ${CL_OUTPUT_FILE}

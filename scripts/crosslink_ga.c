@@ -650,6 +650,10 @@ void ga_build_elist(struct conf*c)
     struct marker*m1=NULL;
     struct marker*m2=NULL;
     
+    //delete any previous edges
+    for(i=0; i<c->nedge; i++) free(c->elist[i]);
+    c->nedge = 0;
+        
     for(i=0; i<c->nmarkers-1; i++)
     {
         m1 = c->array[i];
@@ -703,12 +707,65 @@ void ga_build_elist(struct conf*c)
     if(c->flog) fprintf(c->flog,"#%u edges added\n",c->nedge);
 }
 
+double calc_global(struct conf*c,struct marker**array)
+{
+    unsigned i,x,ct[2];
+    struct marker*m=NULL;
+    struct marker*m1=NULL;
+    struct marker*m2=NULL;
+    struct edge*e=NULL;
+    double score=0.0,cm_score,order_score;
+    
+    //make sure elist has been built
+    if(c->cycle_ctr > c->ga_use_mst) ga_build_elist(c);
+    
+    //assign markers explicit positions in the maternal and paternal orderings
+    ct[0] = ct[1] = 0;
+    for(i=0; i<c->nmarkers; i++)
+    {
+        m = array[i];
+        
+        for(x=0; x<2; x++)
+        {
+            if(m->data[x])
+            {
+                m->matpat_pos[x] = ct[x];
+                ct[x] += 1;
+            }
+        }
+    }
+    
+    for(i=0; i<c->nedge; i++)
+    {
+        e = c->elist[i];
+        m1 = e->m1;
+        m2 = e->m2;
+        
+        cm_score = 1.0 / (1.0 + e->cm * 0.1);
+        
+        for(x=0; x<2; x++)
+        {
+            if(m1->data[x] == NULL || m2->data[x] == NULL) continue;
+         
+            order_score = m1->matpat_pos[x] - m2->matpat_pos[x];
+            if(order_score < 0.0) order_score = -order_score;
+            order_score = ((double)ct[x] - order_score) / (double)ct[x];
+            score += order_score * cm_score;
+            
+            //printf("%d: cm=%f order=%f score_inc=%f score=%f\n",i,cm_score,order_score,cm_score*order_score,score); 
+        }
+    }
+    
+    return score;
+}
+
 //optimise the map order using a genetic algorithm
 void order_map(struct conf*c)
 {
     unsigned i;
     struct mutation mut;
     uint64_t elite_events,mutant_events,events1,events2;
+    double elite_global=0.0,mutant_global=0.0;
 
     if(c->cycle_ctr == 0)
     {
@@ -740,6 +797,8 @@ void order_map(struct conf*c)
     //the mutant is better than the elite
     //but very useful for testing
     elite_events = calc_events(c,c->array);
+    
+    if(c->ga_optimise_global) elite_global = calc_global(c,c->array);
     
     //initialise mutant as copy of elite
     memcpy((void*)c->mutant,(void*)c->array, c->nmarkers*sizeof(struct marker*));
@@ -783,18 +842,35 @@ void order_map(struct conf*c)
         
         //accept mutant if it is the same or better
         //by applying the same mutation to the elite
-        if(mutant_events <= elite_events)
+        if(c->ga_optimise_global == 0)
         {
-            elite_events = mutant_events;
-            accept_mutation(c,&mut);
+            if(mutant_events <= elite_events)
+            {
+                elite_events = mutant_events;
+                accept_mutation(c,&mut);
+            }
+            //undo the mutation if rejected
+            else
+            {
+                undo_mutation(c,&mut);
+                
+                //DEBUG - check elite and mutant were put back to how they were
+                //for(j=0; j<c->nmarkers; j++) assert(order1[j] == c->array[j] && order1[j] == c->mutant[j]);
+            }
         }
-        //undo the mutation if rejected
         else
         {
-            undo_mutation(c,&mut);
-            
-            //DEBUG - check elite and mutant were put back to how they were
-            //for(j=0; j<c->nmarkers; j++) assert(order1[j] == c->array[j] && order1[j] == c->mutant[j]);
+            mutant_global = calc_global(c,c->mutant);
+            if(mutant_global >= elite_global)
+            {
+                elite_global = mutant_global;
+                accept_mutation(c,&mut);
+            }
+            //undo the mutation if rejected
+            else
+            {
+                undo_mutation(c,&mut);
+            }
         }
         
         //report current progress
@@ -802,7 +878,8 @@ void order_map(struct conf*c)
         {
             if(i % c->ga_report == 0)
             {
-                fprintf(c->flog,"%u %lu",i+1,elite_events/100);
+                if(c->ga_optimise_global == 0) fprintf(c->flog,"%u %lu",i+1,elite_events/100);
+                else                           fprintf(c->flog,"%u %f",i+1,elite_global);
                 if(c->gg_show_pearson) fprintf(c->flog," %f",calc_pearson(c->nmarkers,c->array));
                 fprintf(c->flog,"\n");
             }

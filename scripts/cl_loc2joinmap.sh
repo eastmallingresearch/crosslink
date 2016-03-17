@@ -13,7 +13,7 @@ NIND=$(cat ${CL_INPUT_DIR}/*.loc | head -n 1 | sed 's/.*} //g' | wc --chars)
 NIND=$((NIND/3))
 
 #header
-echo "name = $(basename --suffix=.loc ${CL_OUTPUT_FILE})" >  ${CL_OUTPUT_FILE}
+echo "name = $(basename ${CL_OUTPUT_FILE} .loc)" >  ${CL_OUTPUT_FILE}
 echo "popt = CP"       >> ${CL_OUTPUT_FILE}
 echo "nloc = ${NLOC}"  >> ${CL_OUTPUT_FILE}
 echo "nind = ${NIND}"  >> ${CL_OUTPUT_FILE}

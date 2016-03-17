@@ -7,8 +7,8 @@
 
 set -eu
 
-#TYPE="-Wall -Wextra -O3"
-TYPE="-Wall -Wextra -g"
+TYPE="-Wall -Wextra -O3"
+#TYPE="-Wall -Wextra -g"
 
 #build shared source files
 for FNAME in crosslink_utils crosslink_ga crosslink_gibbs crosslink_group rjvparser

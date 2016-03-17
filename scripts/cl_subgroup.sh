@@ -55,8 +55,8 @@ do
         --gibbs_twopt_1=${CL_GIBBS_TWOPT1} --gibbs_twopt_2=${CL_GIBBS_TWOPT2}
         
     #move to final position
-    LGNUMB=$(basename --suffix=.loc ${INPNAME})
-    BASENAME=$(basename --suffix=.loc ${CL_INPUT_FILE})
+    LGNUMB=$(basename ${INPNAME} .loc)
+    BASENAME=$(basename ${CL_INPUT_FILE} .loc)
     
     cat ${INPNAME} > ${CL_OUTPUT_DIR}/${BASENAME}.${LGNUMB}.loc
 done

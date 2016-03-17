@@ -13,7 +13,7 @@ source ${CL_CONF_FILE}
 
 MYTMPDIR=$(mktemp -d)
 
-OUTNAME=${CL_OUTPUT_DIR}/${CL_LGLIST// /_}.loc
+OUTNAME=${CL_OUTPUT_DIR}/${CL_LGLIST// /_}.loc  #// => replace all occurrences
 
 #combine markers into a single file
 for LGNAME in ${CL_LGLIST}

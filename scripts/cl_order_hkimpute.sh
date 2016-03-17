@@ -27,12 +27,12 @@ do
     if [ "${CL_PARALLEL_JOBS}" -gt "1" ]
     then
         #run jobs in parallel
-        echo starting $(basename --suffix=.loc ${INPNAME})
+        echo starting $(basename ${INPNAME} .loc)
         nice   cl_order_hkimpute_inner.sh   ${INPNAME}   ${OUTNAME}   ${CL_CONF_FILE} &
         sleep 0.1
     else
         #run jobs one at a time
-        echo processing $(basename --suffix=.loc ${INPNAME})
+        echo processing $(basename ${INPNAME} .loc)
         cl_order_hkimpute_inner.sh   ${INPNAME}   ${OUTNAME}   ${CL_CONF_FILE}
     fi
 done

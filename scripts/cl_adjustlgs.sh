@@ -15,7 +15,7 @@ MYTMPDIR=$(mktemp -d)
 #rename and reorient (if required) all loc files
 for INPNAME in ${CL_INPUT_DIR}/*.loc
 do
-    OLDLG=$(basename --suffix=.loc ${INPNAME})
+    OLDLG=$(basename ${INPNAME} .loc)
     NEWLG=$(cat ${CL_VSREF_FILE} | grep "^${OLDLG}," | awk -v FS=',' '{print $2}')
     REVERSE=$(cat ${CL_VSREF_FILE} | grep "^${OLDLG}," | awk -v FS=',' '{print $3}')
     OUTNAME=${CL_OUTPUT_DIR}/${NEWLG}.loc
