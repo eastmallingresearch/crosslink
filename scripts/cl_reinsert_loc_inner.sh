@@ -39,5 +39,3 @@ crosslink_map\
 #clean up temp files
 rm ${MYTMPDIR}/tmp ${MYTMPDIR}/000.loc
 rmdir ${MYTMPDIR}
-
-    

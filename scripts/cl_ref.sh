@@ -20,6 +20,16 @@ cat ${MYTMPDIR}/orig > ${CL_OUTPUT_FILE}
 crosslink_pos   --inp=${MYTMPDIR}/orig   --out=${MYTMPDIR}/map
 BEST_LENGTH=$(total_map_length.py ${MYTMPDIR}/map)
 
+CL_CONF_FILE=$1
+source ${CL_CONF_FILE}
+
+#if we are going to accept the best new ordering even if worst than the previous ordering
+if [ "${CL_IGNORE_PREVIOUS}" == "1" ]
+then
+    #set previous length the dummy bad value
+    BEST_LENGTH=999999999
+fi
+
 #for each configuration file
 while [ "$#" -gt "0" ]
 do
@@ -28,13 +38,23 @@ do
     source ${CL_CONF_FILE}
     
     #for each trial
-    for CL_SEED in $(seq 1 ${CL_NUMB_TRIALS})
+    for SEED_VAL in $(seq 1 ${CL_NUMB_TRIALS})
     do
+        CL_SEED=${SEED_VAL}
+        if [[ -v CL_RANDOMISE_SEED ]]
+        then
+            if [[ "${CL_RANDOMISE_SEED}" == 1 ]]
+            then
+                CL_SEED=0
+            fi
+        fi
+    
         #do the ordering
         crosslink_map\
             --inp=${MYTMPDIR}/orig --out=${MYTMPDIR}/tmp --map=${MYTMPDIR}/map --seed=${CL_SEED}\
             --randomise_order=${CL_MAP_RANDOMISE} --ga_gibbs_cycles=${CL_MAP_CYCLES}\
             --ga_iters=${CL_GA_ITERS} --ga_optimise_dist=${CL_GA_OPTIMISEDIST} --ga_skip_order1=${CL_GA_SKIPORDER1}\
+            --ga_optimise_global=${CL_GA_OPTIMISEGLOBAL}\
             --ga_use_mst=${CL_GA_USEMST} --ga_mst_minlod=${CL_GA_MSTMINLOD} --ga_mst_nonhk=${CL_GA_MSTNONHK}\
             --ga_prob_hop=${CL_GA_PROBHOP} --ga_max_hop=${CL_GA_MAXHOP}\
             --ga_prob_move=${CL_GA_PROBMOVE} --ga_max_mvseg=${CL_GA_MAXMOVESEG} --ga_max_mvdist=${CL_GA_MAXMOVEDIST}\
