@@ -237,8 +237,8 @@ struct conf
     unsigned ga_use_mst;     //use MST to approximately order markers at start of cycle 2
     double   ga_mst_minlod;  //min lod to use in MST
     unsigned ga_mst_nonhk;   //prioritise nonhk edges in MST
-    unsigned ga_optimise_dist;    //optimise map order using total map distance rather than total recombinations
-    unsigned ga_optimise_global;    //optimise a global measure of map order quality
+    unsigned ga_optimise_meth;   //optimise: total recombs, map dist or global quality measure
+    //unsigned ga_optimise_global;    //optimise a global measure of map order quality
     unsigned ga_skip_order1; //skip first ordering (assume input ordering is good enough for first hk imputation step)
     double   ga_prob_hop;    //prob mutation is a single marker relocation
     double   ga_max_hop;     //max distance marker can move as proportion of total marker count

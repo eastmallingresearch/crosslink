@@ -51,8 +51,8 @@ int main(int argc,char*argv[])
     rjvparser("ga_use_mst|UNSIGNED|0|how many GA-Gibbs cycles to perform initial MST ordering before the GA (0=none,N=up to and including the Nth cycle)",&c->ga_use_mst);
     rjvparser("ga_mst_minlod|FLOAT|3.0|min LOD for MST construction",&c->ga_mst_minlod);
     rjvparser("ga_mst_nonhk|UNSIGNED|1|prioritise non-hk linkage when building the MST",&c->ga_mst_nonhk);
-    rjvparser("ga_optimise_dist|UNSIGNED|0|0=optimse map total recombination events, 1=optimise total map distance",&c->ga_optimise_dist);
-    rjvparser("ga_optimise_global|UNSIGNED|0|1=optimise a global measure of map order",&c->ga_optimise_global);
+    rjvparser("ga_optimise_meth|UNSIGNED|0|0=optimse map total recombination events, 1=optimise total map distance, 2=optimise a global measure of map quality",&c->ga_optimise_meth);
+    //rjvparser("ga_optimise_global|UNSIGNED|0|1=optimise a global measure of map order",&c->ga_optimise_global);
     rjvparser("ga_prob_hop|FLOAT|0.333|probability a mutation moves a single marker",&c->ga_prob_hop);
     rjvparser("ga_max_hop|FLOAT|0.1|max distance a single marker can move as proportion of whole linkage group",&c->ga_max_hop);
     rjvparser("ga_prob_move|FLOAT|0.333|probability a mutation moves a block of multiple markers",&c->ga_prob_move);

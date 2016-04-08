@@ -28,7 +28,7 @@ unsigned lookup_2pt(struct conf*c,struct marker*m1,struct marker*m2,unsigned x)
     rf = calc_2pt_rf(c,m1,m2,x);
 
     //total map distance is the objective function
-    if(c->ga_optimise_dist)
+    if(c->ga_optimise_meth == 1)
     {
         //calculate quantised distance in units of 1/100th cM
         cache_val = QUANTISED_DIST(rf);
@@ -247,7 +247,7 @@ unsigned lookup_mpt(struct conf*c,struct marker*m1,struct marker*m2,unsigned x)
     if(rf > MAX_RF) rf = MAX_RF;
 
     //total map distance is the objective function
-    if(c->ga_optimise_dist)
+    if(c->ga_optimise_meth == 1)
     {
         //calculate quantised distance in units of 1/100th cM
         cache_val = QUANTISED_DIST(rf);
@@ -614,7 +614,7 @@ void mst_approx_order(struct conf*c)
     FILE*f=NULL;
     
     //all vs all distance/recomb count
-    ga_build_elist(c);
+    //ga_build_elist(c);
     
     //sort edges into ascending cM
     if(c->ga_mst_nonhk) qsort(c->elist,c->nedge,sizeof(struct edge*),ecomp_mapdist_nonhk);
@@ -717,7 +717,7 @@ double calc_global(struct conf*c,struct marker**array)
     double score=0.0,cm_score,order_score;
     
     //make sure elist has been built
-    if(c->cycle_ctr > c->ga_use_mst) ga_build_elist(c);
+    //if(c->cycle_ctr > c->ga_use_mst) ga_build_elist(c);
     
     //assign markers explicit positions in the maternal and paternal orderings
     ct[0] = ct[1] = 0;
@@ -764,13 +764,16 @@ void order_map(struct conf*c)
 {
     unsigned i;
     struct mutation mut;
-    uint64_t elite_events,mutant_events,events1,events2;
+    uint64_t elite_events=0,mutant_events=0,events1=0,events2=0;
     double elite_global=0.0,mutant_global=0.0;
+
+    if(c->nmarkers < 2) return;
 
     if(c->cycle_ctr == 0)
     {
         if(c->ga_skip_order1) return; //skip first ordering
         c->lookup = lookup_2pt;       //use two point rf calculation
+        assert(c->ga_optimise_meth != 2); //global optimisation must currently be run with option --ga_skip_order1=1
     }
     else
     {
@@ -783,22 +786,17 @@ void order_map(struct conf*c)
     //compress data into bitstrings
     if(c->gg_bitstrings) compress_to_bitstrings(c,c->nmarkers,c->array);
     
-    if(c->nmarkers < 2) return;
-    
-    //produce an initial approx ordering using the MST method
-    if(c->cycle_ctr > 0)
+    //ensure fresh elist is built if required by mst_approx_order or calc_global
+    if((c->cycle_ctr <= c->ga_use_mst && c->cycle_ctr > 0) || c->ga_optimise_meth == 2)
     {
-        //ga_use_mst defines which cycle(s) to use the MST method
-        if(c->cycle_ctr <= c->ga_use_mst) mst_approx_order(c);
+        ga_build_elist(c);
     }
     
-    //count recombination events in initial ordering
-    //not strictly required as all we need to know is whether
-    //the mutant is better than the elite
-    //but very useful for testing
-    elite_events = calc_events(c,c->array);
+    //produce an initial approx ordering using the MST method
+    if(c->cycle_ctr > 0 && c->cycle_ctr <= c->ga_use_mst) mst_approx_order(c);
     
-    if(c->ga_optimise_global) elite_global = calc_global(c,c->array);
+    if(c->ga_optimise_meth == 2) elite_global = calc_global(c,c->array);
+    else                         elite_events = calc_events(c,c->array);
     
     //initialise mutant as copy of elite
     memcpy((void*)c->mutant,(void*)c->array, c->nmarkers*sizeof(struct marker*));
@@ -826,24 +824,24 @@ void order_map(struct conf*c)
         generate_mutation(c,&mut);
         
         //count recombination events that will be lost after the mutation is applied
-        events1 = dec_events(c,&mut,c->mutant);
+        if(c->ga_optimise_meth != 2) events1 = dec_events(c,&mut,c->mutant);
         
         //apply mutation to mutant
         apply_mutation(&mut,c->mutant,c->array);
         
-        //count recombination events that have been gained since the mutation was applied
-        events2 = inc_events(c,&mut,c->mutant);
-
-        //calculate total recombination events in mutant
-        mutant_events = elite_events - events1 + events2;
-        
-        //check the value agrees with a direct calculation
-        //assert(calc_events(c,c->mutant) == mutant_events);
-        
-        //accept mutant if it is the same or better
-        //by applying the same mutation to the elite
-        if(c->ga_optimise_global == 0)
+        if(c->ga_optimise_meth != 2)
         {
+            //count recombination events that have been gained since the mutation was applied
+            events2 = inc_events(c,&mut,c->mutant);
+
+            //calculate total recombination events in mutant
+            mutant_events = elite_events - events1 + events2;
+            
+            //check the value agrees with a direct calculation
+            //assert(calc_events(c,c->mutant) == mutant_events);
+        
+            //accept mutant if it is the same or better
+            //by applying the same mutation to the elite
             if(mutant_events <= elite_events)
             {
                 elite_events = mutant_events;
@@ -860,7 +858,9 @@ void order_map(struct conf*c)
         }
         else
         {
+            //use global optimisation scoring
             mutant_global = calc_global(c,c->mutant);
+            
             if(mutant_global >= elite_global)
             {
                 elite_global = mutant_global;
@@ -878,8 +878,8 @@ void order_map(struct conf*c)
         {
             if(i % c->ga_report == 0)
             {
-                if(c->ga_optimise_global == 0) fprintf(c->flog,"%u %lu",i+1,elite_events/100);
-                else                           fprintf(c->flog,"%u %f",i+1,elite_global);
+                if(c->ga_optimise_meth != 2) fprintf(c->flog,"%u %lu",i+1,elite_events/100);
+                else                         fprintf(c->flog,"%u %f",i+1,elite_global);
                 if(c->gg_show_pearson) fprintf(c->flog," %f",calc_pearson(c->nmarkers,c->array));
                 fprintf(c->flog,"\n");
             }
