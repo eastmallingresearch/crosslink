@@ -36,7 +36,7 @@ CL_CONF_FILE=$3
 source ${CL_CONF_FILE}
 
 #make temp dir
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 crosslink_map\
     --inp=${CL_INPUT_FILE} --out=${MYTMPDIR}/tmp.loc\

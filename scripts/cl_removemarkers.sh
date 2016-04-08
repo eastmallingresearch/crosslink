@@ -11,7 +11,7 @@ CL_OUTPUT_FILE=$2
 CL_BADMARKER_FILE=$3
 
 #make temporary directory
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 #remove "bad" markers
 cat ${CL_INPUT_FILE}\

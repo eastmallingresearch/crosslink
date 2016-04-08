@@ -16,7 +16,7 @@ CL_CONF_FILE=$3
 source ${CL_CONF_FILE}
 
 #make temporary directory for the output
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 #remove "bad" markers
 cat ${CL_INPUT_FILE}\

@@ -26,21 +26,21 @@ int main(int argc,char*argv[])
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
     
-    rjvparser("inp|STRING|!|name of input loc file",&c->inp);
-    rjvparser("out|STRING|-|name of output loc file",&c->out);
-    rjvparser("log|STRING|-|name of output log file",&c->log);
-    rjvparser("map|STRING|-|name of output map file",&c->map);
-    rjvparser("mstmap|STRING|-|name of output mstmap file",&c->mstmap);
+    rjvparser("inp|STRING|!|input genotype file",&c->inp);
+    rjvparser("out|STRING|-|output genotype file",&c->out);
+    rjvparser("log|STRING|-|output log file",&c->log);
+    rjvparser("map|STRING|-|output map file",&c->map);
+    rjvparser("mstmap|STRING|-|output mstmap file",&c->mstmap);
     
     rjvparser("seed|UNSIGNED|1|random number generator seed, 0=use system time",&c->gg_prng_seed);
     rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane,2=Kosambi",&c->gg_map_func);
     rjvparser("randomise_order|UNSIGNED|0|start from a random initial marker ordering",&c->gg_randomise_order);
     rjvparser("bitstrings|UNSIGNED|1|use bitstring data representation internally",&c->gg_bitstrings);
-    rjvparser("show_pearson|UNSIGNED|0|log pearson correlation",&c->gg_show_pearson);
-    rjvparser("show_hkcheck|UNSIGNED|0|log hk imputation inforamation",&c->gg_show_hkcheck);
+    rjvparser("show_pearson|UNSIGNED|0|log Pearson correlation of ordering information",&c->gg_show_pearson);
+    rjvparser("show_hkcheck|UNSIGNED|0|log hk imputation information",&c->gg_show_hkcheck);
     rjvparser("show_width|UNSIGNED|9999999|width of debug output",&c->gg_show_width);
     rjvparser("show_height|UNSIGNED|9999999|height of debug output",&c->gg_show_height);
-    rjvparser("show_counters|UNSIGNED|0|log information about Gibbs imputation",&c->gg_show_counters);
+    rjvparser("show_counters|UNSIGNED|0|log Gibbs imputation information",&c->gg_show_counters);
     rjvparser("show_initial|UNSIGNED|0|show initial state",&c->gg_show_initial);
     rjvparser("show_bits|UNSIGNED|0|show bit states",&c->gg_show_bits);
     rjvparser("pause|UNSIGNED|0|pause each iteration",&c->gg_pause);

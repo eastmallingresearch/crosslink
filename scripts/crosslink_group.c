@@ -318,11 +318,18 @@ void impute_missing(struct conf*c,struct lg*p,struct earray*ea)
                         //printf(" %u",m->miss[x][j].val[k]);
                     }
                     dval /= m->miss[x][j].n;
+                    
+                    if(c->flog)
+                    {
+                        if(fabs(dval - 0.5) < 1e-3) fprintf(c->flog,"warning, imputing marker %s individual %d, tied values!\n",m->name,j);
+                    }
                 }
                 else
                 {
                     //no neighbours available, pick randomly
                     dval = drand48();
+                    
+                    if(c->flog) fprintf(c->flog,"warning, marker %s individual %d imputing to random value!\n",m->name,j);
                 }
 
                 //printf(" %f\n",dval);
@@ -917,7 +924,7 @@ void build_elist(struct conf*c,struct lg*p,struct earray*e)
     struct marker*m1=NULL;
     struct marker*m2=NULL;
     
-    //if marker is flagged as redundant set this pointer to the "parent" (less redundant) marker
+    //if marker is found to be redundant this pointer gets set to the "parent" (less redundant) marker
     for(i=0; i<p->nmarkers; i++) p->array[i]->uf_parent = NULL;
     
     for(i=0; i<p->nmarkers-1; i++)
@@ -1121,6 +1128,7 @@ void form_groups(struct conf*c,struct lg*p,struct earray*ea,struct map*mp)
     }
     
     //perform unions between groups until no more (lod-filtered) edges are left
+    //or until everything is in a single group
     for(i=0; i<ea->nedges && mp->nlgs > 1; i++)
     {
         e = ea->array[i];
@@ -1211,7 +1219,7 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
     //printf("initial trees %u\n",ntrees);
 
     /*
-    union-find into an MST ignoring cxr linkage between hk's
+    union-find into an MST
     build MST with Kruskal's algorithm:
     perform unions by decreasing edge lod until one tree results
     or until no more edges (ie phasing fails to complete)
@@ -1234,7 +1242,7 @@ void phase_markers(struct conf*c,struct lg*p,struct earray*ea,unsigned x)
 
         ntrees -= 1;
         
-        //ignore cxr / rxc hk-hk linkage
+        //warn about cxr / rxc hkxhk-hkxhk linkage
         //since this provides incomplete phasing information
         if(e->cxr_flag && c->flog) fprintf(c->flog,"#phasing lg %s(%s) warning: using cxr linkage during phasing\n",p->name,lab[x]);
 

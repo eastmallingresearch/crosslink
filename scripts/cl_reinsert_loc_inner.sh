@@ -12,7 +12,7 @@ CL_CONF_FILE=$5
 
 source ${CL_CONF_FILE}
 
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 #reinsert all redundant markers
 #immediately after their associated framework marker

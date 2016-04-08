@@ -32,7 +32,7 @@ int main(int argc,char*argv[])
     rjvparser("knn|UNSIGNED|0|how many nearest neighbours to use for kNN missing data imputation, 0=disable imputation",&c->grp_knn);
     rjvparser("ignore_cxr|UNSIGNED|0|1=ignore cxr and rxc linkage during grouping",&c->grp_ignore_cxr);
     rjvparser("redundancy_lod|FLOAT|0.0|minimum linkage LOD to use when identifying redundant markers, 0.0=disable",&c->grp_redundancy_lod);
-    rjvparser2(argc,argv,rjvparser(0,0),"form markers into linkage groups, phase, impute missing values, correct marker typing errors, perform approximate ordering");
+    rjvparser2(argc,argv,rjvparser(0,0),"remove redundant markers, form linkage groups, correct marker typing errors, phase, impute missing values, perform approximate ordering");
     
     //seed random number generator
     if(c->gg_prng_seed != 0)

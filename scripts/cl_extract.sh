@@ -9,7 +9,7 @@ CL_REDUN_FILE=$2
 CL_OUTPUT_FILE=$3
 
 #make temporary directory for the output
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 #get list of just redundant marker names
 awk '{print $1}' ${CL_REDUN_FILE} | sort -u > ${MYTMPDIR}/redun

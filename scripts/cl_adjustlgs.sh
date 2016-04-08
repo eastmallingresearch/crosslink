@@ -10,7 +10,7 @@ CL_OUTPUT_DIR=$3
 
 mkdir -p ${CL_OUTPUT_DIR}
 
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 #rename and reorient (if required) all loc files
 for INPNAME in ${CL_INPUT_DIR}/*.loc

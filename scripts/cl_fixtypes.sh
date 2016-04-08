@@ -15,7 +15,7 @@ CL_CONF_FILE=$3
 source ${CL_CONF_FILE}
 
 #make temporary directory for the output
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 #fix typing errors
 crosslink_group --inp=${CL_INPUT_FILE}\

@@ -11,7 +11,7 @@ CL_CONF_FILE=$4
 
 source ${CL_CONF_FILE}
 
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 break_linkage_group.py ${CL_INPUT_FILE} ${CL_MARKER_NAME} ${MYTMPDIR}/000.loc  ${MYTMPDIR}/001.loc
 

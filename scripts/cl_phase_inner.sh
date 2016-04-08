@@ -8,7 +8,7 @@ CL_INPUT_FILE=$1
 CL_OUTPUT_FILE=$2
 
 #make temporary directory for the output
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 crosslink_group --inp=${CL_INPUT_FILE}\
                 --outbase=${MYTMPDIR}/\

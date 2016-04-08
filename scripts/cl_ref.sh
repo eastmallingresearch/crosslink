@@ -10,7 +10,7 @@ CL_NUMB_TRIALS=$3
 
 shift 3
 
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 #initial output file is a copy of the input file
 cat ${CL_INPUT_FILE} > ${MYTMPDIR}/orig

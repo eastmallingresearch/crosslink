@@ -11,7 +11,7 @@ CL_CONF_FILE=$4
 
 source ${CL_CONF_FILE}
 
-MYTMPDIR=$(mktemp -d)
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 OUTNAME=${CL_OUTPUT_DIR}/${CL_LGLIST// /_}.loc  #// => replace all occurrences
 
