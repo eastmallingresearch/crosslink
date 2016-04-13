@@ -60,6 +60,6 @@ ax.set_ylim([0.0,max2])
 ax.set_xlabel(conf.map1)
 ax.set_ylabel(conf.map2)
 fs=10.0
-for x in map1.lglist: ax.text(x.start+x.size/2.0,-100.0,x.name,fontsize=fs,rotation='vertical')
-for x in map2.lglist: ax.text(-100.0,x.start+x.size/2.0,x.name,fontsize=fs)
+for x in map1.lglist: ax.text(x.start+x.size/2.0,-200.0,x.name,fontsize=fs,rotation='vertical')
+for x in map2.lglist: ax.text(-150.0,x.start+x.size/2.0,x.name,fontsize=fs)
 plt.show()

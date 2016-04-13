@@ -235,7 +235,7 @@ struct conf
     unsigned ga_report;      //how often to report ga progress
     unsigned ga_iters;       //how many GA iterations
     unsigned ga_use_mst;     //use MST to approximately order markers at start of cycle 2
-    double   ga_mst_minlod;  //min lod to use in MST
+    double   ga_minlod;  //min lod to use in MST
     unsigned ga_mst_nonhk;   //prioritise nonhk edges in MST
     unsigned ga_optimise_meth;   //optimise: total recombs, map dist or global quality measure
     //unsigned ga_optimise_global;    //optimise a global measure of map order quality

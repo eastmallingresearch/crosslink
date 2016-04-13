@@ -49,7 +49,7 @@ int main(int argc,char*argv[])
     rjvparser("ga_report|UNSIGNED|0|GA log reporting period, 0=disabled",&c->ga_report);
     rjvparser("ga_iters|UNSIGNED|100000|number of GA iterations per GA-Gibbs cycle",&c->ga_iters);
     rjvparser("ga_use_mst|UNSIGNED|0|how many GA-Gibbs cycles to perform initial MST ordering before the GA (0=none,N=up to and including the Nth cycle)",&c->ga_use_mst);
-    rjvparser("ga_mst_minlod|FLOAT|3.0|min LOD for MST construction",&c->ga_mst_minlod);
+    rjvparser("ga_minlod|FLOAT|3.0|min LOD for MST construction and global order optimisation scoring",&c->ga_minlod);
     rjvparser("ga_mst_nonhk|UNSIGNED|1|prioritise non-hk linkage when building the MST",&c->ga_mst_nonhk);
     rjvparser("ga_optimise_meth|UNSIGNED|0|0=optimse map total recombination events, 1=optimise total map distance, 2=optimise a global measure of map quality",&c->ga_optimise_meth);
     //rjvparser("ga_optimise_global|UNSIGNED|0|1=optimise a global measure of map order",&c->ga_optimise_global);

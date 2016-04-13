@@ -698,7 +698,7 @@ void ga_build_elist(struct conf*c)
             if(s > 0.0) lod += S * LOG10(2.0*s);
             if(rf > 0.0) lod += R * LOG10(2.0*rf);
             
-            if(lod < c->ga_mst_minlod) continue;
+            if(lod < c->ga_minlod) continue;
             
             add_edge(c,m1,m2,lod,rf,0,c->map_func(rf),nonhk);
         }
