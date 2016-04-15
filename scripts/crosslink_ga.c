@@ -613,9 +613,6 @@ void mst_approx_order(struct conf*c)
 {
     FILE*f=NULL;
     
-    //all vs all distance/recomb count
-    //ga_build_elist(c);
-    
     //sort edges into ascending cM
     if(c->ga_mst_nonhk) qsort(c->elist,c->nedge,sizeof(struct edge*),ecomp_mapdist_nonhk);
     else                qsort(c->elist,c->nedge,sizeof(struct edge*),ecomp_mapdist_only);
@@ -643,9 +640,42 @@ void mst_approx_order(struct conf*c)
     }
 }    
 
+unsigned detect_cross_homeo(struct conf*c,unsigned R1,unsigned N1,unsigned R2,unsigned N2)
+{
+    double lod1,lod2,rf,s;
+    unsigned S;
+    
+    rf = (double)R1 / N1;
+    S = N1 - R1;
+    if(rf > MAX_RF) rf = MAX_RF;
+    s = 1.0 - rf;
+    lod1 = 0.0;
+    if(s > 0.0) lod1 += S * LOG10(2.0*s);
+    if(rf > 0.0) lod1 += R1 * LOG10(2.0*rf);
+
+    rf = (double)R2 / N2;
+    S = N2 - R2;
+    if(rf > MAX_RF) rf = MAX_RF;
+    s = 1.0 - rf;
+    lod2 = 0.0;
+    if(s > 0.0) lod2 += S * LOG10(2.0*s);
+    if(rf > 0.0) lod2 += R2 * LOG10(2.0*rf);
+    
+    //if(lod1 < lod2) printf("%lf %lf\n",lod1,lod2);
+    //else            printf("%lf %lf\n",lod2,lod1);
+    
+    if((lod1 < c->gg_homeo_minlod && lod2 > c->gg_homeo_maxlod) ||
+       (lod2 < c->gg_homeo_minlod && lod1 > c->gg_homeo_maxlod))
+    {
+        return 1;
+    }
+    
+    return 0;
+}
+
 void ga_build_elist(struct conf*c)
 {
-    unsigned i,j,R,N,R2,N2,S,nonhk;
+    unsigned i,j,R,N,R1,N1,R2,N2,S,nonhk;
     double lod,rf,s;
     struct marker*m1=NULL;
     struct marker*m2=NULL;
@@ -669,10 +699,22 @@ void ga_build_elist(struct conf*c)
             //HK vs HK
             if(m1->type == HKTYPE && m2->type == HKTYPE)
             {
-                calc_RN_simple(c,m1,m2,0,&R,&N);
+                calc_RN_simple(c,m1,m2,0,&R1,&N1);
                 calc_RN_simple(c,m1,m2,1,&R2,&N2);
-                N += N2;
-                R += R2;
+                
+                //detect cross homeolog hkxhk markers on final ga cycle only
+                if(c->cycle_ctr == c->ga_gibbs_cycles-1 && N1 > 0 && N2 > 0 && c->gg_homeo_mincount > 0)
+                {
+                    if(detect_cross_homeo(c,R1,N1,R2,N2))
+                    {
+                        m1->homeo_ct += 1;
+                        m2->homeo_ct += 1;
+                        //printf("%s\n%s\n",m1->name,m2->name);
+                    }
+                }
+                
+                N = N1 + N2;
+                R = R1 + R2;
             }
             //LM vs LM or HK
             else if(m1->data[0] && m2->data[0])
@@ -704,7 +746,22 @@ void ga_build_elist(struct conf*c)
         }
     }
     
-    if(c->flog) fprintf(c->flog,"#%u edges added\n",c->nedge);
+    if(c->flog)
+    {
+        fprintf(c->flog,"#%u edges added\n",c->nedge);
+        
+        if(c->cycle_ctr == c->ga_gibbs_cycles-1 && c->gg_homeo_mincount > 0)
+        {
+            for(i=0; i<c->nmarkers; i++)
+            {
+                m1 = c->array[i];
+                if(m1->homeo_ct > c->gg_homeo_mincount)
+                {
+                    fprintf(c->flog,"# %s possible cross homeolog marker implicated %d times\n",m1->name,m1->homeo_ct);
+                }
+            }
+        }
+    }
 }
 
 double calc_global(struct conf*c,struct marker**array)
@@ -715,9 +772,6 @@ double calc_global(struct conf*c,struct marker**array)
     struct marker*m2=NULL;
     struct edge*e=NULL;
     double score=0.0,cm_score,order_score;
-    
-    //make sure elist has been built
-    //if(c->cycle_ctr > c->ga_use_mst) ga_build_elist(c);
     
     //assign markers explicit positions in the maternal and paternal orderings
     ct[0] = ct[1] = 0;
@@ -787,7 +841,9 @@ void order_map(struct conf*c)
     if(c->gg_bitstrings) compress_to_bitstrings(c,c->nmarkers,c->array);
     
     //ensure fresh elist is built if required by mst_approx_order or calc_global
-    if((c->cycle_ctr <= c->ga_use_mst && c->cycle_ctr > 0) || c->ga_optimise_meth == 2)
+    if((c->cycle_ctr <= c->ga_use_mst && c->cycle_ctr > 0) ||
+       c->ga_optimise_meth == 2 ||
+       (c->cycle_ctr == c->ga_gibbs_cycles-1 && c->gg_homeo_mincount > 0))
     {
         ga_build_elist(c);
     }

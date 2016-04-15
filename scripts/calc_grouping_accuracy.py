@@ -5,32 +5,30 @@
 #
 
 import sys
+import glob
 
-if len(sys.argv) < 2:
-    print "usage: calc_grouping_accuracy.py <correctly_grouped_loci> <test_loci> [<test_loci>...]"
+if len(sys.argv) != 3:
+    print "usage: calc_grouping_accuracy.py '<original_glob>' '<test_glob>'"
     exit(0)
 
-#load correctly grouped markers
+#load correctly grouped markers, lgs separated by
 orig = []
 total_markers = 0
-f = open(sys.argv[1])
-for line in f:
-    if line.startswith(';'):
-        orig.append({})
-        continue
-    uid = line.strip().split()[0]
-    orig[-1][uid] = True
-    total_markers += 1
-f.close()
+for fname in glob.glob(sys.argv[1]):
+    f = open(fname)
+    orig.append({})
+    for line in f:
+        uid = line.strip().split()[0]
+        orig[-1][uid] = True
+        total_markers += 1
+    f.close()
     
 #load markers being tested
 test = []
-for fname in sys.argv[2:]:
+for fname in glob.glob(sys.argv[2]):
     f = open(fname)
+    test.append({})
     for line in f:
-        if line.startswith(';'):
-            test.append({})
-            continue
         uid = line.strip().split()[0]
         test[-1][uid] = True
     f.close()

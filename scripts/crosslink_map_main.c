@@ -45,14 +45,17 @@ int main(int argc,char*argv[])
     rjvparser("show_bits|UNSIGNED|0|show bit states",&c->gg_show_bits);
     rjvparser("pause|UNSIGNED|0|pause each iteration",&c->gg_pause);
     
+    rjvparser("homeo_minlod|FLOAT|1.0|detect cross homeolog markers, minlod",&c->gg_homeo_minlod);
+    rjvparser("homeo_maxlod|FLOAT|16.0|detect cross homeolog markers, maxlod",&c->gg_homeo_maxlod);
+    rjvparser("homeo_mincount|UNSIGNED|0|report as possible cross homeolog if implicated more than this many time, 0 to disable",&c->gg_homeo_mincount);
+    
     rjvparser("ga_gibbs_cycles|UNSIGNED|10|number of GA-Gibbs cycles",&c->ga_gibbs_cycles);
     rjvparser("ga_report|UNSIGNED|0|GA log reporting period, 0=disabled",&c->ga_report);
     rjvparser("ga_iters|UNSIGNED|100000|number of GA iterations per GA-Gibbs cycle",&c->ga_iters);
     rjvparser("ga_use_mst|UNSIGNED|0|how many GA-Gibbs cycles to perform initial MST ordering before the GA (0=none,N=up to and including the Nth cycle)",&c->ga_use_mst);
     rjvparser("ga_minlod|FLOAT|3.0|min LOD for MST construction and global order optimisation scoring",&c->ga_minlod);
     rjvparser("ga_mst_nonhk|UNSIGNED|1|prioritise non-hk linkage when building the MST",&c->ga_mst_nonhk);
-    rjvparser("ga_optimise_meth|UNSIGNED|0|0=optimse map total recombination events, 1=optimise total map distance, 2=optimise a global measure of map quality",&c->ga_optimise_meth);
-    //rjvparser("ga_optimise_global|UNSIGNED|0|1=optimise a global measure of map order",&c->ga_optimise_global);
+    rjvparser("ga_optimise_meth|UNSIGNED|0|0=optimse map total recombination events, 1=optimise total map distance, 2=optimise a global measure of map quality (sets --ga_skip_order1=1 --randomise_order=0)",&c->ga_optimise_meth);
     rjvparser("ga_prob_hop|FLOAT|0.333|probability a mutation moves a single marker",&c->ga_prob_hop);
     rjvparser("ga_max_hop|FLOAT|0.1|max distance a single marker can move as proportion of whole linkage group",&c->ga_max_hop);
     rjvparser("ga_prob_move|FLOAT|0.333|probability a mutation moves a block of multiple markers",&c->ga_prob_move);
@@ -91,6 +94,13 @@ int main(int argc,char*argv[])
         srand(tv.tv_sec * 1000000 + tv.tv_usec);
     }
     srand48(rand());
+    
+    //global optimsation currently requires partially ordered markers as input
+    if(c->ga_optimise_meth == 2)
+    {
+        c->ga_skip_order1 = 1;
+        c->gg_randomise_order = 0;
+    }
     
     //set up genetic mapping function
     switch(c->gg_map_func)

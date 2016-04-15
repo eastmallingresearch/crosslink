@@ -175,7 +175,7 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea,struct weights*
                 m->orig[0] = NULL;
                 changes += 1;
                 
-                if(c->flog) fprintf(c->flog,"#linkage group %s, %s LM->NP\n",p->name,m->name);
+                if(c->flog) fprintf(c->flog,"#linkage group %s, %s type corrected LM->NP\n",p->name,m->name);
             }
         }
         else
@@ -197,7 +197,7 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea,struct weights*
                 m->orig[1] = NULL;
                 changes += 1;
                 
-                if(c->flog) fprintf(c->flog,"#linkage group %s, %s NP->LM\n",p->name,m->name);
+                if(c->flog) fprintf(c->flog,"#linkage group %s, %s type corrected NP->LM\n",p->name,m->name);
             }
         }
     }
@@ -236,6 +236,8 @@ imputing missing genotype calls using kNN method
 note: hk calls have their data set to missing but may not be actually missing
 therefore look at orig to decide if that call is actually missing
 rather than just being an hk that is not imputed yet
+
+unimputed hk calls cannot be used to impute anything else
 */
 void impute_missing(struct conf*c,struct lg*p,struct earray*ea)
 {
@@ -317,6 +319,7 @@ void impute_missing(struct conf*c,struct lg*p,struct earray*ea)
                         dval += (double)m->miss[x][j].val[k];
                         //printf(" %u",m->miss[x][j].val[k]);
                     }
+                    //printf("\n");
                     dval /= m->miss[x][j].n;
                     
                     if(c->flog)

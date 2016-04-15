@@ -6,8 +6,8 @@
 
 import sys
 
-f1 = open(sys.argv[1]) #no missing
-f2 = open(sys.argv[2]) #missing
+f1 = open(sys.argv[1]) #original
+f2 = open(sys.argv[2]) #with missing
 f3 = open(sys.argv[3]) #imputed
 
 total = 0
@@ -33,6 +33,3 @@ while True:
             errors += 1
             
 print '#imputing errors', errors, float(errors)/total
-        
-    
-    

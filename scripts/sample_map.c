@@ -12,7 +12,7 @@ struct conf*init_conf(int argc, char **argv)
     assert(c = calloc(1,sizeof(struct conf)));
     rjvparser("input-file|STRING|!|input map file",&c->inp);
     rjvparser("output-file|STRING|!|output genotype file including any errors",&c->out);
-    rjvparser("orig-file|STRING|-|output genotype file excluding any errors",&c->orig);
+    rjvparser("orig-dir|STRING|-|output grouped genotype files without any errors",&c->orig);
     rjvparser("random-seed|INTEGER|0|random number generator seed, 0=use system time",&c->prng_seed);
     rjvparser("samples|INTEGER|200|number of offspring to simulate",&c->nind);
     rjvparser("prob-missing|FLOAT|0.0|probability a genotype call is missing",&c->prob_missing);
@@ -43,20 +43,18 @@ void save_data(struct conf*c,char*fname,unsigned orig)
     struct marker*m=NULL;
     FILE*f=NULL;
     unsigned i,j,lg=9999999,hk1,hk2;
+    char buffer[BUFFER];
     
-    assert(f = fopen(fname,"wb"));
+    if(!orig) assert(f = fopen(fname,"wb"));
 
-    /*if(!orig)
-    {
-        fprintf(f,"; group 000 markers %u\n",c->nmarkers);
-    }*/
-    
     for(i=0; i<c->nmarkers; i++)
     {
-        //identify beginning of each lg with a comment
+        //for orignal data output each gl to a different file
         if(orig && c->map[i]->lg != lg)
         {
-            fprintf(f,"; group %03d markers %u\n",c->map[i]->lg,c->nmark[c->map[i]->lg]);
+            sprintf(buffer,"%s/%03d.orig",fname,c->map[i]->lg);
+            if(f != NULL) fclose(f);
+            assert(f = fopen(buffer,"wb"));
             lg = c->map[i]->lg;
         }
         
@@ -156,6 +154,8 @@ void save_data(struct conf*c,char*fname,unsigned orig)
 
         fprintf(f,"\n");
     }
+    
+    fclose(f);
 }
 
 void load_map(struct conf*c)

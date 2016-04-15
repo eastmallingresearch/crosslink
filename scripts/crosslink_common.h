@@ -130,6 +130,8 @@ struct marker
     double   orig_pos;
     
     int matpat_pos[2]; //current positions in the paternal and maternal ordering
+    
+    unsigned homeo_ct; //how many times implicated as cross homeolog marker
 
     BITTYPE*bits[2];           //maternal/paternal info condensed into bitstrings
     BITTYPE*mask[2];           //maternal/paternal bitstring representing missing data
@@ -221,6 +223,10 @@ struct conf
     unsigned gg_show_initial;     //1 => show data as loaded then quit
     unsigned gg_show_bits;        //debug option: show no. current state each gibbs sample
     unsigned gg_pause;            //wait for ENTER after printing bits
+    
+    double   gg_homeo_minlod;     //detect cross homeolog markers, <= lower LOD threshold indicates no linkage
+    double   gg_homeo_maxlod;     //>= upper threshold indicates linkage, flag edges where only one parent indicates linkage 
+    unsigned gg_homeo_mincount;      //report as cross homeolog if implicated >= this many time
 
     double   grp_min_lod;           //min LOD score to consider for grouping
     double   grp_em_tol;            //tolerance, EM assumed to have converged once change is <= this value
@@ -238,7 +244,6 @@ struct conf
     double   ga_minlod;  //min lod to use in MST
     unsigned ga_mst_nonhk;   //prioritise nonhk edges in MST
     unsigned ga_optimise_meth;   //optimise: total recombs, map dist or global quality measure
-    //unsigned ga_optimise_global;    //optimise a global measure of map order quality
     unsigned ga_skip_order1; //skip first ordering (assume input ordering is good enough for first hk imputation step)
     double   ga_prob_hop;    //prob mutation is a single marker relocation
     double   ga_max_hop;     //max distance marker can move as proportion of total marker count

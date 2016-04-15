@@ -21,4 +21,9 @@ echo "nind = ${NIND}"  >> ${CL_OUTPUT_FILE}
 #data
 cat ${CL_INPUT_DIR}/*.loc >> ${CL_OUTPUT_FILE}
 
-#could append individual names here
+#if [ "${CL_NAME_FILE}" != "-" ]
+#then
+#    #append individual names
+#    echo 'individual names:' >> ${CL_OUTPUT_FILE}
+#    cat ${CL_NAME_FILE} >> ${CL_OUTPUT_FILE}
+#fi
