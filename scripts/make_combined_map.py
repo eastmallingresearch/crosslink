@@ -5,7 +5,7 @@
 # output only the combined map position
 # where combined map positions are not available for a linkage group
 # use whichever parental position is available
-# the lg name is assumed to be in the filename from the first underscore to the next dot (exclusive)
+# the lg name is assumed to be in the filename 
 # ignores lines starting with 'group'
 #
 # usage: make_combined_map.py map_file [map_file...] > output_map

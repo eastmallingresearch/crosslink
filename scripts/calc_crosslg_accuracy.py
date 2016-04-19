@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
 #
-# count how many markers had a type error
-# and proportion that were corrected accurately
+# calculate a score for accuracy of cross lg marker detection
 #
 
 import sys
+import glob
 
 if len(sys.argv) < 3:
-    print "usage: calc_typeerr_accuracy.py <typeerr_list> <group_log>"
+    print "usage: calc_crosslg_accuracy.py <crosslg_list> '<map_log_glob>'"
     exit(0)
 
 markers = {}
@@ -21,13 +21,14 @@ f.close()
 errors = len(markers)
 corrected = 0
 false = 0
-f = open(sys.argv[2])
-for line in f:
-    if not 'type corrected' in line: continue
-    uid = line.strip().split()[3]
-    if uid in markers: corrected +=1
-    else:              false += 1
-f.close()
+for fname in glob.glob(sys.argv[2]):
+    f = open(fname)
+    for line in f:
+        if not 'homeo' in line: continue
+        uid = line.strip().split()[1]
+        if uid in markers: corrected +=1
+        else:              false += 1
+    f.close()
 
 if errors == 0:
     #score decreases with increasing number of false corrections

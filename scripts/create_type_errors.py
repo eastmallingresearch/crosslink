@@ -11,13 +11,15 @@ do this after creating cross linkage group markers
 
 import sys
 import random
+from scipy.stats import binom
 
 mapfile = sys.argv[1]
 locfile = sys.argv[2]
-n = int(sys.argv[3])       #how many cross linkage group markers to create
+pcross = float(sys.argv[3])  #prob create a cross linkage group marker
 perr = float(sys.argv[4])  #prob switch type between lmxll and nnxnp
 
 markers = {'<lmxll>':{},'<nnxnp>':{}}
+nmarkers = 0
 
 #load map, store by lg and marker type
 f = open(mapfile)
@@ -25,6 +27,7 @@ for line in f:
     #eg: M0000006f <lmxll> {0-} 0 1.150901
     #<name> <type> <phase> <linkage_group> <position>
     if line.startswith('#'): continue
+    nmarkers += 1
     tok = line.strip().split()
     assert len(tok) == 5
     
@@ -42,6 +45,7 @@ assert len(markers['<lmxll>']) > 1 and len(markers['<nnxnp>']) > 1
 
 #pick marker pairs to be fused
 pairs = []
+n = random.randrange(binom.rvs(nmarkers,pcross))
 for i in xrange(n):
     #pick lmxll from any lg
     nlgs = len(markers['<lmxll>'])
