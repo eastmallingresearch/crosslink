@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 '''
 compare marker orders in two maps
 assumes only a single linkage group

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #
 # count how many markers had a type error
 # and proportion that were corrected accurately

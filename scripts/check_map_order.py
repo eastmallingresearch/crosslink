@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 '''
 plot estimated versus correct map positions
 colour coded to show marker type: maternal-only/paternal-only/both

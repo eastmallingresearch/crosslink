@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #convert loc files into joinmap format
 
 set -eu

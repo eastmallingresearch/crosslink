@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #calculate map positions without reordering markers or imputing hks
 
 set -eu

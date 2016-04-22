@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #match each linkage group to the most similar lg in a reference map
 
 set -eu

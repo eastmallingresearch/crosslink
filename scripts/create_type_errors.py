@@ -45,7 +45,7 @@ assert len(markers['<lmxll>']) > 1 and len(markers['<nnxnp>']) > 1
 
 #pick marker pairs to be fused
 pairs = []
-n = random.randrange(binom.rvs(nmarkers,pcross))
+n = binom.rvs(nmarkers,pcross)
 for i in xrange(n):
     #pick lmxll from any lg
     nlgs = len(markers['<lmxll>'])

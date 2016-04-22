@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #phase all loc files in a given directory
 
 set -u

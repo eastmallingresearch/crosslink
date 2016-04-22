@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #
 # find proportion of missing data that was correctly imputed
 #
@@ -59,4 +59,7 @@ for uid in orig:
         elif imputed[uid][i] == orig[uid][i]:
             total_correct += 1
     
-print "%.10lf"%(float(total_correct)/total_missing)
+if total_missing > 0.0:
+    print "%.10lf"%(float(total_correct)/total_missing)
+else:
+    print "1.0"

@@ -1,4 +1,0 @@
-#convert otput.loc into crosslink format
-#but not yet separated by lg
-
-cat ./prev_map/output.loc | awk 'substr($1,1,2)=="AX"{printf "%s %s %s ",$1,$2,$3} substr($1,1,2)!="AX"' > prev_map/crosslink.loc

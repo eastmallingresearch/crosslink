@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #
 # calculate mapping accuracy:
 # find which linkage group best matches each reference linkage group

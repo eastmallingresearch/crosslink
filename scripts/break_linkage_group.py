@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 # break a linkage group after a given marker
 
 #break_linkage_group.py inputfile markername output1 output2

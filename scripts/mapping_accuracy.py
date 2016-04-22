@@ -68,7 +68,10 @@ for i,lg1 in enumerate(map1): #for each lg in map1
             continue
             
         #find magnitude of correlation coefficient
-        corr = abs(pearsonr(xx,yy)[0])
+        if len(xx) == 1:
+            corr = 1.0
+        else:
+            corr = abs(pearsonr(xx,yy)[0])
         
         #what proportion of lg1 markers are in lg2?
         prop = float(len(xx)) / nmarkers1

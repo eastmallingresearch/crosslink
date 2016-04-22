@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #
 # calculate grouping accuracy in a way which penalises over/under splitting
 # for n true lgs and m test lgs calculates an nxm matrix
