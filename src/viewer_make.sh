@@ -13,6 +13,8 @@ TYPE="-Wall -Wextra -O3"
 #AUX="-DALTCOLSCHEME"
 AUX=""
 
+mkdir -p ../bin
+
 gcc ${TYPE} ${AUX}\
     -o ../bin/crosslink_viewer\
     crosslink_utils.c\

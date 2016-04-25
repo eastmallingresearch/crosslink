@@ -16,6 +16,8 @@ do
     gcc ${TYPE} -c ${FNAME}.c -o ${FNAME}.o
 done
 
+mkdir -p ../bin
+
 #build create_map
 gcc ${TYPE}\
     -o ../bin/create_map\
