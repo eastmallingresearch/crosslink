@@ -1,16 +1,16 @@
 #!/bin/bash
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
-#order marker and impute hks all loc files in a directory
+#detect polyploidy related cross linkage group markers
 
 set -eu
 
 CL_INPUT_DIR=$1
-CL_OUTPUT_DIR=$2
+CL_OUTPUT_FILE=$2
 CL_CONF_FILE=$3
 
 source ${CL_CONF_FILE}
 
-mkdir -p ${CL_OUTPUT_DIR}
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
 
 for INPNAME in ${CL_INPUT_DIR}/*.loc
 do
@@ -20,18 +20,18 @@ do
         sleep 1
     done
 
-    OUTNAME=${CL_OUTPUT_DIR}/$(basename ${INPNAME})
+    OUTNAME=${MYTMPDIR}/$(basename ${INPNAME}).out
     
     if [ "${CL_PARALLEL_JOBS}" -gt "1" ]
     then
         #run jobs in parallel
         echo starting $(basename ${INPNAME} .loc)
-        nice   cl_order_hkimpute_inner.sh   ${INPNAME}   ${OUTNAME}   ${CL_CONF_FILE} &
+        nice   cl_detect_crosslg_inner.sh   ${INPNAME}   ${OUTNAME}   ${CL_CONF_FILE} &
         sleep 0.1
     else
         #run jobs one at a time
         echo processing $(basename ${INPNAME} .loc)
-        cl_order_hkimpute_inner.sh   ${INPNAME}   ${OUTNAME}   ${CL_CONF_FILE}
+        cl_detect_crosslg_inner.sh   ${INPNAME}   ${OUTNAME}   ${CL_CONF_FILE}
     fi
 done
 
@@ -45,6 +45,8 @@ then
         sleep 1
     done
 
-    echo
-    echo cl_order_hkmipute done
 fi
+
+#aggregate all detected cross linkage group marker names
+cat ${MYTMPDIR}/*.out > ${CL_OUTPUT_FILE}
+rm -rf ${MYTMPDIR}

@@ -1,13 +1,19 @@
 #!/bin/bash
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
-#
-# run a sample diploid data set though the basic pipeline
-#
 
-set -eu
+################################################################################
+
+#
+# create and process a simulated non-polyploid data set though the basic pipeline
+#
 
 #change this to point towards the crosslink install directory
 CROSSLINK_PATH=/home/vicker/git_repos/crosslink
+
+################################################################################
+
+set -eu
+
 export PATH=${CROSSLINK_PATH}/scripts:${CROSSLINK_PATH}/bin:${PATH}
 
 #check we can find the crosslink files

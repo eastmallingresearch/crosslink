@@ -8,12 +8,13 @@
 set -eu
 
 #change this to point towards the crosslink directory
-CROSSLINK_PATH=/home/vicker/rjv_mnt/cluster/git_repos/crosslink
+CROSSLINK_PATH=/home/vicker/git_repos/crosslink
+export PATH=${PATH}:${CROSSLINK_PATH}/bin
 export PATH=${PATH}:${CROSSLINK_PATH}/scripts
-export PATH=${PATH}:${CROSSLINK_PATH}/sample_data
+export PATH=${PATH}:${CROSSLINK_PATH}/test_scripts
 
 #remove everything
-if [ "$(pwd)" != '/home/vicker/rjv_mnt/cluster/crosslink/ploscompbiol_data/simdata' ]
+if [ "$(pwd)" != '/home/vicker/crosslink/ploscompbiol_data/simdata/sample_data' ]
 then
     echo wrong working directory
     exit
@@ -33,10 +34,7 @@ PROB_ERROR=0.01         #per cent genotyping errors (just a guess)
 PROB_CROSSMARKER=0.0015    #create cross-linkage group markers
 PROB_TYPE_ERR=0.029        #marker typing errors (ie confusing lmxll with nnxnp)
 
-mkdir -p sample_data
-cd sample_data
-
-NSAMPLES=200
+NSAMPLES=400
 for i in $(seq 1 ${NSAMPLES})
 do
     SUBDIR=$(printf "%03d" ${i})
@@ -58,12 +56,17 @@ do
                --prob-missing=${PROB_MISSING}\
                --prob-error=${PROB_ERROR}
 
-    create_type_errors.py\
-        sample.map\
-        tmp.loc\
-        ${PROB_CROSSMARKER}\
-        ${PROB_TYPE_ERR}\
-        > sample.loc
+    touch crossmarkers_list
+
+    while [ "$(cat crossmarkers_list | wc --lines)" == "0" ]
+    do
+        create_type_errors.py\
+            sample.map\
+            tmp.loc\
+            ${PROB_CROSSMARKER}\
+            ${PROB_TYPE_ERR}\
+            > sample.loc
+    done
         
     cd ..
 done

@@ -25,7 +25,7 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 #install new packages
-RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev nano
+RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev nano bashdb
 
 #set root password
 RUN echo 'root:cl_root_uDk5eI' | chpasswd
@@ -47,7 +47,7 @@ RUN chgrp -R crosslink ./crosslink
 USER crosslink
 
 #build crosslink inside the container
-RUN cd crosslink/scripts && ./make.sh && ./viewer_make.sh
+RUN cd crosslink/src && ./make.sh && ./viewer_make.sh
 
 #add crosslink executables to path
 ENV PATH ${PATH}:/home/crosslink/crosslink/scripts

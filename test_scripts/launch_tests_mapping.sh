@@ -17,9 +17,10 @@ set -eu
 #change this to point towards the crosslink directory
 CROSSLINK_PATH=/home/vicker/git_repos/crosslink
 
-SCRIPT_DIR=${CROSSLINK_PATH}/sample_data
+SCRIPT_DIR=${CROSSLINK_PATH}/test_scripts
 
 export PATH=${PATH}:${CROSSLINK_PATH}/scripts
+export PATH=${PATH}:${CROSSLINK_PATH}/bin
 export PATH=${PATH}:${SCRIPT_DIR}
 
 #check working directory
