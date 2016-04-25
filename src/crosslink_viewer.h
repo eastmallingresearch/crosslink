@@ -2,6 +2,7 @@
 #define _RJV_CROSSLINK_VIEWER_H_
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "crosslink_common.h"
 
 #ifndef ALTCOLSCHEME

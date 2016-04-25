@@ -24,7 +24,7 @@ gcc ${TYPE} ${AUX}\
     crosslink_viewer.c\
     crosslink_viewer_main.c\
     rjvparser.c\
-    -lSDL2 -lm
+    -lSDL2 -lSDL2_image -lm
 
 gcc ${TYPE} ${AUX}\
     -o ../bin/crosslink_graphical\
@@ -36,4 +36,4 @@ gcc ${TYPE} ${AUX}\
     crosslink_graphical.c\
     crosslink_graphical_main.c\
     rjvparser.c\
-    -lSDL2 -lm
+    -lSDL2 -lSDL2_image -lm

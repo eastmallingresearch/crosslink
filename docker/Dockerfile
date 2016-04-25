@@ -11,8 +11,8 @@
 #then allow access to X11 by entering something like this into the host:
 # xhost +local:$(docker ps --filter=name=crosslink -q)
 
-#the most recent (as of 2016-02-26) ubuntu LTS version
-FROM ubuntu:14.04
+#ubuntu LTS version
+FROM ubuntu:16.04
 MAINTAINER robert.vickerstaff@emr.ac.uk
 
 #no front end

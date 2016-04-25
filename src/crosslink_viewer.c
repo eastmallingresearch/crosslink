@@ -16,7 +16,7 @@ unsigned palette[13][3] =
     {  0,128,255},      
     {  0,  0,255},//blue
     {  0,  0,128},
-    { 32, 32, 32}//black
+    { 32, 32, 32}//grey
 };
 
 //search for marker by name

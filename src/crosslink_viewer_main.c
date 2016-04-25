@@ -40,10 +40,13 @@ this version aims to support phased and unphased data using the new generic load
 #include "crosslink_viewer.h"
 #include "rjvparser.h"
 
+#include <unistd.h>
+
 int main(int argc,char*argv[])
 {
     struct conf*c=NULL;
     struct lg*p=NULL;
+    SDL_Surface* surface = NULL;
     SDL_Window* win = NULL;
     SDL_Renderer* ren = NULL;
     SDL_Texture* tex = NULL;
@@ -54,6 +57,8 @@ int main(int argc,char*argv[])
     char*inp=NULL;
     char*datatype=NULL;
     char*named=NULL;
+    char execpath[1000];
+    char*pexec=NULL;
     
     //double minlod;
     double xbase_pix,ybase_pix,width_pix;
@@ -98,7 +103,17 @@ int main(int argc,char*argv[])
         return 1;
     }
     
+    IMG_Init(IMG_INIT_PNG);
     assert(win = SDL_CreateWindow(inp,0,0,size,size,SDL_WINDOW_SHOWN));
+    
+    //work out path to icon
+    assert(readlink("/proc/self/exe", execpath, 998) != -1);
+    assert((pexec=strrchr(execpath,'/')) != NULL);
+    strcpy(pexec,"/icon.png");
+    
+    //load and set icon
+    surface = IMG_Load(execpath);
+    SDL_SetWindowIcon(win, surface);
     
     if(hardware) assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED));
     else         assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE));
