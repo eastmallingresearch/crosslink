@@ -26,6 +26,7 @@ RUN apt-get upgrade -y
 
 #install new packages
 RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev nano bashdb
+RUN apt-get install -y dbus
 
 #set root password
 RUN echo 'root:cl_root_uDk5eI' | chpasswd
@@ -43,6 +44,9 @@ COPY crosslink crosslink
 RUN chown -R crosslink ./crosslink
 RUN chgrp -R crosslink ./crosslink
 
+#fix for: D-Bus library appears to be incorrectly set up; failed to read machine uuid: Failed to open "/etc/machine-id": No such file or directory
+RUN dbus-uuidgen > /var/lib/dbus/machine-id
+
 #run as crosslink user
 USER crosslink
 
@@ -50,4 +54,4 @@ USER crosslink
 RUN cd crosslink/src && ./make.sh && ./viewer_make.sh
 
 #add crosslink executables to path
-ENV PATH ${PATH}:/home/crosslink/crosslink/scripts
+ENV PATH ${PATH}:/home/crosslink/crosslink/scripts:/home/crosslink/crosslink/bin:/home/crosslink/crosslink/test_scripts
