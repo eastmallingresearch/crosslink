@@ -33,10 +33,10 @@ RUN apt-get install -y libsdl2-image-2.0.0 libsdl2-image-dev
 RUN echo 'root:cl_root_uDk5eI' | chpasswd
 
 #add user
-RUN useradd -ms /bin/bash crosslink
+RUN useradd -ms /bin/bash crosslink_user
 RUN echo 'crosslink_user:cl_user_uDk5eI' | chpasswd
 
-WORKDIR /home/crosslink
+WORKDIR /home/crosslink_user
 
 #add crosslink source
 COPY crosslink crosslink
