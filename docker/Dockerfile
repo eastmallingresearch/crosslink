@@ -2,7 +2,7 @@
 # docker build -t rjvickerstaff/crosslink:0.1 . 
 
 #to launch into text only commandline use:
-#  docker run -it -u crosslink rjvickerstaff/crosslink:0.1
+#  docker run -it -u crosslink_user rjvickerstaff/crosslink:0.1
 
 #launch with X11 mounting for graphical output (on a linux host)
 #http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/
@@ -27,13 +27,14 @@ RUN apt-get upgrade -y
 #install new packages
 RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev nano bashdb
 RUN apt-get install -y dbus
+RUN apt-get install -y libsdl2-image-2.0.0 libsdl2-image-dev
 
 #set root password
 RUN echo 'root:cl_root_uDk5eI' | chpasswd
 
 #add user
 RUN useradd -ms /bin/bash crosslink
-RUN echo 'crosslink:cl_user_uDk5eI' | chpasswd
+RUN echo 'crosslink_user:cl_user_uDk5eI' | chpasswd
 
 WORKDIR /home/crosslink
 
@@ -41,17 +42,17 @@ WORKDIR /home/crosslink
 COPY crosslink crosslink
 
 #change ownership from root to crosslink user
-RUN chown -R crosslink ./crosslink
-RUN chgrp -R crosslink ./crosslink
+RUN chown -R crosslink_user ./crosslink
+RUN chgrp -R crosslink_ser ./crosslink
 
 #fix for: D-Bus library appears to be incorrectly set up; failed to read machine uuid: Failed to open "/etc/machine-id": No such file or directory
 RUN dbus-uuidgen > /var/lib/dbus/machine-id
 
 #run as crosslink user
-USER crosslink
+USER crosslink_user
 
 #build crosslink inside the container
 RUN cd crosslink/src && ./make.sh && ./viewer_make.sh
 
 #add crosslink executables to path
-ENV PATH ${PATH}:/home/crosslink/crosslink/scripts:/home/crosslink/crosslink/bin:/home/crosslink/crosslink/test_scripts
+ENV PATH ${PATH}:/home/crosslink_user/crosslink/scripts:/home/crosslink_user/crosslink/bin:/home/crosslink_user/crosslink/test_scripts

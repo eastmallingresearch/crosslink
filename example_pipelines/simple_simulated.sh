@@ -8,7 +8,7 @@
 #
 
 #change this to point towards the crosslink install directory
-CROSSLINK_PATH=/home/vicker/git_repos/crosslink
+CROSSLINK_PATH=/home/crosslink_user/crosslink
 
 ################################################################################
 

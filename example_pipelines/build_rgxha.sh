@@ -11,7 +11,7 @@
 #
 
 #set this to point towards the crosslink directory
-CROSSLINK_PATH=${CROSSLINK_PATH:-/home/vicker/git_repos/crosslink}
+CROSSLINK_PATH=${CROSSLINK_PATH:-/home/crosslink_user/crosslink}
 
 ################################################################################
 
