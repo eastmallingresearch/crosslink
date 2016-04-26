@@ -4,19 +4,19 @@
 //white,red,yellow,green,cyan,blue,black
 unsigned palette[13][3] =
 {
-    {255,255,255},//white
-    {255,128,128},
-    {255,  0,  0},//red
-    {255,128,  0},
-    {255,255,  0},//yellow
-    {128,255,  0},
-    {  0,255,  0},//green
-    {  0,255,128},
-    {  0,255,255},//cyan
-    {  0,128,255},      
-    {  0,  0,255},//blue
-    {  0,  0,128},
-    { 32, 32, 32}//grey
+    {255,255,255},//white <10
+    {255,128,128},//pink 10-20
+    {255,  0,  0},//red 20-30
+    {255,128,  0},//orange 30-40
+    {255,255,  0},//yellow 40-50
+    {128,255,  0},//yellow-green 50-60
+    {  0,255,  0},//green 60-70
+    {  0,255,128},//green-cyan 70-80
+    {  0,255,255},//cyan 80-90
+    {  0,128,255},//cyan-blue 90-100
+    {  0,  0,255},//blue 100-110
+    {  0,  0,128},//dark blue 110-120
+    { 32, 32, 32}//grey >120
 };
 
 //search for marker by name
@@ -38,13 +38,13 @@ void show_info(struct lg*p,int offset)
     switch(m->type)
     {
         case LMTYPE:
-            printf("(%d)%s LM {%d-} ",m->lg,m->name,m->phase[0]);
+            printf("(%d)%s lmxll {%d-} ",m->lg,m->name,m->phase[0]);
             break;
         case NPTYPE:
-            printf("(%d)%s NP {-%d} ",m->lg,m->name,m->phase[1]);
+            printf("(%d)%s nnxnp {-%d} ",m->lg,m->name,m->phase[1]);
             break;
         case HKTYPE:
-            printf("(%d)%s HK {%d%d} ",m->lg,m->name,m->phase[0],m->phase[1]);
+            printf("(%d)%s hkxhk {%d%d} ",m->lg,m->name,m->phase[0],m->phase[1]);
             break;
         default:
             assert(0);

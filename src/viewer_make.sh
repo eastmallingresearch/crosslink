@@ -10,8 +10,8 @@ TYPE="-Wall -Wextra -O3"
 #TYPE="-Wall -Wextra -g"
 
 #select alternative colour scheme
-#AUX="-DALTCOLSCHEME"
 AUX=""
+#AUX="-DALTCOLSCHEME"
 
 mkdir -p ../bin
 

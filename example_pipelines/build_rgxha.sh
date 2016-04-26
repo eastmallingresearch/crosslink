@@ -26,34 +26,34 @@ MINLOD=7.0
 cp -r ${CROSSLINK_PATH}/sample_data/rgxha_conf ./conf          
 
 #get a working copy of the genotype data
-zcat ${CROSSLINK_PATH}/sample_data/rgxha.loc.gz > all.loc        
+zcat ${CROSSLINK_PATH}/sample_data/rgxha.loc.gz > all.loc
 
-#initial exploratory grouping (optional)
+#initial exploratory grouping
 cl_group.sh   all.loc   initgrps   ${MINLOD} 
 
 #fix maternal/paternal marker typing errors
 cl_fixtypes.sh   all.loc   all.loc   conf/fixtypes.000 
 
-#exploratory grouping again (optional)
-cl_group.sh   all.loc   initgrps   ${MINLOD} 
+#exploratory grouping after fixing type errors
+cl_group.sh   all.loc   fixgrps   ${MINLOD} 
 
 #generate list of non redundant markers
 cl_findredun.sh   all.loc   all.redun   conf/findredun.000 
 
-#impute missing values in the markers
+#impute missing values in all markers (including redundant ones)
 cl_knnimpute.sh   all.loc   all.loc   conf/knnimpute.000 
 
-#extract only the imputed nonredundant markers
+#extract only the nonredundant imputed markers
 cl_extract.sh   all.loc   all.redun   all.uniq 
 
-#form linkage groups for real
+#form linkage groups
 cl_group.sh   all.uniq   uniqgrps   ${MINLOD} 
 
 #force phasing to complete down to a LOD of zero, even for falsely joined groups
-cl_phase.sh   uniqgrps   uniqgrps 
+cl_phase.sh   uniqgrps   phasegrps 
 
 #detect cross linkage group markers
-cl_detect_crosslg.sh   uniqgrps   crosslg_markers   conf/detectcrosslg.000 
+cl_detect_crosslg.sh   phasegrps   crosslg_markers   conf/detectcrosslg.000 
 
 #filter out cross linkage group markers
 cl_removemarkers.sh   all.uniq   filt.uniq   crosslg_markers
@@ -71,13 +71,13 @@ echo 'PHR11-89834490' >> crosslg_markers
 cl_removemarkers.sh   filt.uniq   filt.uniq   crosslg_markers
 
 #form linkage groups
-cl_group.sh   filt.uniq   filtgrps   7.0
+cl_group.sh   filt.uniq   filtgrps2   7.0
 
 #force phasing to complete
-cl_phase.sh   filtgrps   filtgrps
+cl_phase.sh   filtgrps2   filtgrps2
 
 #produce final map order
-cl_order_hkimpute.sh   filtgrps   finalgrps   conf/orderhkimpute.000
+cl_order_hkimpute.sh   filtgrps2   finalgrps   conf/orderhkimpute.000
 
 #calc map positions
 cl_mappos.sh   finalgrps   finalgrps 

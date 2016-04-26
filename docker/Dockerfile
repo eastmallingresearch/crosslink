@@ -43,7 +43,7 @@ COPY crosslink crosslink
 
 #change ownership from root to crosslink user
 RUN chown -R crosslink_user ./crosslink
-RUN chgrp -R crosslink_ser ./crosslink
+RUN chgrp -R crosslink_user ./crosslink
 
 #fix for: D-Bus library appears to be incorrectly set up; failed to read machine uuid: Failed to open "/etc/machine-id": No such file or directory
 RUN dbus-uuidgen > /var/lib/dbus/machine-id
