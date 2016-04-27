@@ -57,4 +57,6 @@ void generic_apply_phasing(struct conf*c,struct lg*p);
 struct lg* noheader_lg(struct conf*c,const char*fname);
 struct marker*noheader_marker(struct conf*c,FILE*f);
 struct lg* noheader_merged(struct conf*c,char*fnames,unsigned skip,unsigned total);
+
+void check_no_missing(struct conf*c,char*fname,struct lg*p);
 #endif

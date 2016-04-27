@@ -6,6 +6,30 @@
 //#define _GNU_SOURCE
 //#include <string.h>
 
+void check_no_missing(struct conf*c,char*fname,struct lg*p)
+{
+    unsigned i,j,x;
+    struct marker*m=NULL;
+    
+    for(i=0; i<p->nmarkers; i++)
+    {
+        m = p->array[i];
+        for(x=0; x<2; x++)
+        {
+            if(m->orig[x] == NULL) continue;
+            
+            for(j=0; j<c->nind; j++)
+            {
+                if(m->orig[x][j] == MISSING)
+                {
+                    printf("%s: crosslink_map does not support missing data, impute it first using crosslink_group\n",fname);
+                    exit(1);
+                }
+            }
+        }
+    }
+}
+
 struct marker* new_marker(struct conf*c,char*buff)
 {
     char name[BUFFER];

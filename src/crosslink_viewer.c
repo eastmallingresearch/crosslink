@@ -125,8 +125,8 @@ uint32_t*generate_image(struct conf*c,struct lg*p,unsigned mode)
     //pixel buffer
     assert(buff = calloc(p->nmarkers*p->nmarkers,sizeof(uint32_t)));
     
-    //low[3] is RGB for lower triangle
-    //upp[3] is RGB for upper triangle
+    //low[3] is RGB for lower triangle rf/LOD/phase info
+    //upp[3] is RGB for upper triangle map distance info
     printf("generating...\n");
     for(i=0; i<p->nmarkers; i++)
     {
@@ -134,7 +134,8 @@ uint32_t*generate_image(struct conf*c,struct lg*p,unsigned mode)
         for(j=i; j<p->nmarkers; j++)
         {
             m2 = p->array[j];
-            
+    
+            //draw the marker as red green or yellow at full brightness
             if(i == j)
             {
                 switch(m1->type)
@@ -160,9 +161,9 @@ uint32_t*generate_image(struct conf*c,struct lg*p,unsigned mode)
             d[0] = d[1] = -1.0;
 
             
-            //for LM vs NP comparisions, compare the information anyway (otherwise it's just always black)
+            //for LM vs NP comparisions
             //strong linkage will indicate we likely have an error in the marker typing
-            //display as yellow
+            //display as blue regardless of phasing
             if((m1->type == LMTYPE && m2->type == NPTYPE) || (m1->type == NPTYPE && m2->type == LMTYPE))
             {
                 if(m1->type == LMTYPE) calc_RN_simple2(c,m1,m2,0,1,&R,&N);
@@ -180,21 +181,23 @@ uint32_t*generate_image(struct conf*c,struct lg*p,unsigned mode)
                     if(rf > 0.0) lod += R * log10(2.0*rf);
                     
                     //lower triangle: rf and lod info
-                    if(rf <= 0.5)
-                    {
+                    //for lmxll vs nnxnp always show as blue
+                    //regardless of phasing
+                    low[2] = tanh(lod*LOD_BRIGHTNESS_SCALE) *  (255.999 - LOD_BRIGHTNESS_MIN)
+                                      + LOD_BRIGHTNESS_MIN;
+                    //if(rf <= 0.5)
+                    //{
                         //coupling linkage, yellow
                         //low[0] = low[1] = (0.5 - rf) * 2.0 * 255.999;
-                        low[0] = low[1] = tanh(lod*LOD_BRIGHTNESS_SCALE) * (255.999 - LOD_BRIGHTNESS_MIN)
-                                          + LOD_BRIGHTNESS_MIN;
-                    }
-                    else
-                    {
-                        //repulsion linkage, blue
-                        low[2] = tanh(lod*LOD_BRIGHTNESS_SCALE) *  (255.999 - LOD_BRIGHTNESS_MIN)
-                                          + LOD_BRIGHTNESS_MIN;
-                    }
+                        //low[0] = low[1] = tanh(lod*LOD_BRIGHTNESS_SCALE) * (255.999 - LOD_BRIGHTNESS_MIN)
+                        //                 + LOD_BRIGHTNESS_MIN;
+                    //}
+                    //else
+                    //{
+                    //}
                 }
             }
+            //non lmxll-versus-nnxnp
             else
             {
                 for(x=0; x<2; x++)

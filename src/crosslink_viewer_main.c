@@ -110,9 +110,10 @@ int main(int argc,char*argv[])
     assert(readlink("/proc/self/exe", execpath, 998) != -1);
     assert((pexec=strrchr(execpath,'/')) != NULL);
     strcpy(pexec,"/icon.png");
+    //printf("icon file: %s\n",execpath);
     
     //load and set icon
-    surface = IMG_Load(execpath);
+    assert((surface = IMG_Load(execpath)) != NULL);
     SDL_SetWindowIcon(win, surface);
     
     if(hardware) assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED));

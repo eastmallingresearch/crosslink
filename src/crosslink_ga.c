@@ -755,7 +755,7 @@ void ga_build_elist(struct conf*c)
             for(i=0; i<c->nmarkers; i++)
             {
                 m1 = c->array[i];
-                if(m1->homeo_ct > c->gg_homeo_mincount)
+                if(m1->homeo_ct >= c->gg_homeo_mincount)
                 {
                     fprintf(c->flog,"# %s possible cross homeolog marker implicated %d times\n",m1->name,m1->homeo_ct);
                 }

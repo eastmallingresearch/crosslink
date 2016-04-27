@@ -49,4 +49,5 @@ fi
 
 #aggregate all detected cross linkage group marker names
 cat ${MYTMPDIR}/*.out > ${CL_OUTPUT_FILE}
+cat ${MYTMPDIR}/*.out.aux > ${CL_OUTPUT_FILE}.aux
 rm -rf ${MYTMPDIR}

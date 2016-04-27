@@ -159,9 +159,11 @@ int main(int argc,char*argv[])
         }
     }
 
-    //load all data from file, treat as a single lg
-    //p = generic_load_merged(c,c->inp,0,0);
+    //load all data from file
     p = noheader_lg(c,c->inp);
+    
+    //check there is no missing data present
+    check_no_missing(c,c->inp,p);
     
     //treat as phased
     generic_convert_to_phased(c,p);

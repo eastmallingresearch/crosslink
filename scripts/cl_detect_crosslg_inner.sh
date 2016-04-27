@@ -29,6 +29,7 @@ crosslink_map\
 
 #allow output file to overwrite input file
 grep 'homeo' ${MYTMPDIR}/tmp.log | cut -d ' ' -f 2 > ${CL_OUTPUT_FILE}
+grep 'homeo' ${MYTMPDIR}/tmp.log | cut -d ' ' -f 2,8 > ${CL_OUTPUT_FILE}.aux
 
 #clean up temporary dir
 rm -rf ${MYTMPDIR}
