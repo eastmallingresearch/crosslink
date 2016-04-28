@@ -87,10 +87,10 @@ int main(int argc,char*argv[])
     
     //convert to phased / unphased, imputed / unimputed form
     //and compress to bitstrings
-    if(strcmp(datatype,"unphased") == 0)     generic_convert_to_unphased(c,p);
-    else if(strcmp(datatype,"phased") == 0)  generic_convert_to_phased(c,p);
-    else if(strcmp(datatype,"imputed") == 0) generic_convert_to_imputed(c,p);
-    else                                     assert(0);
+         if(strcmp(datatype,"unphased") == 0) generic_convert_to_unphased(c,p);
+    else if(strcmp(datatype,"phased") == 0)   generic_convert_to_phased(c,p);
+    else if(strcmp(datatype,"imputed") == 0)  generic_convert_to_imputed(c,p);
+    else                                      assert(0);
     
     //render images from the rflod data
     buff_com = generate_image(c,p,0); //combined info
