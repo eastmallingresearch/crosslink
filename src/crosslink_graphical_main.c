@@ -65,7 +65,7 @@ int main(int argc,char*argv[])
 
     /*parse command line options*/
     assert(c = calloc(1,sizeof(struct conf)));
-    rjvparser("inp|STRING|!|input genotype file",&inp);
+    rjvparser("inp|STRING|!|input genotype file(s)",&inp);
     rjvparser("sizex|UNSIGNED|1000|window width (pixels)",&sizex);
     rjvparser("sizey|UNSIGNED|1000|window height (pixels)",&sizey);
     rjvparser("datatype|STRING|imputed|state of the genotype data: imputed, phased, unphased",&datatype);
@@ -73,7 +73,7 @@ int main(int argc,char*argv[])
     rjvparser("hardware|UNSIGNED|0|1=use hardware graphical acceleration when available",&hardware);
     rjvparser("skip|UNSIGNED|0|how many markers to skip at the start of the genotype file",&skip);   //load starting from the first marker
     rjvparser("total|UNSIGNED|0|how many markers to load in total, 0=load all",&total); //zero indicates load all markers
-    rjvparser2(argc,argv,rjvparser(0,0),"Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details\npresents a graphical view of the sample genotypes in their current order");
+    rjvparser2(argc,argv,rjvparser(0,0),"Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details\npresents a graphical view of the sample genotypes in their current order\n\nControl keys:\nCURSOR KEYS        = pan\nSHIFT+CURSOR KEYS  = reshape\n+/-                = zoom\nENTER              = recentre\nm,p,c,z            = maternal,paternal,combined,phased/unphased mode\nq,escape,0-9       = quit with various bash exit codes ($?)");
     
     //precalc bitmasks for every possible bit position
     init_masks(c);

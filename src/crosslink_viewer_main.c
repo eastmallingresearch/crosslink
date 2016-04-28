@@ -77,7 +77,7 @@ int main(int argc,char*argv[])
     rjvparser("skip|UNSIGNED|0|how many markers to skip at the start of the genotype file",&skip);   //load starting from the first marker
     rjvparser("total|UNSIGNED|0|how many markers to load in total, 0=load all",&total); //zero indicates load all markers
     rjvparser("marker|STRING|-|named marker to centre intial view on",&named);//named marker
-    rjvparser2(argc,argv,rjvparser(0,0),"Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details\npresents a graphical view of rf and LOD values");
+    rjvparser2(argc,argv,rjvparser(0,0),"Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details\npresents a graphical view of linkage LOD and map distances\n\nControl keys:\nCURSOR KEYS  = pan\n+/-          = zoom\nENTER        = recentre\nm,p,c        = maternal,paternal,combined mode\nq,escape,0-9 = quit with various bash exit codes ($?)");
     
     //precalc bitmasks for every possible bit position
     init_masks(c);

@@ -26,6 +26,122 @@
 uint32_t*generate_graphical(struct conf*c,struct lg*p,unsigned type)
 {
     uint32_t*buff=NULL;
+    unsigned i,j,rgb[3];
+    struct marker*m=NULL;
+    VARTYPE**data=NULL;
+    unsigned itype,iphased;
+    
+    itype = type % 3;
+    iphased = type / 3;
+    
+    //pixel buffer
+    assert(buff = calloc(p->nmarkers*c->nind,sizeof(uint32_t)));
+    
+    printf("generating...\n");
+    for(i=0; i<p->nmarkers; i++)
+    {
+        m = p->array[i];
+        
+        for(j=0; j<c->nind; j++)
+        {
+            rgb[0] = 0;
+            rgb[1] = 0;
+            rgb[2] = 0;
+            
+            //generate banding pattern denoting linkage group boundaries
+            //in the blue channel
+            if(m->lg & 0x1) rgb[2] = 120;
+
+            if(iphased) data = m->data; //phased mode
+            else        data = m->orig; //unphased mode
+            
+            if(m->type == LMTYPE)
+            {
+                if(itype != 1)
+                {
+                    if(data[0][j] == MISSING)
+                    {
+                        rgb[0] = 127;
+                        rgb[1] = 127;
+                        rgb[2] += 127;
+                    }
+                    else if(data[0][j] == 0)
+                    {
+                        rgb[0] = 0;
+                        rgb[1] = 0;
+                        rgb[2] += 0;
+                    }
+                    else
+                    {
+                        rgb[0] = 255;
+                        rgb[1] = 0;
+                        rgb[2] += 0;
+                    }
+                }
+            }
+            else if(m->type == NPTYPE)
+            {
+                if(itype != 0)
+                {
+                    if(data[1][j] == MISSING)
+                    {
+                        rgb[0] = 127;
+                        rgb[1] = 127;
+                        rgb[2] += 127;
+                    }
+                    else if(data[1][j] == 0)
+                    {
+                        rgb[0] = 0;
+                        rgb[1] = 0;
+                        rgb[2] += 0;
+                    }
+                    else
+                    {
+                        rgb[0] = 0;
+                        rgb[1] = 255;
+                        rgb[2] += 0;
+                    }
+                }
+            }
+            else //if(m->type == HKTYPE)
+            {
+                if(data[0][j] == MISSING || m->data[0][j] == MISSING)
+                {
+                    rgb[0] = 127;
+                    rgb[1] = 127;
+                    rgb[2] += 127;
+                }
+                else
+                {
+                    if(itype != 1)
+                    {
+                        if(data[0][j] == 0) rgb[0] = 0;
+                        else                rgb[0] = 255;
+                    }
+                    
+                    if(itype != 0)
+                    {
+                        if(data[1][j] == 0) rgb[1] = 0;
+                        else                rgb[1] = 255;
+                    }
+                }
+            }
+            
+            
+            if(rgb[2] > 255) rgb[2] = 255;
+
+            setpixelrgb(buff,i,j,p->nmarkers,rgb[0],rgb[1],rgb[2]);
+        }
+    }
+    
+    printf("done\n");
+    
+    return buff;
+}
+
+uint32_t*generate_graphical_old(struct conf*c,struct lg*p,unsigned type)
+{
+    uint32_t*buff=NULL;
     unsigned i,j,x,rgb[3];
     struct marker*m=NULL;
     VARTYPE*data=NULL;
