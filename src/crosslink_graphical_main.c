@@ -98,7 +98,7 @@ int main(int argc,char*argv[])
         return 1;
     }
     
-    assert(win = SDL_CreateWindow("genotype viewer",0,0,sizex,sizey,SDL_WINDOW_SHOWN));
+    assert(win = SDL_CreateWindow(inp,0,0,sizex,sizey,SDL_WINDOW_SHOWN));
     
     if(hardware) assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED));
     else         assert(ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_SOFTWARE));
