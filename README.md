@@ -1,4 +1,8 @@
 # crosslink
-genetic mapping software for outbreeding populations
+Genetic mapping software for outbreeding species with additional features suitable for allo-polyploids.
 
-note: development history is missing from this repo because it was originally part of a larger repo containing other material not part of the tool itself
+Available as a VirtualBox virtual machine image for cross-platform usage.
+
+Get the image (xubuntu-crosslink.ova) from the latest [release](https://github.com/eastmallingresearch/crosslink/releases). 
+
+See docs/crosslink_manual.pdf for further details and other installation methods.
