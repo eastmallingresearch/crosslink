@@ -22,11 +22,15 @@ set -eu
 
 MINLOD=7.0
 
+echo copy data...
+
 #copy the configuration files
 cp -r ${CROSSLINK_PATH}/sample_data/rgxha_conf ./conf          
 
 #get a working copy of the genotype data
 zcat ${CROSSLINK_PATH}/sample_data/rgxha.loc.gz > all.loc
+
+echo grouping...
 
 #initial exploratory grouping
 cl_group.sh   all.loc   initgrps   ${MINLOD} 
@@ -52,6 +56,8 @@ cl_group.sh   all.uniq   uniqgrps   ${MINLOD}
 #force phasing to complete down to a LOD of zero, even for falsely joined groups
 cl_phase.sh   uniqgrps   phasegrps 
 
+echo detect cross linkage group markers...
+
 #detect cross linkage group markers
 cl_detect_crosslg.sh   phasegrps   crosslg_markers   conf/detectcrosslg.000 
 
@@ -70,17 +76,23 @@ echo 'PHR11-89834490' >> crosslg_markers
 #filter out cross linkage group markers
 cl_removemarkers.sh   filt.uniq   filt.uniq   crosslg_markers
 
+echo regroup...
+
 #form linkage groups
 cl_group.sh   filt.uniq   filtgrps2   7.0
 
 #force phasing to complete
 cl_phase.sh   filtgrps2   filtgrps2
 
+echo finalise order...
+
 #produce final map order
 cl_order_hkimpute.sh   filtgrps2   finalgrps   conf/orderhkimpute.000
 
 #calc map positions
 cl_mappos.sh   finalgrps   finalgrps 
+
+echo reinsert redundant loci
 
 #reinsert redundant markers into genotype files
 cl_reinsert_loc.sh   finalgrps   all.loc   all.redun   finalredun   conf/reinsert.000 
