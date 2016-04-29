@@ -7,19 +7,16 @@
 # create and process a simulated non-polyploid data set though the basic pipeline
 #
 
-#change this to point towards the crosslink install directory
-CROSSLINK_PATH=/home/crosslink_user/crosslink
-
 ################################################################################
 
 set -eu
 
-export PATH=${CROSSLINK_PATH}/scripts:${CROSSLINK_PATH}/bin:${PATH}
-
-#check we can find the crosslink files
-if [ ! -f ${CROSSLINK_PATH}/bin/crosslink_group ]
+#check we can find the binaries
+if ! crosslink_group --help > /dev/null
 then
-    echo "Unable to find the Crosslink files, have you set the CROSSLINK_PATH variable correctly?"
+    echo "Please add the path to Crosslink's files to your PATH variable"
+    echo "for help see the Crosslink manual https://github.com/eastmallingresearch/crosslink/blob/master/docs/crosslink_manual.pdf"
+    echo "in the Installing Directly on Linux section"
     exit 1
 fi
 

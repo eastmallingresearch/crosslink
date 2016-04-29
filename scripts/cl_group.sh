@@ -4,6 +4,12 @@
 
 set -eu
 
+#allow checking the script can be found in the path
+if [ "$1" == "--check" ]
+then
+    exit 0
+fi
+
 CL_INPUT_FILE=$1
 CL_OUTPUT_DIR=$2
 CL_GROUP_MINLOD=$3

@@ -10,13 +10,42 @@
 # but is a simplified version to demonstrate the use of the helper scripts
 #
 
-#set this to point towards the crosslink directory
-CROSSLINK_PATH=${CROSSLINK_PATH:-/home/crosslink_user/crosslink}
+#check CROSSLINK_PATH is set
+if [ -z "${CROSSLINK_PATH:-}" ]
+then
+    echo "Please set the variable CROSSLINK_PATH, otherwise this script cannot find the sample dataset"
+    echo "for help see the crosslink manual https://github.com/eastmallingresearch/crosslink/blob/master/docs/crosslink_manual.pdf"
+    echo "in the Installing Directly on Linux section"
+    exit 1
+fi
 
-################################################################################
+#check the sample data exists
+if [ ! -f ${CROSSLINK_PATH}/sample_data/rgxha.loc.gz ]
+then
+    echo "Could not find the sample data at ${CROSSLINK_PATH}/sample_data/rgxha.loc.gz"
+    echo "Please check the variable CROSSLINK_PATH is set correctly and the sample data are installed"
+    echo "for help see the crosslink manual https://github.com/eastmallingresearch/crosslink/blob/master/docs/crosslink_manual.pdf"
+    echo "in the Installing Directly on Linux section"
+    exit 1
+fi
 
-export PATH=${PATH}:${CROSSLINK_PATH}/bin
-export PATH=${PATH}:${CROSSLINK_PATH}/scripts
+#check we can find a binary
+if ! crosslink_group --help > /dev/null
+then
+    echo "Please add the path to Crosslink's files to your PATH variable"
+    echo "for help see the crosslink manual https://github.com/eastmallingresearch/crosslink/blob/master/docs/crosslink_manual.pdf"
+    echo "in the Installing Directly on Linux section"
+    exit 1
+fi
+
+#check we can find a helper script
+if ! cl_group.sh --check
+then
+    echo "Please add the path to Crosslink's files to your PATH variable"
+    echo "for help see the crosslink manual https://github.com/eastmallingresearch/crosslink/blob/master/docs/crosslink_manual.pdf"
+    echo "in the Installing Directly on Linux section"
+    exit 1
+fi
 
 set -eu
 
