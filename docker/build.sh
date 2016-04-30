@@ -4,20 +4,29 @@
 # build the docker image
 #
 
-BUILD_DIR=/home/vicker/rjv_files/docker/docker_crosslink_build
+MYDOCKERUSER=rjvickerstaff
+RELEASE=0.2
 
 set -eu
 
-rm -rf ${BUILD_DIR}
-mkdir -p ${BUILD_DIR}
-cd ${BUILD_DIR} || exit
+MYTMPDIR=$(mktemp -d --tmpdir crosslink.XXXXXXXXXX)
+
+cd ${MYTMPDIR}
+
 mkdir -p context
 
-#get up to date copy of crosslink
-git clone https://github.com/eastmallingresearch/crosslink
-mv ./crosslink ./context
-rm -rf ./context/crosslink/.git
+#wget https://github.com/eastmallingresearch/crosslink/archive/v${RELEASE}.tar.gz
+cp ~/Downloads/crosslink-${RELEASE}.tar.gz .
+
+tar -xzf crosslink-${RELEASE}.tar.gz
+
+mv ./crosslink-${RELEASE} ./context/crosslink
+
 cp ./context/crosslink/docker/Dockerfile context
+
 cp ~/rjv_mnt/cluster/git_repos/crosslink/docker/Dockerfile context
 
-docker build -t rjvickerstaff/crosslink:0.1 context
+sudo docker build -t ${MYDOCKERUSER}/crosslink:${RELEASE} context
+
+exit
+rm -rf ${MYTMPDIR}

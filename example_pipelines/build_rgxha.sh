@@ -2,13 +2,13 @@
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 ################################################################################
-
 #
 # example pipeline to build a map from the Redgauntlet x Hapil sample data
 # using Crosslink's helper scripts
-# note: this is not the fully pipeline used to build the final published map
+# note: this is not the full pipeline used to build the final published map
 # but is a simplified version to demonstrate the use of the helper scripts
 #
+################################################################################
 
 #check CROSSLINK_PATH is set
 if [ -z "${CROSSLINK_PATH:-}" ]
@@ -49,8 +49,6 @@ fi
 
 set -eu
 
-MINLOD=7.0
-
 echo copy data...
 
 #copy the configuration files
@@ -62,13 +60,13 @@ zcat ${CROSSLINK_PATH}/sample_data/rgxha.loc.gz > all.loc
 echo grouping...
 
 #initial exploratory grouping
-cl_group.sh   all.loc   initgrps   ${MINLOD} 
+cl_group.sh   all.loc   initgrps   7.0
 
 #fix maternal/paternal marker typing errors
 cl_fixtypes.sh   all.loc   all.loc   conf/fixtypes.000 
 
 #exploratory grouping after fixing type errors
-cl_group.sh   all.loc   fixgrps   ${MINLOD} 
+cl_group.sh   all.loc   fixgrps   7.0 
 
 #generate list of non redundant markers
 cl_findredun.sh   all.loc   all.redun   conf/findredun.000 
@@ -80,7 +78,7 @@ cl_knnimpute.sh   all.loc   all.loc   conf/knnimpute.000
 cl_extract.sh   all.loc   all.redun   all.uniq 
 
 #form linkage groups
-cl_group.sh   all.uniq   uniqgrps   ${MINLOD} 
+cl_group.sh   all.uniq   uniqgrps   7.0 
 
 #force phasing to complete down to a LOD of zero, even for falsely joined groups
 cl_phase.sh   uniqgrps   phasegrps 
@@ -94,7 +92,7 @@ cl_detect_crosslg.sh   phasegrps   crosslg_markers   conf/detectcrosslg.000
 cl_removemarkers.sh   all.uniq   filt.uniq   crosslg_markers
 
 #form linkage groups
-cl_group.sh   filt.uniq   filtgrps   ${MINLOD} 
+cl_group.sh   filt.uniq   filtgrps   7.0 
 
 #force phasing to complete
 cl_phase.sh   filtgrps   filtgrps 

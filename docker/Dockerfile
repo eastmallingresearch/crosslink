@@ -1,13 +1,10 @@
-# build from the same directory as this Dockerfile using:
-# docker build -t rjvickerstaff/crosslink:0.1 . 
+# can be built using the ${CROSSLINK_PATH}/docker/build.sh script
 
-#to launch into text only commandline use:
-#  docker run -it -u crosslink_user rjvickerstaff/crosslink:0.1
+#to launch into text only command line use:
+#  docker run -it -u crosslink_user rjvickerstaff/crosslink:${RELEASE}
 
 #launch with X11 mounting for graphical output (on a linux host)
-#http://fabiorehm.com/blog/2014/09/11/running-gui-apps-with-docker/
-#http://wiki.ros.org/docker/Tutorials/GUI
-#  docker run -it --name=crosslink -u crosslink -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY rjvickerstaff/crosslink:0.1
+#  docker run -it --name=crosslink -u crosslink_user -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY rjvickerstaff/crosslink:${RELEASE}
 #then allow access to X11 by entering something like this into the host:
 # xhost +local:$(docker ps --filter=name=crosslink -q)
 
@@ -25,16 +22,17 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 #install new packages
+RUN apt-get install -y apt-utils
 RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev nano bashdb
-RUN apt-get install -y dbus
+RUN apt-get install -y dbus python-numpy python-scipy python-matplotlib
 RUN apt-get install -y libsdl2-image-2.0.0 libsdl2-image-dev
 
 #set root password
-RUN echo 'root:cl_root_uDk5eI' | chpasswd
+RUN echo 'root:crosslink_root' | chpasswd
 
 #add user
 RUN useradd -ms /bin/bash crosslink_user
-RUN echo 'crosslink_user:cl_user_uDk5eI' | chpasswd
+RUN echo 'crosslink_user:crosslink' | chpasswd
 
 WORKDIR /home/crosslink_user
 
@@ -55,4 +53,4 @@ USER crosslink_user
 RUN cd crosslink/src && ./make.sh && ./viewer_make.sh
 
 #add crosslink executables to path
-ENV PATH ${PATH}:/home/crosslink_user/crosslink/scripts:/home/crosslink_user/crosslink/bin:/home/crosslink_user/crosslink/test_scripts
+ENV PATH /home/crosslink_user/crosslink/scripts:/home/crosslink_user/crosslink/bin:${PATH}
