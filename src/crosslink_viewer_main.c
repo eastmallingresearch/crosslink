@@ -266,6 +266,13 @@ int main(int argc,char*argv[])
         }
     }
 
+	SDL_DestroyTexture(tex);
+	SDL_DestroyRenderer(ren);
+	SDL_FreeSurface(surface);
+	SDL_DestroyWindow(win);
+	free(buff_mat);
+	free(buff_pat);
+	free(buff_com);
     SDL_Quit();
 
     return retcode;
