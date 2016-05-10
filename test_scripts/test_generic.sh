@@ -96,7 +96,7 @@ echo\
         ${GIBBS_TWOPT_1}\
         ${GIBBS_TWOPT_2}\
         ${SAMPLE_DIR}\
-        ${MYUID}\
+        ${DIRNAME}\
         ${hk_score} ${mapping_score}\
         > score
 

@@ -7,26 +7,12 @@
 
 set -eu
 
-#minprob1 0 - 1
-#minprob2 > 0, < .25
-#probunidir  .05-.8
-#probunordered >0, < 0.7
-#probsequential 0-0.8
-#samples 50-200
-#twopt1 0 - 1
-#twopt2 0 - 1
-#burnin > 1
+SCRIPT_DIR=${CROSSLINK_PATH}/test_scripts
 
-#change this to point towards the crosslink directory
-CROSSLINK_PATH=/home/vicker/git_repos/crosslink
-
-SCRIPT_DIR=${CROSSLINK_PATH}/sample_data
-
-export PATH=${PATH}:${CROSSLINK_PATH}/scripts
 export PATH=${PATH}:${SCRIPT_DIR}
 
 #check working directory
-if [ "$(pwd)" != '/home/vicker/crosslink/ploscompbiol_data/simdata/test_hk' ]
+if [ "$(pwd)" != '/home/vicker/crosslink/ploscompbiol_data/simdata/test_hk3' ]
 then
     echo wrong working directory
     exit
@@ -36,17 +22,17 @@ mkdir -p logs
 mkdir -p figs
 
 MAXJOBS=100
-NUM_TRIALS=2000
+NUM_TRIALS=3000
 
 #baseline parameters
 GA_GIBBS_CYCLES=5
 GA_ITERS=300000
-GA_USE_MST=1
+GA_USE_MST=4
 GA_MINLOD=10
 GA_MST_NONHK=0
 GA_OPTIMISE_METH=0
 GA_PROB_HOP=0.333
-GA_MAX_HOP=0.25
+GA_MAX_HOP=0.2
 GA_PROB_MOVE=0.333
 GA_MAX_MVSEG=1.0
 GA_MAX_MVDIST=1.0
@@ -68,16 +54,14 @@ while [ ${TRIAL} -le ${NUM_TRIALS} ]
 do
     MYUID=$(printf "%010d" ${TRIAL})
 
-    GIBBS_SAMPLES=$((RANDOM%600+1))
-    GIBBS_BURNIN=$((RANDOM%100+1))
-    vals=( $(python -c "import random as r; r.seed(${RANDOM}); x=r.random(); y=r.random(); z=r.random(); t=x+y+z; x/=t;y/=t;print x,y") )
-    GIBBS_PROB_SEQUENTIAL=${vals[0]}
-    GIBBS_PROB_UNIDIR=${vals[1]}
-    vals=( $(python -c "import random as r; r.seed(${RANDOM}); print ' '.join([str(r.random()) for x in xrange(4)])") )
-    GIBBS_MIN_PROB_1=${vals[0]}
-    GIBBS_MIN_PROB_2=${vals[1]}
-    GIBBS_TWOPT_1=${vals[2]}
-    GIBBS_TWOPT_2=${vals[3]}
+    GIBBS_SAMPLES=300
+    GIBBS_BURNIN=5
+    GIBBS_PROB_SEQUENTIAL=0.0
+    GIBBS_PROB_UNIDIR=1.0
+    GIBBS_MIN_PROB_1=0.1
+    GIBBS_MIN_PROB_2=0.01
+    GIBBS_TWOPT_1=$(python -c "import random as r; r.seed(${RANDOM}); print r.random()")
+    GIBBS_TWOPT_2=$(python -c "import random as r; r.seed(${RANDOM}); print r.random()")
     
     SAMPLENO=$((RANDOM%200+1))
     

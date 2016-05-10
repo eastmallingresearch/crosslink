@@ -10,30 +10,25 @@
 
 set -eu
 
-CROSSLINK_PATH=/home/vicker/git_repos/crosslink
+source ~/rjv_bashrc
 
-SCRIPT_DIR=${CROSSLINK_PATH}/sample_data
+DIRNAME=${RANDOM}${RANDOM}
 
-export PATH=${PATH}:${CROSSLINK_PATH}/scripts
-export PATH=${PATH}:${SCRIPT_DIR}
-
-DIRNAME=${MATPATLOD}_${SAMPLE_DIR}
-
-rm -rf ${DIRNAME}
 mkdir -p ${DIRNAME}
 cd ${DIRNAME}
 
 echo initial grouping...
 mkdir -p groups
 crosslink_group\
+        --seed=0\
         --inp=../../sample_data2/${SAMPLE_DIR}/sample.loc\
         --log=group.log\
         --outbase=groups/\
         --mapbase=groups/\
-        --min_lod=${MINLOD}\
+        --min_lod=10\
         --ignore_cxr=1\
         --matpat_lod=${MATPATLOD}\
-        --knn=${KNN}
+        --knn=3
 
 #count uncorrected typing errors and number of false corrections
 typeerr_score=$(calc_typeerr_accuracy.py ../../sample_data2/${SAMPLE_DIR}/typeerrmarkers_list group.log)

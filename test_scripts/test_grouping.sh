@@ -10,30 +10,28 @@
 
 set -eu
 
-CROSSLINK_PATH=/home/vicker/git_repos/crosslink
+source ~/rjv_bashrc
 
-SCRIPT_DIR=${CROSSLINK_PATH}/sample_data
+SCRIPT_DIR=${CROSSLINK_PATH}/test_scripts
 
-export PATH=${PATH}:${CROSSLINK_PATH}/scripts
-export PATH=${PATH}:${SCRIPT_DIR}
+DIRNAME=${RANDOM}${RANDOM}
 
-DIRNAME=${MINLOD}_${SAMPLE_DIR}
-
-rm -rf ${DIRNAME}
 mkdir -p ${DIRNAME}
 cd ${DIRNAME}
 
 echo initial grouping...
 mkdir -p groups
 crosslink_group\
+        --seed=0\
         --inp=../../sample_data2/${SAMPLE_DIR}/sample.loc\
         --log=group.log\
         --outbase=groups/\
         --mapbase=groups/\
         --min_lod=${MINLOD}\
         --ignore_cxr=1\
-        --matpat_lod=${MATPATLOD}\
-        --knn=${KNN}
+        --mst_nonhk=${NONHK}\
+        --matpat_lod=10\
+        --knn=3
 
 #count uncorrected typing errors and number of false corrections
 typeerr_score=$(calc_typeerr_accuracy.py ../../sample_data2/${SAMPLE_DIR}/typeerrmarkers_list group.log)
@@ -50,6 +48,6 @@ knn_score=$(calc_imputation_accuracy.py "../../sample_data2/${SAMPLE_DIR}/orig/*
 #hk imputation accuracy
 map_score=$(calc_mapping_accuracy.sh ../../sample_data2/${SAMPLE_DIR}/sample.map 'groups/*.map')
 
-echo ${MINLOD} ${SAMPLE_DIR} ${typeerr_score} ${group_score} ${phase_score} ${knn_score} ${map_score} > score
+echo ${MINLOD} ${NONHK} ${SAMPLE_DIR} ${typeerr_score} ${group_score} ${phase_score} ${knn_score} ${map_score} > score
 
 rm -rf groups init group.log

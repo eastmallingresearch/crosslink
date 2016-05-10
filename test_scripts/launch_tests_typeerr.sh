@@ -9,12 +9,8 @@
 
 set -eu
 
-#change this to point towards the crosslink directory
-CROSSLINK_PATH=/home/vicker/git_repos/crosslink
+SCRIPT_DIR=${CROSSLINK_PATH}/test_scripts
 
-SCRIPT_DIR=${CROSSLINK_PATH}/sample_data
-
-export PATH=${PATH}:${CROSSLINK_PATH}/scripts
 export PATH=${PATH}:${SCRIPT_DIR}
 
 #check working directory
@@ -27,15 +23,11 @@ fi
 mkdir -p logs
 mkdir -p figs
 
-MAXJOBS=150
-
-#group
-export MINLOD=10.0       #form linkage groups using this linkage LOD threshold
-export MATPATLOD=10.0   #correct marker typing errors using this LOD threshold
-export KNN=3            #imputing missing values to the most common of the three nearest markers
+MAXJOBS=100
 
 #sweep through different parameter settings
-for MATPATLOD in 10 12 14 16 18 20
+#for MATPATLOD in 10 12 14 16 18 20 25 30 40
+for MATPATLOD in 25 30 40
 do
     for SAMPLENO in $(seq 31 60)
     do

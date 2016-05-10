@@ -1,18 +1,11 @@
 #!/bin/bash
 
 #
-# launch test runs to optimise hk imputation parameters
+# launch test runs to optimise GA parameters
 # run on cluster
 #
 
 set -eu
-
-#iters >= 200000
-#usemst=1
-#maxhop 0.25
-#mstnonhk=0
-#optimmeth=0
-
 
 #change this to point towards the crosslink directory
 CROSSLINK_PATH=/home/vicker/git_repos/crosslink
@@ -41,7 +34,7 @@ GA_GIBBS_CYCLES=5
 GA_ITERS=300000
 GA_USE_MST=1
 GA_MINLOD=10
-GA_MST_NONHK=1
+GA_MST_NONHK=0
 GA_OPTIMISE_METH=0
 GA_PROB_HOP=0.333
 GA_MAX_HOP=1.0

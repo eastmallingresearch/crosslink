@@ -9,12 +9,7 @@
 
 set -eu
 
-#change this to point towards the crosslink directory
-CROSSLINK_PATH=/home/vicker/git_repos/crosslink
-
-SCRIPT_DIR=${CROSSLINK_PATH}/sample_data
-
-export PATH=${PATH}:${CROSSLINK_PATH}/scripts
+SCRIPT_DIR=${CROSSLINK_PATH}/test_scripts
 export PATH=${PATH}:${SCRIPT_DIR}
 
 #check working directory
@@ -27,19 +22,18 @@ fi
 mkdir -p logs
 mkdir -p figs
 
-MAXJOBS=150
+MAXJOBS=100
 
 #group
-export MINLOD=6.0       #form linkage groups using this linkage LOD threshold
-export MATPATLOD=10.0   #correct marker typing errors using this LOD threshold
-export KNN=3            #imputing missing values to the most common of the three nearest markers
+export MINLOD       #form linkage groups using this linkage LOD threshold
+export NONHK        #whether to prioritise nonhk edges for MST approx ordering
 
 #sweep through different parameter settings
 for MINLOD in 3 4 5 6 7 9 11 14 20 25 30
 do
     for SAMPLENO in $(seq 1 30)
     do
-        SAMPLE_DIR=$(printf "%03d" ${SAMPLENO})
+        export SAMPLE_DIR=$(printf "%03d" ${SAMPLENO})
         while true
         do
             NJOBS=$(qstat | wc --lines)
@@ -53,9 +47,13 @@ do
             sleep 1
         done
     
-        #launch the job
-        export MINLOD SAMPLE_DIR
-        echo ${MINLOD} ${SAMPLE_DIR}
+        #launch the jobs
+        NONHK=0
+        echo ${MINLOD} ${NONHK} ${SAMPLE_DIR}
+        myqsub.sh ${SCRIPT_DIR}/test_grouping.sh 
+
+        NONHK=1
+        echo ${MINLOD} ${NONHK} ${SAMPLE_DIR}
         myqsub.sh ${SCRIPT_DIR}/test_grouping.sh 
     done
 done
