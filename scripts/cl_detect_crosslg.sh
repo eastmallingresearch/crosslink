@@ -1,6 +1,6 @@
 #!/bin/bash
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
-#detect polyploidy related cross linkage group markers
+#detect cross linkage group markers (likely due to polyploidy)
 
 set -eu
 

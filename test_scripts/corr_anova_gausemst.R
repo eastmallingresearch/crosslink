@@ -9,10 +9,10 @@
 #library(ggplot2)
 
 #collect all results
-system("cat */score > all_scores")
+setwd("~/crosslink/ploscompbiol_data/simdata/figs")
+system("cat ../test_gausemst/*/score > gausemst_data")
 
-
-dat = read.table("all_scores",col.names=c(
+dat = read.table("gausemst_data",col.names=c(
                 "GA_GIBBS_CYCLES",
                 "GA_ITERS",
                 "GA_USE_MST",
@@ -51,10 +51,18 @@ summary(aov.out)
 cat("============pairwise t tests with bonferroni correction")
 with(dat, pairwise.t.test(x=map, g=GA_USE_MST, p.adjust.method="bonf", paired=T))
 
-cat("============2-factor anova")
-aov.tbys = aov(map ~ GA_USE_MST + SAMPLE_DIR, data=dat)
-summary(aov.tbys)
+mean(subset(dat,GA_USE_MST==0)$map)
+mean(subset(dat,GA_USE_MST==3)$map)
+mean(subset(dat,GA_USE_MST==5)$map)
 
-cat("============Tukey honest sig diff")
-TukeyHSD(aov.tbys, which="GA_USE_MST")
+sd(subset(dat,GA_USE_MST==0)$map)
+sd(subset(dat,GA_USE_MST==3)$map)
+sd(subset(dat,GA_USE_MST==5)$map)
+
+#cat("============2-factor anova")
+#aov.tbys = aov(map ~ GA_USE_MST + SAMPLE_DIR, data=dat)
+#summary(aov.tbys)
+
+#cat("============Tukey honest sig diff")
+#TukeyHSD(aov.tbys, which="GA_USE_MST")
     

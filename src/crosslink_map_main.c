@@ -60,30 +60,25 @@ int main(int argc,char*argv[])
     rjvparser("out|STRING|-|output genotype file",&c->out);
     rjvparser("log|STRING|-|output log file",&c->log);
     rjvparser("map|STRING|-|output map file",&c->map);
-    rjvparser("mstmap|STRING|-|output mstmap file",&c->mstmap);
+    //rjvparser("mstmap|STRING|-|output mstmap file",&c->mstmap);
     
     rjvparser("seed|UNSIGNED|1|random number generator seed, 0=use system time",&c->gg_prng_seed);
-    rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane,2=Kosambi",&c->gg_map_func);
+    rjvparser("map_func|UNSIGNED|1|mapping func, 1=Haldane, 2=Kosambi",&c->gg_map_func);
     rjvparser("randomise_order|UNSIGNED|0|start from a random initial marker ordering",&c->gg_randomise_order);
     rjvparser("bitstrings|UNSIGNED|1|use bitstring data representation internally",&c->gg_bitstrings);
-    rjvparser("show_pearson|UNSIGNED|0|log Pearson correlation of ordering information",&c->gg_show_pearson);
-    rjvparser("show_hkcheck|UNSIGNED|0|log hk imputation information",&c->gg_show_hkcheck);
-    rjvparser("show_width|UNSIGNED|9999999|width of debug output",&c->gg_show_width);
-    rjvparser("show_height|UNSIGNED|9999999|height of debug output",&c->gg_show_height);
-    rjvparser("show_counters|UNSIGNED|0|log Gibbs imputation information",&c->gg_show_counters);
-    rjvparser("show_initial|UNSIGNED|0|show initial state",&c->gg_show_initial);
-    rjvparser("show_bits|UNSIGNED|0|show bit states",&c->gg_show_bits);
-    rjvparser("pause|UNSIGNED|0|pause each iteration",&c->gg_pause);
-    
-    rjvparser("homeo_minlod|FLOAT|1.0|detect cross homeolog markers, minlod",&c->gg_homeo_minlod);
-    rjvparser("homeo_maxlod|FLOAT|16.0|detect cross homeolog markers, maxlod",&c->gg_homeo_maxlod);
-    rjvparser("homeo_mincount|UNSIGNED|0|report as possible cross homeolog if implicated more than this many time, 0 to disable",&c->gg_homeo_mincount);
+    //rjvparser("show_pearson|UNSIGNED|0|log Pearson correlation of ordering information",&c->gg_show_pearson);
+    //rjvparser("show_hkcheck|UNSIGNED|0|log hk imputation information",&c->gg_show_hkcheck);
+    //rjvparser("show_width|UNSIGNED|9999999|width of debug output",&c->gg_show_width);
+    //rjvparser("show_height|UNSIGNED|9999999|height of debug output",&c->gg_show_height);
+    //rjvparser("show_counters|UNSIGNED|0|log Gibbs imputation information",&c->gg_show_counters);
+    //rjvparser("show_initial|UNSIGNED|0|show initial state",&c->gg_show_initial);
+    //rjvparser("show_bits|UNSIGNED|0|show bit states",&c->gg_show_bits);
+    //rjvparser("pause|UNSIGNED|0|pause each iteration",&c->gg_pause);
     
     rjvparser("ga_gibbs_cycles|UNSIGNED|5|number of GA-Gibbs cycles",&c->ga_gibbs_cycles);
-    rjvparser("ga_report|UNSIGNED|0|GA log reporting period, 0=disabled",&c->ga_report);
     rjvparser("ga_iters|UNSIGNED|100000|number of GA iterations per GA-Gibbs cycle",&c->ga_iters);
-    rjvparser("ga_use_mst|UNSIGNED|999|how many GA-Gibbs cycles to perform initial MST ordering before the GA (0=none,N=up to and including the Nth cycle)",&c->ga_use_mst);
     rjvparser("ga_minlod|FLOAT|3.0|min LOD for MST construction and global order optimisation scoring",&c->ga_minlod);
+    rjvparser("ga_use_mst|UNSIGNED|999|how many GA-Gibbs cycles to perform initial MST ordering before the GA (0=none,N=up to and including the Nth cycle)",&c->ga_use_mst);
     rjvparser("ga_mst_nonhk|UNSIGNED|0|prioritise non-hk linkage when building the MST",&c->ga_mst_nonhk);
     rjvparser("ga_optimise_meth|UNSIGNED|0|0=optimse map total recombination events, 1=optimise total map distance, 2=optimise a global measure of map quality (sets --ga_skip_order1=1 --randomise_order=0)",&c->ga_optimise_meth);
     rjvparser("ga_prob_hop|FLOAT|0.333|probability a mutation moves a single marker",&c->ga_prob_hop);
@@ -97,19 +92,23 @@ int main(int argc,char*argv[])
     rjvparser("ga_em_tol|FLOAT|1e-5|for 2 point rf calculations, convergence tolerance for EM algorithm",&c->ga_em_tol);
     rjvparser("ga_em_maxit|UNSIGNED|100|for 2 point rf calculations, max EM iterations",&c->ga_em_maxit);
     rjvparser("ga_skip_order1|UNSIGNED|0|1=skip first GA ordering, go straight to Gibbs using the marker order from the input file",&c->ga_skip_order1);
+    rjvparser("ga_report|UNSIGNED|0|GA log reporting period, 0=disabled",&c->ga_report);
     
     rjvparser("gibbs_samples|UNSIGNED|300|number of Gibbs samples to collect per GA-Gibbs cycle",&c->gibbs_samples);
     rjvparser("gibbs_burnin|UNSIGNED|10|Gibbs burn in cycles",&c->gibbs_burnin);
     rjvparser("gibbs_period|UNSIGNED|1|Gibbs cycles per sample",&c->gibbs_period);
-    rjvparser("gibbs_report|UNSIGNED|0|Gibbs log reporting period, 0=disabled",&c->gibbs_report);
     rjvparser("gibbs_prob_sequential|FLOAT|0.0|probability Gibbs cycle uses sequential mode",&c->gibbs_prob_sequential);
     rjvparser("gibbs_prob_unidir|FLOAT|1.0|probability Gibbs cycle uses unidirectional mode",&c->gibbs_prob_unidir);
     rjvparser("gibbs_min_prob_1|FLOAT|0.1|minimum permitted probability of a state transition at the start of burn in period",&c->gibbs_min_prob_1);
     rjvparser("gibbs_min_prob_2|FLOAT|0.0|minimum permitted probability of a state transition by the end of burn in period",&c->gibbs_min_prob_2);
     rjvparser("gibbs_twopt_1|FLOAT|1.0|weighting given to two point rf at start of burn in period",&c->gibbs_twopt_1);
     rjvparser("gibbs_twopt_2|FLOAT|1.0|weighting given to two point rf by the end of burn in period",&c->gibbs_twopt_2);
-    rjvparser("gibbs_min_ctr|UNSIGNED|0|minimum sample counter value to trigger imputation of the state, 0=always impute",&c->gibbs_min_ctr);
+    //rjvparser("gibbs_min_ctr|UNSIGNED|0|minimum sample counter value to trigger imputation of the state, 0=always impute",&c->gibbs_min_ctr);
+    rjvparser("gibbs_report|UNSIGNED|0|Gibbs log reporting period, 0=disabled",&c->gibbs_report);
     
+    rjvparser("homeo_minlod|FLOAT|1.0|detect cross homeolog markers, minlod",&c->gg_homeo_minlod);
+    rjvparser("homeo_maxlod|FLOAT|16.0|detect cross homeolog markers, maxlod",&c->gg_homeo_maxlod);
+    rjvparser("homeo_mincount|UNSIGNED|0|report as possible cross homeolog if implicated more than this many time, 0 to disable",&c->gg_homeo_mincount);
     rjvparser2(argc,argv,rjvparser(0,0),"Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details\nmake final map ordering, impute missing hk information");
     
     //seed random number generator

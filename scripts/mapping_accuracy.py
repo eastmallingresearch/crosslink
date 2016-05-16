@@ -15,8 +15,11 @@
 
 import sys
 import glob
+import math
 from scipy.stats import pearsonr
 import numpy as np
+
+#np.seterr(all='raise')
 
 if len(sys.argv) != 3:
     print "usage: mapping_accuracy.py <ref_map_csv> <test_map_csv>"
@@ -53,7 +56,6 @@ score_matrix = np.zeros((len(map1),len(map2)))
 
 #find the weighted correlation score for all against all lgs
 for i,lg1 in enumerate(map1): #for each lg in map1
-    
     for j,lg2 in enumerate(map2): #for each lg in map2
         #find positions of markers common to both lgs
         xx = []
@@ -62,7 +64,7 @@ for i,lg1 in enumerate(map1): #for each lg in map1
             if not uid in lg2: continue
             xx.append(float(lg1[uid][2]))
             yy.append(float(lg2[uid][2]))
-            
+
         if len(xx) == 0:
             score_matrix[i][j] = 0.0
             continue
@@ -72,6 +74,8 @@ for i,lg1 in enumerate(map1): #for each lg in map1
             corr = 1.0
         else:
             corr = abs(pearsonr(xx,yy)[0])
+            
+            if math.isnan(corr): corr = 0.0
         
         #what proportion of lg1 markers are in lg2?
         prop = float(len(xx)) / nmarkers1

@@ -22,16 +22,17 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 #install new packages
-RUN apt-get install -y apt-utils
+RUN apt-get install -y less sudo
 RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev nano bashdb
 RUN apt-get install -y dbus python-numpy python-scipy python-matplotlib
 RUN apt-get install -y libsdl2-image-2.0.0 libsdl2-image-dev
 
 #set root password
-RUN echo 'root:crosslink_root' | chpasswd
+#RUN echo 'root:crosslink_root' | chpasswd
 
 #add user
 RUN useradd -ms /bin/bash crosslink_user
+RUN adduser crosslink_user sudo
 RUN echo 'crosslink_user:crosslink' | chpasswd
 
 WORKDIR /home/crosslink_user

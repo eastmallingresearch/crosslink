@@ -16,11 +16,11 @@ cd ${MYTMPDIR}
 mkdir -p context
 
 #wget https://github.com/eastmallingresearch/crosslink/archive/v${RELEASE}.tar.gz
-cp ~/Downloads/crosslink-${RELEASE}.tar.gz .
+#tar -xzf crosslink-${RELEASE}.tar.gz
+#mv ./crosslink-${RELEASE} ./context/crosslink
 
-tar -xzf crosslink-${RELEASE}.tar.gz
-
-mv ./crosslink-${RELEASE} ./context/crosslink
+#git clone https://github.com/eastmallingresearch/crosslink
+mv ./crosslink ./context/crosslink
 
 cp ./context/crosslink/docker/Dockerfile context
 
@@ -28,5 +28,4 @@ cp ~/rjv_mnt/cluster/git_repos/crosslink/docker/Dockerfile context
 
 sudo docker build -t ${MYDOCKERUSER}/crosslink:${RELEASE} context
 
-exit
 rm -rf ${MYTMPDIR}

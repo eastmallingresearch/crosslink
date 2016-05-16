@@ -5,9 +5,9 @@
 
 #collect all results
 setwd("~/crosslink/ploscompbiol_data/simdata/figs")
-system("cat ../test_twopt/*/score > twopt_data")
+system("cat ../test_minprob/*/score > minprob_data")
 
-dat = read.table("twopt_data",col.names=c(
+dat = read.table("minprob_data",col.names=c(
                 "GA_GIBBS_CYCLES",
                 "GA_ITERS",
                 "GA_USE_MST",
@@ -38,7 +38,7 @@ dat = read.table("twopt_data",col.names=c(
 #convert to factors
 dat$SAMPLE_DIR = factor(dat$SAMPLE_DIR)
 #dat$treatment = factor(sprintf("%.1f_%.1f",dat$GIBBS_TWOPT_1,dat$GIBBS_TWOPT_2))
-dat$treatment = factor(dat$GIBBS_TWOPT_2)
+dat$treatment = factor(dat$GIBBS_MIN_PROB_2)
 
 cat("============correlated samples 1-factor anova")
 aov.out = aov(hk ~ treatment + Error(SAMPLE_DIR/treatment), data=dat)

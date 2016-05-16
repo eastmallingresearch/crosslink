@@ -1,6 +1,7 @@
 #!/bin/bash
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #try multiple reorderings of the map and keep the best one
+#called by cl_refine_order
 
 set -eu
 

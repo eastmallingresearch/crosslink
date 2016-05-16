@@ -215,6 +215,7 @@ struct conf
     unsigned gg_map_func;         //1=haldane 2=kosambi
     unsigned gg_randomise_order;  //randomise order of markers after loading
     unsigned gg_bitstrings;       //use bitstring representation of the data to count recombinants
+    unsigned gg_mst_nonhk;        //whether to prioritise nonhk edges in MST contruction in crosslink_group
     unsigned gg_show_pearson;     //measure how approx ordering agrees with original ordering of test data
     unsigned gg_show_hkcheck;     //assume original hk/kh alleles are correct, write number of discrepancies to log file
     unsigned gg_show_width;       //debug option: how many individuals to show

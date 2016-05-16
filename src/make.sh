@@ -59,6 +59,7 @@ gcc ${TYPE}\
 #build crosslink_group
 gcc ${TYPE}\
     -o ../bin/crosslink_group\
+    crosslink_ga.o\
     crosslink_group.o\
     crosslink_utils.o\
     rjvparser.o\

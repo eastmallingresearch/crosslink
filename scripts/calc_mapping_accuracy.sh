@@ -26,4 +26,4 @@ make_combined_map.py ${CL_EVAL_MAPS}\
 #match lgs to reference map
 mapping_accuracy.py ${MYTMPDIR}/refmap.csv ${MYTMPDIR}/evalmap.csv
 
-rm -rf ${MYTMPDIR}
+#rm -rf ${MYTMPDIR}

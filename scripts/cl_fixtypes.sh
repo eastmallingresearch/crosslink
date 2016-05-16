@@ -8,10 +8,6 @@ CL_INPUT_FILE=$1
 CL_OUTPUT_FILE=$2
 CL_CONF_FILE=$3
 
-#example parameters
-#CL_GROUP_MINLOD=5.0
-#CL_GROUP_MATPATLOD=20.0
-#CL_MATPAT_WEIGHTS="01P03"
 source ${CL_CONF_FILE}
 
 #make temporary directory for the output

@@ -1,6 +1,7 @@
 #!/bin/bash
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #merge two or more linkage groups
+#called by cl_merge.sh
 
 set -eu
 

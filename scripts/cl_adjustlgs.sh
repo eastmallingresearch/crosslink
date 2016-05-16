@@ -1,6 +1,6 @@
 #!/bin/bash
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
-#adjust lg name and (if required) orientation
+#adjust lg name and (if required) orientation to match a reference map
 
 set -eu
 

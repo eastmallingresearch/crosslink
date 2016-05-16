@@ -60,6 +60,7 @@ int main(int argc,char*argv[])
     rjvparser("em_maxit|UNSIGNED|100|for 2 point rf calculations, max EM iterations",&c->grp_em_maxit);
     rjvparser("knn|UNSIGNED|0|how many nearest neighbours to use for kNN missing data imputation, 0=disable imputation",&c->grp_knn);
     rjvparser("ignore_cxr|UNSIGNED|0|1=ignore cxr and rxc linkage during grouping",&c->grp_ignore_cxr);
+    rjvparser("mst_nonhk|UNSIGNED|1|1=prioritise nonhk edges during MST ordering",&c->gg_mst_nonhk);
     rjvparser("redundancy_lod|FLOAT|0.0|minimum linkage LOD to use when identifying redundant markers, 0.0=disable",&c->grp_redundancy_lod);
     rjvparser2(argc,argv,rjvparser(0,0),"Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details\nremove redundant markers, form linkage groups, correct marker typing errors, phase, impute missing values, perform approximate ordering");
     

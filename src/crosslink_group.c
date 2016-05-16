@@ -1,3 +1,4 @@
+#include "crosslink_ga.h"
 #include "crosslink_group.h"
 #include "crosslink_utils.h"
 
@@ -1393,8 +1394,16 @@ void distance_and_sort(struct conf*c,struct earray*ea)
         //printf("%s %s lod=%f rf=%f cxr=%u\n",e->m1->name,e->m2->name,e->lod,e->rf,e->cxr_flag);
     }
 
-    //sort edges into ascending cM
-    qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_mapdist_nonhk);
+    if(c->gg_mst_nonhk)
+    {
+        //sort edges into ascending cM, prioritise nonhk edges
+        qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_mapdist_nonhk);
+    }
+    else
+    {
+        //sort edges into ascending cM, do not prioritise nonhk edges
+        qsort(ea->array,ea->nedges,sizeof(struct edge*),ecomp_mapdist_only);
+    }
 }
 
 /*

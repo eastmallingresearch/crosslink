@@ -1,6 +1,7 @@
 #!/bin/bash
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #reinsert redundant markers after their respective framework marker
+#called by cl_reinsert_loc.sh
 
 set -eu
 

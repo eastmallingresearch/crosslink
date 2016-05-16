@@ -1,6 +1,7 @@
 #!/bin/bash
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #phase a single linkage group
+#called by cl_phase.sh
 
 set -u
 

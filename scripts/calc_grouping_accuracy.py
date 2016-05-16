@@ -15,7 +15,7 @@ from scipy.stats import pearsonr
 import numpy as np
 
 if len(sys.argv) != 3:
-    print "usage: mapping_accuracy.py '<ref_loc_glob>' '<test_loc_glob>'"
+    print "usage: calc_grouping_accuracy.py '<ref_loc_glob>' '<test_loc_glob>'"
     exit(0)
 
 def load_map(glb):
