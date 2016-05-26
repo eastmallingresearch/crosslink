@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#Crosslink, Copyright (C) 2016  NIAB EMR
+
 #
 # run onemap assuming there is only one linkage groups
 #

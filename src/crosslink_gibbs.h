@@ -1,3 +1,4 @@
+//Crosslink, Copyright (C) 2016  NIAB EMR
 #ifndef _RJV_CROSSLINK_GIBBS_H_
 #define _RJV_CROSSLINK_GIBBS_H_
 

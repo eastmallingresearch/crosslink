@@ -45,7 +45,7 @@ assert nmarkers1 >= nmarkers2
 
 score_matrix = np.zeros((len(map1),len(map2)))
 
-#copmare all against all lgs
+#compare all against all lgs
 for i,lg1 in enumerate(map1): #for each lg in map1
     
     for j,lg2 in enumerate(map2): #for each lg in map2

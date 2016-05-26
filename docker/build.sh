@@ -4,7 +4,7 @@
 # build the docker image
 #
 
-MYDOCKERUSER=rjvickerstaff
+MYDOCKERUSER=someusername
 RELEASE=0.2
 
 set -eu
@@ -15,16 +15,17 @@ cd ${MYTMPDIR}
 
 mkdir -p context
 
+###use this to get a crosslink release
 #wget https://github.com/eastmallingresearch/crosslink/archive/v${RELEASE}.tar.gz
 #tar -xzf crosslink-${RELEASE}.tar.gz
 #mv ./crosslink-${RELEASE} ./context/crosslink
 
+###use this to get the very latest code from the repository
 #git clone https://github.com/eastmallingresearch/crosslink
+
 mv ./crosslink ./context/crosslink
 
 cp ./context/crosslink/docker/Dockerfile context
-
-cp ~/rjv_mnt/cluster/git_repos/crosslink/docker/Dockerfile context
 
 sudo docker build -t ${MYDOCKERUSER}/crosslink:${RELEASE} context
 

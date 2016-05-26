@@ -1,5 +1,7 @@
 #!/usr/bin/Rscript
 
+#Crosslink, Copyright (C) 2016  NIAB EMR
+
 #
 # create map using record method
 #
@@ -44,15 +46,3 @@ if(algorithm == "om_record") {
 
 write.map(xout,out)
 
-#xrec
-
-#cat("order.seq...\n")
-#xord = order.seq(xlg1, n.init=5, THRES=3, touchdown=TRUE)
-
-#ripple.seq(xord, ws=4, LOD=3)
-
-#cat("exhaustive...\n")
-#xcomp = compare(xlg1)
-
-#the final map?
-#xfinal = make.seq(xcomp,1,1)

@@ -1,3 +1,4 @@
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 # can be built using the ${CROSSLINK_PATH}/docker/build.sh script
 
 #to launch into text only command line use:
@@ -5,6 +6,7 @@
 
 #launch with X11 mounting for graphical output (on a linux host)
 #  docker run -it --name=crosslink -u crosslink_user -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY rjvickerstaff/crosslink:${RELEASE}
+
 #then allow access to X11 by entering something like this into the host:
 # xhost +local:$(docker ps --filter=name=crosslink -q)
 

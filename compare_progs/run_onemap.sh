@@ -6,6 +6,8 @@
 ###$ -l h=blacklace02.blacklace|blacklace05.blacklace|blacklace06.blacklace|blacklace03.blacklace|blacklace04.blacklace|blacklace01.blacklace
 ###$ -pe smp 4
 
+#Crosslink, Copyright (C) 2016  NIAB EMR
+
 set -eu
 
 source ~/rjv_bashrc

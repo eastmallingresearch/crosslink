@@ -2,11 +2,9 @@
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 ################################################################################
-
 #
 # create and process a simulated non-polyploid data set though the basic pipeline
 #
-
 ################################################################################
 
 set -eu
