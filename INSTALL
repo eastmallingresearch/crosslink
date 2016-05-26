@@ -1,0 +1,84 @@
+These instructions are for compiling from source code on a Linux system. If you wish to run from another operating system it is recommended to use the VirtualBox image, as described in the Crosslink manual (docs/crosslink_manual.pdf). You can also use the VirtualBox image on Linux if you do not wish to compile the program from the source code.
+
+Summary of Install Process
+==========================
+
+sudo apt-get install git gcc
+git clone https://github.com/eastmallingresearch/crosslink
+cd crosslink/src
+./make.sh
+
+sudo apt-get install libsdl2-2.0-0 libsdl2-dev
+sudo apt-get install libsdl2-image-2.0.0 libsdl2-image-dev
+./viewer_make.sh
+
+export CROSSLINK_PATH=~/crosslink
+export PATH=${CROSSLINK_PATH}/bin:${CROSSLINK_PATH}/scripts:${PATH}
+
+sudo apt-get install python-scipy python-numpy python-matplotlib
+
+Details
+=======
+
+To install Crosslink on a Linux computer begin by downloading the latest release of the source code from github at https://github.com/eastmallingresearch/crosslink/releases (choose either Source code (zip) or Source code (tar.gz)) and extract the files somewhere. You may wish to move the folder to a more convenient location such as ~/crosslink. To compile the main Crosslink programs you will need gcc installed. Open a terminal. Type the following to see if you have it already installed:
+
+gcc ‑‑version
+
+If not, on Ubuntu or Debian based systems gcc can usually be installed using:
+
+sudo apt-get update
+sudo apt-get install gcc
+
+If you do not have the ability to install packages on your system ask your system administrator to help you. If you use a different Linux distribution use the appropriate package management tool for your system. Now compile the main Crosslink programs using (assuming the crosslink source code is now in a directory called ~/crosslink):
+
+cd ~/crosslink/src
+./make.sh
+
+If no error messages appear the compilation was probably successful, and the programs crosslink_group, crosslink_map and crosslink_pos should have appear in the bin directory. Test you can run crosslink_group as follows:
+
+../bin/crosslink_group ‑‑help
+
+You should see a help message starting “Crosslink Copyright (C) 2016 NIAB EMR...”. To compile the data visualisation tools you will need SDL2 installed, including the development files. On Ubuntu or Debian based system you should be able to install these using:
+
+sudo apt-get install libsdl2-2.0-0 libsdl2-dev
+sudo apt-get install libsdl2-image-2.0.0 libsdl2-image-dev
+
+Now compile the data visualisation programs (crosslink_viewer and crosslink_graphical) using:
+
+./viewer_make.sh
+
+Check you can run crosslink_viewer using:
+
+../bin/crosslink_viewer ‑‑help
+
+You should see a similar help message appear. Next, to allow running the programs from any directory on your system add the path to Crosslink’s programs to your .bashrc file. Here I will assume that the editor nano will be used (install first using sudo apt-get install nano if required). Launch the nano editor using:
+
+nano ~/.bashrc
+
+Add the following lines to the bottom of the file (again assuming Crosslink files were installed to ~/crosslink):
+
+export CROSSLINK_PATH=~/crosslink
+export PATH=${CROSSLINK_PATH}/bin:${CROSSLINK_PATH}/scripts:${PATH}
+
+Make sure not to omit the final ${PATH} from the second line! Press CTRL-O then ENTER to save and CTRL-X to close the editor. Then close the terminal and open a new one (or log out and then back in again if you are logged in remotely). You should now be able to run Crosslink’s programs from any directory:
+
+cd ~
+mkdir test_crosslink
+cd test_crosslink
+crosslink_group ‑‑help
+
+You should see the same help message as before. Now try running one of the example pipelines:
+
+${CROSSLINK_PATH}/example_pipelines/simple_simulated.sh
+
+The pipeline should run and produce new output files in your current directory, including one called final000.loc. Test you can view this file now using crosslink_viewer:
+
+crosslink_viewer ‑‑inp=final000.loc
+
+which should display a coloured plot similar to the one shown for the virtual machine installation section above. Some of the python helper scripts require one or more of the following python modules: scipy, numpy, matplotlib. Install them using:
+
+sudo apt-get install python-scipy python-numpy python-matplotlib
+
+Or, if you have pip available you may wish to try installing them only in your user account rather than system-wide, using:
+
+pip install ‑‑user numpy scipy matplotlib
