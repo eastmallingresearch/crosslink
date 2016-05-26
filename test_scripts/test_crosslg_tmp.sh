@@ -4,6 +4,7 @@
 #$ -l mem_free=0.5G
 #$ -l virtual_free=0.5G
 #$ -l h_rt=999:00:00
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 #
 # run one test to optmise crosslg marker detection parameters

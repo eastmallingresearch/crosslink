@@ -1,4 +1,5 @@
 #!/bin/bash
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 #
 # create a sample data set, manually set to force knn to impute from a repulsion phase marker

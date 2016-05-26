@@ -1,3 +1,4 @@
+//Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #ifndef _RJV_CROSSLINK_GA_H_
 #define _RJV_CROSSLINK_GA_H_
 

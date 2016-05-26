@@ -1,4 +1,5 @@
 #!/bin/bash
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 #
 # launch test runs to optimise crosslg marker detection parameters

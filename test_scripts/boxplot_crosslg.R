@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 library(ggplot2)
 
 #cat */score > all_scores

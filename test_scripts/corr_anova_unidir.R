@@ -1,10 +1,9 @@
 #!/usr/bin/Rscript
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 # test GA_USE_MST with correlated samples ANOVA
 # does the mapping score differ between the three treatments (GA_USE_MST)
 # given that the same sample was used for each treatment (SAMPLE_DIR)
-
-#https://ww2.coastal.edu/kingw/statistics/R-tutorials/repeated.html
 
 #library(ggplot2)
 

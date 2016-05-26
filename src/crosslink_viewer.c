@@ -1,3 +1,4 @@
+//Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #include "crosslink_viewer.h"
 #include "crosslink_utils.h"
 

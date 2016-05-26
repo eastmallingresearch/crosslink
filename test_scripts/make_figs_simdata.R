@@ -1,4 +1,5 @@
 #!/usr/bin/Rscript
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #compare performance versus minlod used for grouping and whether
 #approx ordering prioritises nonhk edges or not
 

@@ -1,7 +1,5 @@
 #!/usr/bin/Rscript
-
-
-#https://ww2.coastal.edu/kingw/statistics/R-tutorials/repeated.html
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 setwd("~/crosslink/ploscompbiol_data/simdata/figs")
 system("cat ../test_group/*/score > group_data")

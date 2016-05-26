@@ -1,4 +1,5 @@
 #!/bin/bash
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 #
 # run a sample polyploid data set though the basic pipeline
