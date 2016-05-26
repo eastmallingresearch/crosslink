@@ -1,4 +1,8 @@
-These instructions are for compiling from source code on a Linux system. If you wish to run from another operating system it is recommended to use the VirtualBox image, as described in the Crosslink manual (docs/crosslink_manual.pdf). You can also use the VirtualBox image on Linux if you do not wish to compile the program from the source code.
+These instructions are for compiling from source code on a Linux system.
+If you wish to run from another operating system it is recommended to use
+the VirtualBox image, as described in the Crosslink manual (docs/crosslink_manual.pdf).
+You can also use the VirtualBox image on Linux if you do not wish to compile
+the program from the source code.
 
 Summary of Install Process
 ==========================
@@ -20,7 +24,13 @@ sudo apt-get install python-scipy python-numpy python-matplotlib
 Details
 =======
 
-To install Crosslink on a Linux computer begin by downloading the latest release of the source code from github at https://github.com/eastmallingresearch/crosslink/releases (choose either Source code (zip) or Source code (tar.gz)) and extract the files somewhere. You may wish to move the folder to a more convenient location such as ~/crosslink. To compile the main Crosslink programs you will need gcc installed. Open a terminal. Type the following to see if you have it already installed:
+To install Crosslink on a Linux computer begin by downloading the latest
+release of the source code from github at https://github.com/eastmallingresearch/crosslink/releases
+(choose either Source code (zip) or Source code (tar.gz)) and extract the
+files somewhere. You may wish to move the folder to a more convenient location
+such as ~/crosslink. To compile the main Crosslink programs you will need
+gcc installed. Open a terminal. Type the following to see if you have it
+already installed:
 
 gcc ‑‑version
 
