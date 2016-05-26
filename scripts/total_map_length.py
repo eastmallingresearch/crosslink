@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
 '''
 find the combined length of maternal and paternal maps

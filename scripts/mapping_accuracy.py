@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #
 # calculate mapping accuracy in a way which penalises incorrect ordering 
 # and over/under splitting

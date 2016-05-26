@@ -1,17 +1,18 @@
 #!/bin/bash
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #
 # build crosslink_viewer and crosslink_graphical
 #
 
 set -eu
 
-#TYPE="-Wall -Wextra -O3"
-TYPE="-Wall -Wextra -g"
+TYPE="-Wall -Wextra -O3"
+#TYPE="-Wall -Wextra -g"
 
-#select alternative colour scheme
-#AUX="-DALTCOLSCHEME"
 AUX=""
+
+#uncomment to select alternative colour scheme
+#AUX="-DALTCOLSCHEME"
 
 
 gcc ${TYPE} ${AUX}\

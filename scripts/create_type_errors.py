@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 '''
 create some cross linkage group hkxhk markers
 pick lmxll and nnxnp markers not on the same linkage group

@@ -1,3 +1,5 @@
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
+
 import os,random,math,inspect
 from math import log10
 import numpy as np

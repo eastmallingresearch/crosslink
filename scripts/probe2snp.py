@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 #
 # convert probeset ids to snp ids in a csv
 # usage: probe2snp.py probe2snpfile inp.csv > out.csv

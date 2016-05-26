@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 '''
 reinsert redundant markers into a loc file
 does not generate an updated group header

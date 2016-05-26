@@ -1,5 +1,5 @@
 #!/usr/bin/python
-
+#Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 '''
 reverse the digits of the map positions embedded inthe marker names
 so that it is impossible for joinmap to produce an alphabetically sorted list
