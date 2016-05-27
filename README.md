@@ -6,3 +6,8 @@ Available as a [VirtualBox](https://www.virtualbox.org) virtual machine image fo
 Get the image (xubuntu-crosslink.ova) from the latest [release](https://github.com/eastmallingresearch/crosslink/releases). 
 
 See [docs/crosslink_manual.pdf](https://github.com/eastmallingresearch/crosslink/blob/master/docs/crosslink_manual.pdf) for further details and other installation methods.
+
+Publication:
+Crosslink: A fast, polyploid-aware genetic mapping program for outcrossing species
+(in prep.)
+Robert J. Vickerstaff, Laima Antanaviciute and Richard J. Harrison
