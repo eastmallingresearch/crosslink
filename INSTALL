@@ -6,14 +6,16 @@ the program from the source code.
 
 Summary of Install Process
 ==========================
+This quick summary of the install process assumes Ubuntu Linux is being used,
+and was tested on version 14.04. If you use another distribution use the
+appropriate package manager and package names for your system.
 
 sudo apt-get install git gcc
 git clone https://github.com/eastmallingresearch/crosslink
 cd crosslink/src
 ./make.sh
 
-sudo apt-get install libsdl2-2.0-0 libsdl2-dev
-sudo apt-get install libsdl2-image-2.0.0 libsdl2-image-dev
+sudo apt-get install libsdl2-2.0-0 libsdl2-dev libsdl2-image-2.0.0 libsdl2-image-dev
 ./viewer_make.sh
 
 export CROSSLINK_PATH=~/crosslink
