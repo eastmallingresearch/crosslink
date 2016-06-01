@@ -4,8 +4,8 @@
 # build the docker image
 #
 
-MYDOCKERUSER=someusername
-RELEASE=0.2
+MYDOCKERUSER=rjvickerstaff
+RELEASE=0.3
 
 set -eu
 
@@ -22,7 +22,6 @@ mkdir -p context
 
 ###use this to get the very latest code from the repository
 git clone https://github.com/eastmallingresearch/crosslink
-
 mv ./crosslink ./context/crosslink
 
 cp ./context/crosslink/docker/Dockerfile context
