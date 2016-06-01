@@ -21,7 +21,7 @@ mkdir -p context
 #mv ./crosslink-${RELEASE} ./context/crosslink
 
 ###use this to get the very latest code from the repository
-#git clone https://github.com/eastmallingresearch/crosslink
+git clone https://github.com/eastmallingresearch/crosslink
 
 mv ./crosslink ./context/crosslink
 
