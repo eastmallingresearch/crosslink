@@ -87,8 +87,6 @@ cl_refine_order.sh   finalgrps   global  5   28   conf/refine.001 #refine map or
 #decide which version of each lg looks better 
 #for x in ./finalgrps/*.loc ; do crosslink_viewer --inp=$x || break ; crosslink_viewer --inp=${x/finalgrps/global} || break ; done
 
-exit
-
 #which groups global version is best?
 for x in 001 008 011
 do
