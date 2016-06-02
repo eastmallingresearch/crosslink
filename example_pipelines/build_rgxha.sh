@@ -8,6 +8,12 @@
 # note: this is not the full pipeline used to build the final published map
 # but is a simplified version to demonstrate the use of the helper scripts
 #
+# the main difference is that the produced linkage group names do not follow the
+# conventions of the Holiday x Korona map and the ordering produced is
+# slightly different to the full RGxHA map
+#
+# this pipeline does not require any files outside the crosslink repostory
+#
 ################################################################################
 
 #check CROSSLINK_PATH is set
@@ -126,3 +132,11 @@ cl_reinsert_loc.sh   finalgrps   all.loc   all.redun   finalredun   conf/reinser
 
 #reinsert redundant markers into map files
 cl_reinsert_map.sh   finalgrps   all.redun   finalredun
+
+#convert to joinmap compatible files
+mkdir -p joinmap
+cl_loc2joinmap.sh   finalgrps    joinmap/uniq.loc
+cl_map2joinmap.sh   finalgrps    joinmap/uniq.map
+
+cl_loc2joinmap.sh   finalredun   joinmap/redun.loc
+cl_map2joinmap.sh   finalredun   joinmap/redun.map
