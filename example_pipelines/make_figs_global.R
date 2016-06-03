@@ -19,10 +19,10 @@ theme = theme(
   title = element_text(size=12, family="Arial")
 )
 
-i1 = readPNG("001mat_recomb.png")
-i2 = readPNG("001mat_global.png")
-i3 = readPNG("001pat_recomb.png")
-i4 = readPNG("001pat_global.png")
+i1 = readPNG("017.000.mat.recomb.png")
+i2 = readPNG("017.000.mat.global.png")
+i3 = readPNG("017.000.pat.recomb.png")
+i4 = readPNG("017.000.pat.global.png")
 
 p1 = rasterGrob(i1, interpolate=FALSE) 
 p2 = rasterGrob(i2, interpolate=FALSE) 

@@ -7,8 +7,10 @@ csvs must have first three columns as:
 marker name,linkage group,centimorgan position
 '''
 
-# cd ~/octoploid_mapping/our6plates_plus_RGxHAros/rgxha_map2
-# ~/git_repos/crosslink/example_pipelines/make_fig_compare_maps.py --map1 snpids.csv --map2 ../emxfe_map2/snpids.csv
+# cd ~/octoploid_mapping
+# ~/git_repos/crosslink/example_pipelines/make_fig_compare_maps_vesca.py \
+#       --map1 ./our6plates_plus_RGxHAros/rgxha_map2/snpids.csv \
+#       --map2 ./vesca/vesca2.0_snpid_posns.csv
 
 import sys,argparse,os
 import numpy as np
@@ -70,7 +72,7 @@ plt.yticks([0.0,max2],fontsize=10)
 
 ax.set_xlabel("Redgauntlet x Hapil map position (cM)",fontsize=10)
 #ax.set_ylabel("Holiday x Korona map position (cM)",fontsize=10)
-ax.set_ylabel("Emily x Fenella map position (cM)",fontsize=10)
+ax.set_ylabel("$Fragaria$ $vesca$ genome position (bp)",fontsize=10)
 
 ax.xaxis.labelpad = 10
 ax.yaxis.labelpad = 20
@@ -81,16 +83,16 @@ fs=8.0
 xstart=max1/len(map1.lglist) * .5
 xinc=max1/(len(map1.lglist) + 1)
 for i,x in enumerate(map1.lglist):
-    ax.text(xstart+i*xinc,-120.0,x.name,fontsize=fs,rotation='vertical')
-    plt.plot([xstart+i*xinc+xinc/4,x.start+x.size/2.0],[-50,10.0],'k-',lw=1)[0].set_clip_on(False)
+    ax.text(xstart+i*xinc,-11000000.0,x.name,fontsize=fs,rotation='vertical')
+    plt.plot([xstart+i*xinc+xinc/4,x.start+x.size/2.0],[-5700000,1000000],'k-',lw=1)[0].set_clip_on(False)
     
 #y axis labels
-xstart=max2/len(map2.lglist) * .5
-xinc=max2/(len(map2.lglist) + 1)
+xstart=max2/len(map2.lglist) * .5 - 100000
+xinc=max2/(len(map2.lglist) - 0.3)
 for i,x in enumerate(map2.lglist):
     ax.text(-80.0,xstart+i*xinc,x.name,fontsize=fs,ha='right')
-    plt.plot([-70,10.0],[xstart+i*xinc+xinc/4,x.start+x.size/2.0],'k-',lw=1)[0].set_clip_on(False)
+    plt.plot([-70,10.0],[xstart+i*xinc+xinc/10,x.start+x.size/2.0],'k-',lw=1)[0].set_clip_on(False)
 
 plt.savefig("output.png", dpi=300, bbox_inches='tight')
 
-os.system("convert output.png 7.tiff")
+os.system("convert output.png rgxha2vesca.tiff")
