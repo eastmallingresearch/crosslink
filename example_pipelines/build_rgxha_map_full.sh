@@ -6,13 +6,15 @@
 # full version of Redgauntlet x Hapil mapping pipeline
 #
 # IMPORTANT: this file acts to document the steps taken to produce the final map
-# if you require to replicate all the steps here it is recommended to 
+# if you require to replicate all the steps here you may find it best to 
 # run the steps one at a time by copy-pasting into the terminal or by commenting
 # out all the lines and selectively uncommenting a few at a time
 # 
-# some steps also require access to the IStraw90.r1.ps2snp_map.ps file from
-# the Affymetrix Axiom(R) IStraw90 array and a draft of Holiday x Korona SNP map
-# (which is not yet publically available as of time of writing) in order to
+# some steps also require the IStraw90.r1.ps2snp_map.ps file from
+# the Affymetrix Axiom(R) IStraw90 array available at (accessed 2016-06-06):
+# http://media.affymetrix.com/analysis/downloads/lf/genotyping/IStraw90/
+# and a draft of Holiday x Korona SNP map
+# (which is not yet publicly available as of time of writing) in order to
 # give the linkage groups matching names
 #
 ################################################################################
@@ -22,7 +24,7 @@ export PATH=${PATH}:${CROSSLINK_PATH}/scripts:${CROSSLINK_PATH}/bin
 
 set -eu
 
-PS2SNPFILE=~/octoploid_mapping/axiom_chip_info/IStraw90.r1.ps2snp_map.ps  #which probeset(s) query which snp
+PS2SNPFILE=~/octoploid_mapping/axiom_chip_info/IStraw90.r1.ps2snp_map.ps  #which probeset(s) query which snp 
 REFMAPFILE=~/octoploid_mapping/hoxko/hoxko_map_snpids.csv                 #draft Holiday x Korona SNP map
 
 cp -r ${CROSSLINK_PATH}/sample_data/rgxha_conf_full ./conf  #copy the configuration files
