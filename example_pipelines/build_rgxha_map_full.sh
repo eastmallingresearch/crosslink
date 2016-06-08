@@ -13,19 +13,23 @@
 # some steps also require the IStraw90.r1.ps2snp_map.ps file from
 # the Affymetrix Axiom(R) IStraw90 array available at (accessed 2016-06-06):
 # http://media.affymetrix.com/analysis/downloads/lf/genotyping/IStraw90/
-# and a draft of Holiday x Korona SNP map
-# (which is not yet publicly available as of time of writing) in order to
-# give the linkage groups matching names
+# set PS2SNPFILE to point to this file 
+#
+# and a draft of Holiday x Korona SNP map (email contact: eric.vandeweg@wur.nl)
+# in order to give the linkage groups matching names / orientations
+# see also: Bassil et al (2015) BMC Genomics 16:155
+# https://www.rosaceae.org/node/4231124
+# set REFMAPFILE to point to this map as a 3 column csv file: snpid,group,position, with no header line
 #
 ################################################################################
 
-export CROSSLINK_PATH=/home/vicker/git_repos/crosslink
+export CROSSLINK_PATH=/home/vicker/git_repos/crosslink  #modify to point to your crosslink install
 export PATH=${PATH}:${CROSSLINK_PATH}/scripts:${CROSSLINK_PATH}/bin
 
 set -eu
 
 PS2SNPFILE=~/octoploid_mapping/axiom_chip_info/IStraw90.r1.ps2snp_map.ps  #which probeset(s) query which snp 
-REFMAPFILE=~/octoploid_mapping/hoxko/hoxko_map_snpids.csv                 #draft Holiday x Korona SNP map
+REFMAPFILE=~/octoploid_mapping/hoxko/hoxko_map_snpids.csv                 #draft Holiday x Korona SNP map as a 3 column csv file: snpid,group,position, no header
 
 cp -r ${CROSSLINK_PATH}/sample_data/rgxha_conf_full ./conf  #copy the configuration files
 
@@ -49,7 +53,7 @@ cl_phase.sh   uniqgrps   uniqgrps #phase markers
 
 cl_order_hkimpute.sh   uniqgrps   uniqgrps   conf/orderhkimpute.000 #order markers
 
-##for x in uniqgrps/*.loc ; do crosslink_viewer --inp=${x} || break ; done #view lgs
+for x in uniqgrps/*.loc ; do crosslink_viewer --inp=${x} || break ; done #view lgs
 
 echo 'PHR11-89827534' >  conf/badmarkers #004 bad marker
 cl_removemarkers.sh   uniqgrps/004.loc   uniqgrps/004.loc   conf/badmarkers
@@ -72,7 +76,7 @@ echo 'PHR11-89834490' >> conf/badmarkers #017 bad marker
 cl_removemarkers.sh   uniqgrps/017.loc   uniqgrps/017.loc   conf/badmarkers
 cl_subgroup.sh   uniqgrps/017.loc   6.0   uniqgrps   conf/subgroup.000
 
-##for x in uniqgrps/*.loc ; do crosslink_viewer --inp=${x} || break ; done #view lgs
+for x in uniqgrps/*.loc ; do crosslink_viewer --inp=${x} || break ; done #view lgs
 
 cl_subgroup.sh   uniqgrps/006.002.loc   6.5   uniqgrps   conf/subgroup.000  #006.002 split at higher lod
 cl_subgroup.sh   uniqgrps/011.001.loc   7.0   uniqgrps   conf/subgroup.000  #011.001 split at higher lod
@@ -86,13 +90,13 @@ cat vs_ref.csv | sed 's/2CII/2C/g' > tmp.csv #convert 2CII into 2C
 rm vs_ref.csv
 mv tmp.csv vs_ref.csv
 
-##for x in uniqgrps/*.loc ; do crosslink_viewer --inp=${x} || break ; done #view lgs
+for x in uniqgrps/*.loc ; do crosslink_viewer --inp=${x} || break ; done #view lgs
 
 cl_refine_order.sh   uniqgrps   uniqrefined   10   28   conf/refine.* #refine map ordering using trial and error
 
 cl_refine_order.sh   uniqgrps   uniqglobal   5   28   conf/refine2.global #refine map ordering using global scoring measure
 
-##for x in ./uniqrefined/*.loc ; do crosslink_viewer --inp=${x} || break ; crosslink_viewer --inp=./uniqglobal/$(basename ${x}) || break ; done #compare global with recomb count orderings
+for x in ./uniqrefined/*.loc ; do crosslink_viewer --inp=${x} || break ; crosslink_viewer --inp=./uniqglobal/$(basename ${x}) || break ; done #compare global with recomb count orderings
 
 mkdir -p uniqbest #select the best orderings
 cp uniqrefined/*.loc uniqbest
@@ -116,7 +120,7 @@ cl_reinsert_map.sh   uniqfinal   all.redun   redunfinal
 
 cl_match2ref.sh   redunfinal   ${REFMAPFILE}   ${PS2SNPFILE} #match up LGs to the reference map once again
 
-##compare_maps.py --map1 ./snpids.csv --map2 ${REFMAPFILE} #compare to reference map
+compare_maps.py --map1 ./snpids.csv --map2 ${REFMAPFILE} #compare to reference map
 
 mkdir -p joinmap #convert to joinmap compatible files
 cl_loc2joinmap.sh   uniqfinal    joinmap/uniq.loc
