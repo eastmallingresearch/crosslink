@@ -13,6 +13,8 @@
 # slightly different to the full RGxHA map
 #
 # this pipeline does not require any files outside the crosslink repostory
+# except IStraw90.r1.ps2snp_map.ps from http://media.affymetrix.com/analysis/downloads/lf/genotyping/IStraw90/
+# if the map is to be compared to other IStraw90 maps
 #
 ################################################################################
 
@@ -156,6 +158,15 @@ cl_reinsert_loc.sh   finalgrps   all.loc   all.redun   finalredun   conf/reinser
 
 #reinsert redundant markers into map files
 cl_reinsert_map.sh   finalgrps   all.redun   finalredun
+
+echo generate csv map file...
+
+#flatten map into single csv file
+cl_map2csv.sh finalredun probesetid_map.csv
+
+##uncomment the next two lines to compare to other maps by converting marker names into canonical Affymetrix SNP ids
+#PS2SNPFILE=~/octoploid_mapping/axiom_chip_info/IStraw90.r1.ps2snp_map.ps
+#probe2snp.sh probesetid_map.csv ${PS2SNPFILE} snpid_map.csv
 
 echo convert to joinmap...
 

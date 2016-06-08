@@ -10,7 +10,6 @@ import sys
 p2sname = sys.argv[1]
 inp = sys.argv[2]
 
-
 p2s = {}
 f = open(p2sname)
 f.readline() #skip header
