@@ -26,6 +26,10 @@ mv ./crosslink ./context/crosslink
 
 cp ./context/crosslink/docker/Dockerfile context
 
-sudo docker build -t ${MYDOCKERUSER}/crosslink:${RELEASE} context
+sudo docker build -t ${MYDOCKERUSER}/crosslink:${RELEASE} context\
+    && sudo docker tag ${MYDOCKERUSER}/crosslink:${RELEASE} rjvickerstaff/crosslink:latest\
+    && sudo docker login\
+    && sudo docker push rjvickerstaff/crosslink:latest\
+    && sudo docker push rjvickerstaff/crosslink:${RELEASE}
 
 rm -rf ${MYTMPDIR}
