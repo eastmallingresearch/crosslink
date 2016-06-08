@@ -5,7 +5,7 @@
 #
 
 MYDOCKERUSER=rjvickerstaff
-RELEASE=0.3
+RELEASE=0.4
 
 set -eu
 

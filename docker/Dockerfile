@@ -24,6 +24,7 @@ RUN apt-get update
 RUN apt-get upgrade -y
 
 #install new packages
+RUN apt-get install -y apt-utils
 RUN apt-get install -y less sudo
 RUN apt-get install -y gcc libsdl2-2.0-0 libsdl2-dev nano bashdb
 RUN apt-get install -y dbus python-numpy python-scipy python-matplotlib
