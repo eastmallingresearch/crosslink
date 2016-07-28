@@ -11,5 +11,5 @@ See [docs/crosslink_manual.pdf](https://github.com/eastmallingresearch/crosslink
 
 Publication:
 Crosslink: A fast, polyploid-aware genetic mapping program for outcrossing species
-(in prep.)
+(submitted)
 Robert J. Vickerstaff, Laima Antanaviciute and Richard J. Harrison
