@@ -6,9 +6,15 @@ csvs must have first three columns as:
 marker name,linkage group,centimorgan position
 '''
 
+import warnings
+
 import sys,argparse
 import numpy as np
-import matplotlib.pyplot as plt
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+    import matplotlib.pyplot as plt
+    
 from mapping_funcs import *
 
 ap = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)

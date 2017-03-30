@@ -641,7 +641,7 @@ void mst_approx_order(struct conf*c)
     }
 }    
 
-unsigned detect_cross_homeo(struct conf*c,unsigned R1,unsigned N1,unsigned R2,unsigned N2)
+unsigned detect_cross_homeo(struct conf*c,unsigned R1,unsigned N1,unsigned R2,unsigned N2,struct marker*m1,struct marker*m2)
 {
     double lod1,lod2,rf,s;
     unsigned S;
@@ -662,8 +662,11 @@ unsigned detect_cross_homeo(struct conf*c,unsigned R1,unsigned N1,unsigned R2,un
     if(s > 0.0) lod2 += S * LOG10(2.0*s);
     if(rf > 0.0) lod2 += R2 * LOG10(2.0*rf);
     
-    //if(lod1 < lod2) printf("%lf %lf\n",lod1,lod2);
-    //else            printf("%lf %lf\n",lod2,lod1);
+    if(0)
+    {
+        if(lod1 < lod2) printf("xlg-lods %s %s %lf %lf\n",m1->name,m2->name,lod1,lod2);
+        else            printf("xlg-lods %s %s %lf %lf\n",m1->name,m2->name,lod2,lod1);
+    }
     
     if((lod1 < c->gg_homeo_minlod && lod2 > c->gg_homeo_maxlod) ||
        (lod2 < c->gg_homeo_minlod && lod1 > c->gg_homeo_maxlod))
@@ -706,7 +709,7 @@ void ga_build_elist(struct conf*c)
                 //detect cross homeolog hkxhk markers on final ga cycle only
                 if(c->cycle_ctr == c->ga_gibbs_cycles-1 && N1 > 0 && N2 > 0 && c->gg_homeo_mincount > 0)
                 {
-                    if(detect_cross_homeo(c,R1,N1,R2,N2))
+                    if(detect_cross_homeo(c,R1,N1,R2,N2,m1,m2))
                     {
                         m1->homeo_ct += 1;
                         m2->homeo_ct += 1;

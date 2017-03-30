@@ -7,7 +7,7 @@ class group(object):
         self.size = 0.0
         self.markers = {}
         self.order = None
-    
+
     def add(self,item):
         'add marker to this linkage group'
         self.markers[item.uid] = item
@@ -24,7 +24,7 @@ class marker(object):
 class loadmap(object):
     def __init__(self,fname,order=None):
         'load map'
-        
+
         f = open(fname)
 
         self.loci = {}
@@ -37,7 +37,7 @@ class loadmap(object):
             uid = tok[0]
             lg = tok[1]
             pos = float(tok[2])
-            
+
             assert pos >= 0.0
             assert not uid in self.loci
             

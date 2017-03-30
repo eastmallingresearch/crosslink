@@ -66,4 +66,14 @@ gcc ${TYPE}\
     crosslink_group_main.c\
     -lm
 
+#build crosslink_rflod
+gcc ${TYPE}\
+    -o ../bin/crosslink_rflod\
+    crosslink_ga.o\
+    crosslink_group.o\
+    crosslink_utils.o\
+    rjvparser.o\
+    crosslink_rflod_main.c\
+    -lm
+
 rm *.o

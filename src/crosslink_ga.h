@@ -23,6 +23,6 @@ void mst_approx_order(struct conf*c);
 int ecomp_mapdist_only(const void*_p1, const void*_p2);
 double calc_2pt_rf(struct conf*c,struct marker*m1,struct marker*m2,unsigned x);
 double calc_global(struct conf*c,struct marker**array);
-unsigned detect_cross_homeo(struct conf*c,unsigned R1,unsigned N1,unsigned R2,unsigned N2);
+unsigned detect_cross_homeo(struct conf*c,unsigned R1,unsigned N1,unsigned R2,unsigned N2,struct marker*m1,struct marker*m2);
 
 #endif

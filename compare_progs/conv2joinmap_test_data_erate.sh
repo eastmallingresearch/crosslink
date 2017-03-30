@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/bin/bash
 
 #Crosslink
 #Copyright (C) 2016  NIAB EMR
@@ -27,28 +27,30 @@
 #ME19 6BJ
 #United Kingdom
 
-#library(ggplot2)
+#
+# convert each dataset into joinmap format
+#
 
-setwd("/home/vicker/crosslink/ploscompbiol_data/compare_simdata")
+#run from ~/crosslink/ploscompbiol_data/erate_simdata/
 
-#system("cat */score > all_scores")
+export PATH=${PATH}:/home/vicker/git_repos/crosslink/bin
+export PATH=${PATH}:/home/vicker/git_repos/crosslink/compare_progs
+export PATH=${PATH}:/home/vicker/git_repos/rjvbio
 
-dat = read.table("all_scores",col.names=c("algorithm","sample","t_real","t_user","t_sys","accuracy"))
+set -eu
 
-#convert to factors
-dat$sample = factor(dat$sample)
-dat$algorithm = factor(dat$algorithm)
+POP_SIZE=200            #how many progeny
 
-cat("============correlated samples 1-factor anova\n")
-aov.out = aov(accuracy ~ algorithm + Error(sample/algorithm), data=dat)
-summary(aov.out)
+for SAMPLEDIR in sample_data/*
+do
+    cd ${SAMPLEDIR}
 
-cat("============pairwise t tests with bonferroni correction\n")
-with(dat, pairwise.t.test(x=accuracy, g=algorithm, p.adjust.method="bonf", paired=T))
-
-cat("============2-factor anova\n")
-aov.tbys = aov(accuracy ~ algorithm + sample, data=dat)
-summary(aov.tbys)
-
-cat("============Tukey honest sig diff\n")
-TukeyHSD(aov.tbys, which="algorithm")
+    NMARKERS=$(cat sample.loc | wc --line)
+    echo "name = popname"     >  jmsample.loc
+    echo "popt = CP"          >> jmsample.loc
+    echo "nloc = ${NMARKERS}" >> jmsample.loc
+    echo "nind = ${POP_SIZE}" >> jmsample.loc
+    cat sample.loc | sed 's/ {..} / /g'            >> jmsample.loc
+    
+    cd -
+done

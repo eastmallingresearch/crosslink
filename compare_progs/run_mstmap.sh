@@ -1,8 +1,8 @@
 #$ -S /bin/bash
-#$ -l h_vmem=1.1G
-#$ -l mem_free=1.1G
-#$ -l virtual_free=1.1G
-#$ -l h_rt=999:00:00
+###$ -l h_vmem=1.1G
+###$ -l mem_free=1.1G
+###$ -l virtual_free=1.1G
+###$ -l h_rt=999:00:00
 ###$ -l h=blacklace02.blacklace|blacklace05.blacklace|blacklace06.blacklace|blacklace03.blacklace|blacklace04.blacklace|blacklace01.blacklace
 ###$ -pe smp 4
 
@@ -22,10 +22,12 @@ cd ${DIRNAME}
 
 export TIMEFORMAT='%R %U %S'
 
-{ time run_tmap_inner.sh 2> err > out ; } 2> time
+{ time run_mstmap_inner.sh 2> err > out ; } 2> time
 
-#get just the marker order
-tail -n +2 sample.out | awk -v OFS=',' '{print $1,0,$2}' > final.csv
+combine_mstmap_maps.py sample.outmat sample.outpat > sample.out
+combine_matpat_maps.py sample.out > sample.out2
+
+cat sample.out2 | awk -v OFS=',' '{print $1,0,$4}' > final.csv
 
 MAPSCORE=$(calc_mapping_accuracy2.sh ${FILEBASE}.map final.csv)
 
@@ -33,4 +35,4 @@ REALTIME=$(awk '{print $1}' time)
 USERTIME=$(awk '{print $2}' time)
 SYSTIME=$(awk '{print $3}' time)
 
-echo tmap ${SAMPLE_DIR} ${REALTIME} ${USERTIME} ${SYSTIME} ${MAPSCORE} > score
+echo mstmap ${SAMPLE_DIR} ${REALTIME} ${USERTIME} ${SYSTIME} ${MAPSCORE} > score

@@ -110,6 +110,8 @@ echo detect cross linkage group markers...
 #detect cross linkage group markers
 cl_detect_crosslg.sh   phasegrps   crosslg_markers   conf/detectcrosslg.000 
 
+#exit
+
 #filter out cross linkage group markers
 cl_removemarkers.sh   all.uniq   filt.uniq   crosslg_markers
 

@@ -1,7 +1,7 @@
 #$ -S /bin/bash
-#$ -l h_vmem=1.1G
-#$ -l mem_free=1.1G
-#$ -l virtual_free=1.1G
+#$ -l h_vmem=2G
+#$ -l mem_free=2G
+#$ -l virtual_free=2G
 #$ -l h_rt=999:00:00
 ###$ -l h=blacklace02.blacklace|blacklace05.blacklace|blacklace06.blacklace|blacklace03.blacklace|blacklace04.blacklace|blacklace01.blacklace
 ###$ -pe smp 4
@@ -15,11 +15,10 @@ source ~/rjv_bashrc
 export PATH=${CROSSLINK_PATH}/compare_progs:${PATH}
 
 DIRNAME=${RANDOM}${RANDOM}
+export FILEBASE=${PWD}/${SAMPLE_DIR}/sample
 
 mkdir -p ${DIRNAME}
 cd ${DIRNAME}
-
-export FILEBASE=/home/vicker/crosslink/ploscompbiol_data/compare_simdata/sample_data/${SAMPLE_DIR}/sample
 
 export TIMEFORMAT='%R %U %S'
 

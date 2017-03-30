@@ -13,14 +13,13 @@ set -eu
 source ~/rjv_bashrc
 
 export PATH=${CROSSLINK_PATH}/compare_progs:${PATH}
+export FILEBASE=${PWD}/${SAMPLE_DIR}/sample
 
 DIRNAME=${RANDOM}${RANDOM}
 
 mkdir -p ${DIRNAME}
 
 cd ${DIRNAME}
-
-export FILEBASE=/home/vicker/crosslink/ploscompbiol_data/compare_simdata/sample_data/${SAMPLE_DIR}/sample
 
 export TIMEFORMAT='%R %U %S'
 

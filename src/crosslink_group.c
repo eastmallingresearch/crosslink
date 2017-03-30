@@ -863,8 +863,8 @@ void identify_redundant_markers(struct conf*c,struct marker*m1,struct marker*m2,
         if(cxr_flag) return; //cannot compare directly
         
         //compare both pairs of data arrays
-        result  = find_redundant(c,m1->data[0],m2->data[0],rf);
-        result2 = find_redundant(c,m1->data[1],m2->data[1],rf);
+        result  = find_redundant(c, m1->data[0], m2->data[0], rf);
+        result2 = find_redundant(c, m1->data[1], m2->data[1], rf);
         
         if(result == 0 || result2 == 0) return; //neither marker is redundant
         

@@ -28,27 +28,27 @@
 #United Kingdom
 
 #library(ggplot2)
+#library(dplyr)
 
-setwd("/home/vicker/crosslink/ploscompbiol_data/compare_simdata")
+setwd("~/crosslink/ploscompbiol_data/erate_simdata/figs")
 
 #system("cat */score > all_scores")
+dat = read.table("erate_4way",col.names=c("algorithm","erate","t_user","t_sys","corr","missing","expansion"))
 
-dat = read.table("all_scores",col.names=c("algorithm","sample","t_real","t_user","t_sys","accuracy"))
-
-#convert to factors
-dat$sample = factor(dat$sample)
+dat = subset(dat, algorithm!="joinmap")
 dat$algorithm = factor(dat$algorithm)
+dat$erate = factor(dat$erate)
 
-cat("============correlated samples 1-factor anova\n")
-aov.out = aov(accuracy ~ algorithm + Error(sample/algorithm), data=dat)
-summary(aov.out)
+for (ee in levels(dat$erate))
+{
+    dat2 = subset(dat,erate==ee)
+    #print(dat2)
+    
+    cat(ee,'\n')
+    #cat("============1-factor anova\n")
+    #aov.out = aov(corr ~ algorithm , data=dat2)
+    #print(summary(aov.out))
 
-cat("============pairwise t tests with bonferroni correction\n")
-with(dat, pairwise.t.test(x=accuracy, g=algorithm, p.adjust.method="bonf", paired=T))
-
-cat("============2-factor anova\n")
-aov.tbys = aov(accuracy ~ algorithm + sample, data=dat)
-summary(aov.tbys)
-
-cat("============Tukey honest sig diff\n")
-TukeyHSD(aov.tbys, which="algorithm")
+    cat("============pairwise t tests with bonferroni correction\n")
+    print(with(dat2, pairwise.t.test(x=corr, g=algorithm, p.adjust.method="bonf", paired=T)))
+}

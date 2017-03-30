@@ -2,15 +2,15 @@
 
 #Crosslink, Copyright (C) 2016  NIAB EMR
 
-#compare performance versus minlod used for grouping and whether
-#approx ordering prioritises nonhk edges or not
+#experiment 1: compare programs
 
 library(ggplot2)
 library(scales)
 library(gridExtra)
 library(gtable)
+library(grid)
 
-setwd("~/crosslink/ploscompbiol_data/compare_simdata/figs")
+#setwd("~/crosslink/ploscompbiol_data/compare_simdata/figs")
 
 theme = theme(
   #panel.background = element_rect(fill="white"),
@@ -19,28 +19,30 @@ theme = theme(
   axis.text.y = element_text(colour="black"),
   axis.text.x = element_text(colour="black",angle=45,hjust=1),
   text = element_text(size=8, family="Arial"),
-  title = element_text(size=12, family="Arial")
+  title = element_text(size=8, family="Arial")
 )
 
-system("cat ../*/score > compare_data")
+#system("cat ../*/score > compare_data")
 
 dat = read.table("compare_data",col.names=c("algorithm","sample","t_real","t_user","t_sys","accuracy"))
 dat$t_cpu = dat$t_user + dat$t_sys
+dat$t_hrs = dat$t_cpu / 3600
+
 
 #log error versus algorithm
 p1 = ggplot(dat, aes(x = factor(algorithm), y = 1 - accuracy)) +
     geom_boxplot() +
-    scale_y_log10() +   
-    ylab("1 - Mapping Score") +
+    scale_y_log10(breaks=c(1e-3,1e-2,1e-1,1e+0)) +   
+    ylab("Ordering Error (1 - Corr. Coeff)") +
     xlab("Algorithm") +
     theme
 
 #log time versus algorithm
-p2 = ggplot(dat, aes(x = factor(algorithm), y = t_cpu)) +
+p2 = ggplot(dat, aes(x = factor(algorithm), y = t_hrs)) +
     geom_boxplot() +
-    #scale_y_log10() +   
-    scale_y_log10(breaks=c(1e-1,1e+1,1e+3),labels=c("0.1","10","1000")) +
-    ylab("CPU Time (secs)") +
+    scale_y_log10() +   
+    #scale_y_log10(breaks=c(1e-1,1e+1,1e+3),labels=c("0.1","10","1000")) +
+    ylab("CPU Time (hrs)") +
     xlab("Algorithm") +
     theme
 

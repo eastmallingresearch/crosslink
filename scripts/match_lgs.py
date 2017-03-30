@@ -1,5 +1,6 @@
 #!/usr/bin/python
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
+
 '''
 match up LGs between two maps based on the numbers of shared markers
 also work out if map orientations are reversed
@@ -23,7 +24,6 @@ imap = genmap(conf.inp)
 vmap = genmap(conf.ref)
 
 lg_info = {}
-
 posn_info = {}
 
 #for each marker in imap

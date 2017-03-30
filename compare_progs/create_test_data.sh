@@ -49,10 +49,10 @@ cd ${OUTDIR}
 NSAMPLES=100
 
 #set parameters
-MAP_SIZE=70           #total map length
-MARKER_DENSITY=2.0    #average markers per centimorgan
-NUMB_LGS=1            #divided map into equally sized linkage groups
-PROB_HK=0.28          #define probabilities of the three marker types (sum to 1.0)
+MAP_SIZE=70             #total map length
+MARKER_DENSITY=2.0      #average markers per centimorgan
+NUMB_LGS=1              #divided map into equally sized linkage groups
+PROB_HK=0.28            #define probabilities of the three marker types (sum to 1.0)
 PROB_LM=0.36
 
 POP_SIZE=162            #how many progeny

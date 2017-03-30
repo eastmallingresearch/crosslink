@@ -13,12 +13,16 @@ shift 4
 
 mkdir -p ${CL_OUTPUT_DIR}
 
-for INPNAME in ${CL_INPUT_DIR}/*.loc
+#for INPNAME in ${CL_INPUT_DIR}/*.loc     
+for INPNAME in $(ls ${CL_INPUT_DIR}/*.loc -1S)
 do
-    while [ "$(ps | grep -c cl_ref.sh)" -ge "${CL_PARALLEL_JOBS}" ]
-    do
-        sleep 1
-    done
+    if [ "${CL_PARALLEL_JOBS}" -gt "1" ]
+    then
+        while [ "$(ps | grep -c cl_ref.sh)" -ge "${CL_PARALLEL_JOBS}" ]
+        do
+            sleep 1
+        done
+    fi
 
     OUTNAME=${CL_OUTPUT_DIR}/$(basename ${INPNAME})
     

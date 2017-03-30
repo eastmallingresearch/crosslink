@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/bin/bash
 
 #Crosslink
 #Copyright (C) 2016  NIAB EMR
@@ -27,28 +27,32 @@
 #ME19 6BJ
 #United Kingdom
 
-#library(ggplot2)
 
-setwd("/home/vicker/crosslink/ploscompbiol_data/compare_simdata")
+#
+# convert erate test data to mstmap format, backcross encoded
+#
 
-#system("cat */score > all_scores")
+export PATH=${PATH}:/home/vicker/git_repos/crosslink/bin
+export PATH=${PATH}:/home/vicker/git_repos/crosslink/compare_progs
+export PATH=${PATH}:/home/vicker/git_repos/rjvbio
 
-dat = read.table("all_scores",col.names=c("algorithm","sample","t_real","t_user","t_sys","accuracy"))
+set -eu
 
-#convert to factors
-dat$sample = factor(dat$sample)
-dat$algorithm = factor(dat$algorithm)
+OUTDIR=/home/vicker/crosslink/ploscompbiol_data/erate_simdata/sample_data
 
-cat("============correlated samples 1-factor anova\n")
-aov.out = aov(accuracy ~ algorithm + Error(sample/algorithm), data=dat)
-summary(aov.out)
+cd ${OUTDIR}
 
-cat("============pairwise t tests with bonferroni correction\n")
-with(dat, pairwise.t.test(x=accuracy, g=algorithm, p.adjust.method="bonf", paired=T))
+#POP_SIZE=200            #how many progeny
 
-cat("============2-factor anova\n")
-aov.tbys = aov(accuracy ~ algorithm + sample, data=dat)
-summary(aov.tbys)
+for dname in *_*
+do
+    cd ${dname}
+    
+    #NMARKERS=$(cat sample.loc | wc --lines)
 
-cat("============Tukey honest sig diff\n")
-TukeyHSD(aov.tbys, which="algorithm")
+    #convert to mstmap backcross format
+    #provide the correct phase info so incorrect phasing cannot cause errors
+    convert2mstmap.py sample.loc orig/000.orig sample.mstmat sample.mstpat
+
+    cd ..
+done
