@@ -42,4 +42,6 @@ void remove_redundant_markers(struct conf*c,struct lg*p,struct earray*e);
 void identify_redundant_markers(struct conf*c,struct marker*m1,struct marker*m2,double rf,unsigned cxr_flag);
 unsigned find_redundant(struct conf*c,VARTYPE*p1,VARTYPE*p2,double rf);
 struct weights*decode_weights(char*weight_str);
+void switch_one(struct conf*c,VARTYPE*data,BITTYPE*bits,BITTYPE*mask);
+void fix_one_marker(struct conf*c,struct marker*m);
 #endif
