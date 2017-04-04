@@ -29,16 +29,14 @@
 
 
 #
-# create test data
+# create test data varying the marker density
 # convert each dataset into the formats required by lepmap2, onemap and tmap
 # no polyploid related errors
 # only one linkage group
-# vary the marker density
 #
 
 export PATH=${PATH}:/home/vicker/git_repos/crosslink/bin
 export PATH=${PATH}:/home/vicker/git_repos/crosslink/compare_progs
-export PATH=${PATH}:/home/vicker/git_repos/rjvbio
 
 set -eu
 
@@ -47,7 +45,7 @@ OUTDIR=/home/vicker/crosslink/ploscompbiol_data/mdensity_simdata/sample_data
 mkdir -p ${OUTDIR}
 cd ${OUTDIR}
 
-NSAMPLES=1
+NSAMPLES=8
 
 #set parameters
 MAP_SIZE=100            #total map length
@@ -65,7 +63,7 @@ PROB_TYPE_ERR=0.0       #marker typing errors (ie confusing lmxll with nnxnp)
 
 for i in $(seq 1 ${NSAMPLES})
 do
-    for MARKER_DENSITY in 1000 5000 10000 #1 5 10 50 100 150 200
+    for MARKER_DENSITY in 1 5 10 50 100 150 200
     do
         SUBDIR=${MARKER_DENSITY}_${RANDOM}${RANDOM}
         mkdir -p ${SUBDIR}
@@ -90,13 +88,6 @@ do
             --prob-missing=${PROB_MISSING}\
             --prob-error=${PROB_ERROR}
 
-        #create_type_errors.py\
-        #    sample.map\
-        #    tmp.loc\
-        #    ${PROB_CROSSMARKER}\
-        #    ${PROB_TYPE_ERR}\
-        #    > sample.loc
-            
         NMARKERS=$(cat sample.loc | wc --lines)
 
         #convert to lepmap2 format

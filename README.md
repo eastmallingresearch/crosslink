@@ -10,6 +10,5 @@ Run the docker image using: docker run -it rjvickerstaff/crosslink
 See [docs/crosslink_manual.pdf](https://github.com/eastmallingresearch/crosslink/blob/master/docs/crosslink_manual.pdf) for further details.
 
 Publication:
-Crosslink: A fast, polyploid-aware genetic mapping program for outcrossing species
-(submitted)
-Robert J. Vickerstaff, Laima Antanaviciute and Richard J. Harrison
+Crosslink: A fast, scriptable mapper for out-crossing species 
+Robert J. Vickerstaff and Richard J. Harrison (in prep.)

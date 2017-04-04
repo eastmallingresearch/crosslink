@@ -32,9 +32,7 @@ do
 done
 
 cat */score2  > figs/erate_4way
-
 dos2unix figs/joinmap_results/erate*.map
-
 cat figs/joinmap_stats |
 while read line
 do

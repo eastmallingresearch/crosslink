@@ -29,16 +29,14 @@
 
 
 #
-# create test data
+# create test data varying the error/missing data rate
 # convert each dataset into the formats required by lepmap2, onemap and tmap
 # no polyploid related errors
 # only one linkage group
-# vary the error rate
 #
 
 export PATH=${PATH}:/home/vicker/git_repos/crosslink/bin
 export PATH=${PATH}:/home/vicker/git_repos/crosslink/compare_progs
-export PATH=${PATH}:/home/vicker/git_repos/rjvbio
 
 set -eu
 
@@ -91,13 +89,6 @@ do
             --prob-missing=${PROB_MISSING}\
             --prob-error=${PROB_ERROR}
 
-        #create_type_errors.py\
-        #    sample.map\
-        #    tmp.loc\
-        #    ${PROB_CROSSMARKER}\
-        #    ${PROB_TYPE_ERR}\
-        #    > sample.loc
-            
         NMARKERS=$(cat sample.loc | wc --lines)
 
         #convert to lepmap2 format

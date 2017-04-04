@@ -29,6 +29,7 @@
 
 #
 # test crosslink on simulated data
+# note:grid_run is a simple wrapper on top of SunGridEngine's qsub
 #
 
 set -eu
@@ -39,11 +40,10 @@ SCRIPTDIR=${CROSSLINK_PATH}/compare_progs
 
 cd ${OUTDIR}
 
-#NSAMPLES=10
 MAXJOBS=12
-GIGS=3          #16
+GIGS=3 
 
-#rm -f joblist
+rm -f joblist
 
 eratelist='0.001 0.005 0.01 0.03 0.06'
 
@@ -56,16 +56,12 @@ do
         SAMPLEBASE=$(basename ${SAMPLE_DIR})
         
         grid_run -L${MAXJOBS} -M${GIGS} -Jmstmap_${SAMPLEBASE}    "${SCRIPTDIR}/run_mstmap.sh" >> joblist
-        #grid_run -L${MAXJOBS} -M${GIGS} -Jlepmap_${SAMPLEBASE}    "${SCRIPTDIR}/run_lepmap.sh" >> joblist
-        #grid_run -L${MAXJOBS} -M${GIGS} -Jtmap_${SAMPLEBASE}      "${SCRIPTDIR}/run_tmap.sh" >> joblist
-        #grid_run -L${MAXJOBS} -M${GIGS} -Jom_ug_${SAMPLEBASE}     "${SCRIPTDIR}/run_onemap.sh om_ug" >> joblist
-        #myqsub.sh ${SCRIPTDIR}/run_onemap.sh om_record 
-        ##myqsub.sh ${SCRIPTDIR}/run_onemap.sh om_seriation
-        #myqsub.sh ${SCRIPTDIR}/run_onemap.sh om_rcd
-        #grid_run -L${MAXJOBS} -M${GIGS} -Jcl_approx_${SAMPLEBASE} "${SCRIPTDIR}/run_crosslink.sh cl_approx" >> joblist
-        #grid_run -L${MAXJOBS} -M${GIGS} -Jcl_full_${SAMPLEBASE}   "${SCRIPTDIR}/run_crosslink.sh cl_full" >> joblist
-        #grid_run -L${MAXJOBS} -M${GIGS} -Jcl_refine_${SAMPLEBASE}   "${SCRIPTDIR}/run_crosslink.sh cl_refine"  >> joblist
-        #grid_run -L${MAXJOBS} -M${GIGS} -Jcl_global_${SAMPLEBASE}   "${SCRIPTDIR}/run_crosslink.sh cl_global" >> joblist
+        grid_run -L${MAXJOBS} -M${GIGS} -Jlepmap_${SAMPLEBASE}    "${SCRIPTDIR}/run_lepmap.sh" >> joblist
+        grid_run -L${MAXJOBS} -M${GIGS} -Jtmap_${SAMPLEBASE}      "${SCRIPTDIR}/run_tmap.sh" >> joblist
+        grid_run -L${MAXJOBS} -M${GIGS} -Jom_ug_${SAMPLEBASE}     "${SCRIPTDIR}/run_onemap.sh om_ug" >> joblist
+        grid_run -L${MAXJOBS} -M${GIGS} -Jcl_approx_${SAMPLEBASE} "${SCRIPTDIR}/run_crosslink.sh cl_approx" >> joblist
+        grid_run -L${MAXJOBS} -M${GIGS} -Jcl_full_${SAMPLEBASE}   "${SCRIPTDIR}/run_crosslink.sh cl_full" >> joblist
     done
 done
-#grid_wait -Ljoblist
+
+grid_wait -Ljoblist

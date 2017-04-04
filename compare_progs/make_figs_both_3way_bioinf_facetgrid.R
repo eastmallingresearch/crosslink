@@ -1,15 +1,11 @@
 #!/usr/bin/Rscript
 #Crosslink Copyright (C) 2016 NIAB EMR see included NOTICE file for details
 
-#plot max memory usage, ordering accuracy, map expansion, CPU time
+#plot ordering accuracy, map expansion, CPU time
 
 #run these first:
-# ~/git_repos/crosslink/compare_progs/get_maxvmem_mdensity.sh
 # ~/git_repos/crosslink/compare_progs/recalc_mapping_accuracy_mdensity.sh
-# ~/git_repos/crosslink/compare_progs/get_maxvmem_erate.sh
 # ~/git_repos/crosslink/compare_progs/recalc_mapping_accuracy_erate.sh
-# afterwards run:
-# ~/git_repos/crosslink/compare_progs/
 
 library(ggplot2)
 library(scales)
