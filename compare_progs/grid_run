@@ -1,0 +1,137 @@
+#!/bin/bash
+
+#
+# run command using qsub, return jobid, explicitly copies PATH into job environment
+#
+# options
+# -J[jobname] set the name of the job (default is 'script')
+# -L[maxjobs] limit to this number of jobs in the queue at once eg -L40 means wait until less than 40 jobs are in the queue before submitting (array and multicore jobs will count as 1)
+# -N[nodes]  allow job to run only on specific nodes eg -N1,2 mean blacklace01 or blacklace02
+# -M[memory] required memory in gigabytes, across *all* cores, not per core
+# -C[cores]  required number of (smp) cores
+# -W[jobid(s)/jobname(s)] wait for these jobs to finish before running eg -W123,124 means wait for job ids 123 and 124
+
+set -eu
+
+if [ "$#" == "0" ]
+then
+    echo 'usage: grid_run [-Jjobname] [-Lmaxjobs] [-Nnodelist] [-Mgigabytes] [-Ccores] [-Wwaitlist] "command [args...] [> output] [2> error]" >> jobidlist'
+    echo 'eg: grid_run -Jmyscript -N1,2,10 -M10 -C4 "myscript.sh inputfile > outputfile" > joblist'
+    echo '    grid_wait -Ljoblist'
+    exit
+fi
+
+#create dir for sge log files
+if [ ! -d "sgelog" ] ; then
+    mkdir -p sgelogs
+fi
+
+MEM='1'
+NODES='ANY'
+NAME='NONE'
+CORES='ONE'
+WAITFOR='NONE'
+MAXJOBS='NONE'
+
+while true
+do
+    arg="$1"
+    if [ "${arg:0:1}" != '-' ] ; then break ; fi
+
+    case "${arg:1:1}" in
+    #limit number of jobs in the queue
+    L)
+        MAXJOBS=${arg:2:${#arg}-2}
+        ;;
+    #wait for previous job(s) to complete eg -Wtest_job -W6746324 -W6746325
+    W)
+        if [ "${WAITFOR}" == 'NONE' ] ; then
+            WAITFOR="${arg:2:${#arg}-2}"
+        else
+            WAITFOR="${WAITFOR},${arg:2:${#arg}-2}" #allow multiple -W arguments
+        fi
+        ;;
+    #jobname
+    J)
+        NAME=${arg:2:${#arg}-2}
+        NAME=${NAME//\//_}       #ensure no forward slashes in name
+        ;;
+    #memory (gigabytes)
+    M)
+        MEM=${arg:2:${#arg}-2}
+        ;;
+    #cores
+    C)
+        CORES=${arg:2:${#arg}-2}
+        ;;
+    #node(s) comma separated list eg -N1,2 => blacklace01 or blacklace02
+    N)
+        NODES=${arg:2:${#arg}-2}
+        ;;
+    esac
+
+    shift
+done
+
+if [ "${MAXJOBS}" != 'NONE' ] ; then
+    #block until number of jobs in queue is below limit
+    while true ; do
+        NJOBS=$(qstat | grep -v -e '^---' -e '^job-ID' | wc --lines)
+        if [ "${NJOBS}" -lt "${MAXJOBS}" ] ; then break ; fi
+        sleep 2
+    done
+fi
+
+MYTMPDIR=$(mktemp -d --tmpdir grid_run.XXXXXXXXXX)
+
+if [ "${NAME}" != 'NONE' ] ; then
+    scriptfile=${MYTMPDIR}/${NAME}
+else
+    scriptfile=${MYTMPDIR}/script
+fi
+
+echo '#$ -S /bin/bash'                     >> ${scriptfile}
+
+if [ "${NAME}" != 'NONE' ] ; then
+    echo "#$ -N ${NAME}" >> ${scriptfile}
+fi
+
+echo '#$ -l h_rt=999:00:00'                >> ${scriptfile}
+echo '#$ -o sgelogs/$JOB_NAME.$JOB_ID.out' >> ${scriptfile}
+echo '#$ -e sgelogs/$JOB_NAME.$JOB_ID.err' >> ${scriptfile}
+echo '#$ -cwd'                             >> ${scriptfile}
+echo '#$ -V'                               >> ${scriptfile}
+
+
+if [ "${CORES}" != 'ONE' ] ; then
+    echo "#$ -pe smp ${CORES}" >> ${scriptfile}
+
+    #divide total memory by number of cores
+    MEM=$(awk -v N1="${MEM}" -v N2="${CORES}" 'BEGIN{print N1/N2}')
+fi
+
+echo "#$ -l h_vmem=${MEM}G"       >> ${scriptfile}
+echo "#$ -l mem_free=${MEM}G"     >> ${scriptfile}
+echo "#$ -l virtual_free=${MEM}G" >> ${scriptfile}
+
+if [ "${NODES}" != 'ANY' ] ; then
+    NODES=$(python -c 'import sys; print "|".join(["blacklace%02d.blacklace"%int(x) for x in sys.argv[1].split(",")]) ' "${NODES}")
+    echo "#$ -l h=${NODES}" >> ${scriptfile}
+fi
+
+#explicitly carry across the current PATH
+echo 'export PATH=${PATH}:'${PATH} >> ${scriptfile}
+
+#pass all remaining arguments
+echo "$*" >> ${scriptfile}
+
+#make qsub print only the jobid
+QSOPTIONS='-terse'
+
+if [ "${WAITFOR}" != 'NONE' ] ; then
+    QSOPTIONS="${QSOPTIONS} -hold_jid ${WAITFOR}"
+fi
+
+qsub ${QSOPTIONS} ${scriptfile}
+
+rm -rf ${MYTMPDIR}

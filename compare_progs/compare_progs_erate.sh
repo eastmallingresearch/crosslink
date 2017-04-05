@@ -34,6 +34,8 @@
 
 set -eu
 
+export PATH=${PATH}:/home/vicker/git_repos/crosslink/compare_progs
+
 OUTDIR=/home/vicker/crosslink/ploscompbiol_data/erate_simdata
 
 SCRIPTDIR=${CROSSLINK_PATH}/compare_progs
@@ -41,7 +43,7 @@ SCRIPTDIR=${CROSSLINK_PATH}/compare_progs
 cd ${OUTDIR}
 
 MAXJOBS=12
-GIGS=3 
+GIGS=3
 
 rm -f joblist
 
@@ -54,7 +56,7 @@ do
         export SAMPLE_DIR
         echo ${SAMPLE_DIR}
         SAMPLEBASE=$(basename ${SAMPLE_DIR})
-        
+
         grid_run -L${MAXJOBS} -M${GIGS} -Jmstmap_${SAMPLEBASE}    "${SCRIPTDIR}/run_mstmap.sh" >> joblist
         grid_run -L${MAXJOBS} -M${GIGS} -Jlepmap_${SAMPLEBASE}    "${SCRIPTDIR}/run_lepmap.sh" >> joblist
         grid_run -L${MAXJOBS} -M${GIGS} -Jtmap_${SAMPLEBASE}      "${SCRIPTDIR}/run_tmap.sh" >> joblist
@@ -64,4 +66,5 @@ do
     done
 done
 
-grid_wait -Ljoblist
+#wait for programs to finish running
+#grid_wait -Ljoblist

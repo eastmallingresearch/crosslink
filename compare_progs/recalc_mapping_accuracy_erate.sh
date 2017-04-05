@@ -1,15 +1,14 @@
 #Crosslink, Copyright (C) 2016  NIAB EMR
 
 #
-# recalculate mapping accuracy as three different values
+# recalculate mapping accuracy as three separate values: correlation, map expansion, missing markers
 # run from ~/crosslink/ploscompbiol_data/erate_simdata
 #
 
 set -eu
 
-source ~/rjv_bashrc
-
-export PATH=${CROSSLINK_PATH}/compare_progs:${PATH}
+export PATH=${PATH}:/home/vicker/git_repos/crosslink/compare_progs
+export PATH=${PATH}:/home/vicker/git_repos/crosslink/scripts
 
 for OUTPUTDIR in [0-9]*
 do
@@ -27,7 +26,7 @@ do
 
     echo -n "${PROG} ${ERATE} ${TIMEUSER} ${TIMESYS} " > score2
     mapping_accuracy_1lg.py tmprefmap.csv final.csv >> score2
-    
+
     cd ..
 done
 
@@ -42,7 +41,7 @@ do
     #MEM=$(echo line | cut -d' ' -f4)
     SAMPLEDIR=$(echo ${line} | cut -d' ' -f5)
     MAPFILE=figs/joinmap_results/erate${ERATE}.map
-    
+
     cat sample_data/${SAMPLEDIR}/sample.map | grep -v -e '^#' | awk -v OFS=',' '{print $1,$4,$5}' > tmprefmap.csv
     cat ${MAPFILE} | grep -e '^M' | awk -v OFS=',' '{print $1,1,$2}' > tmp_joinmap_${ERATE}.csv
 
