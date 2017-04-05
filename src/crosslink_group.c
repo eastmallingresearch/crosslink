@@ -52,7 +52,7 @@ struct weights*decode_weights(char*weight_str)
 convert lm <-> ll and nn <-> np
 update bit strings
 */
-void switch_one(struct conf*c,VARTYPE*data,BITTYPE*bits,BITTYPE*mask)
+void switch_one(struct conf*c,VARTYPE*data,VARTYPE*orig,BITTYPE*bits,BITTYPE*mask)
 {
     unsigned i,y,z;
 
@@ -66,12 +66,14 @@ void switch_one(struct conf*c,VARTYPE*data,BITTYPE*bits,BITTYPE*mask)
         if(data[i] == 1)
         {
             data[i] = 0;
+            orig[i] = 0;
             //bits[y] = CLEAR_BIT(bits[y],z);
             mask[y] = SET_BIT(mask[y],z);
         }
         else if(data[i] == 0)
         {
             data[i] = 1;
+            orig[i] = 1;
             bits[y] = SET_BIT(bits[y],z);
             mask[y] = SET_BIT(mask[y],z);
         }
@@ -103,7 +105,7 @@ void fix_one_marker(struct conf*c,struct marker*m)
         m->mask[0] = NULL;
         m->orig[0] = NULL;
 
-        switch_one(c,m->data[1],m->bits[1],m->mask[1]);
+        switch_one(c,m->data[1],m->orig[1],m->bits[1],m->mask[1]);
     }
     else
     {
@@ -119,7 +121,7 @@ void fix_one_marker(struct conf*c,struct marker*m)
         m->mask[1] = NULL;
         m->orig[1] = NULL;
 
-        switch_one(c,m->data[0],m->bits[0],m->mask[0]);
+        switch_one(c,m->data[0],m->orig[0],m->bits[0],m->mask[0]);
     }
 }
 
@@ -242,17 +244,6 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea,struct weights*
                 m->type = NPTYPE;
                 fix_one_marker(c,m);
 
-                /*m->oldphase[1] = m->oldphase[0];
-                m->phase[1] = m->phase[0];
-                m->data[1] = m->data[0];
-                m->bits[1] = m->bits[0];
-                m->mask[1] = m->mask[0];
-                m->orig[1] = m->orig[0];
-                m->data[0] = NULL;
-                m->bits[0] = NULL;
-                m->mask[0] = NULL;
-                m->orig[0] = NULL;*/
-
                 changes += 1;
 
                 if(c->flog) fprintf(c->flog,"#linkage group %s, %s type corrected LM->NP\n",p->name,m->name);
@@ -266,17 +257,6 @@ void fix_marker_types(struct conf*c,struct lg*p,struct earray*ea,struct weights*
                 //convert np -> lm
                 m->type = LMTYPE;
                 fix_one_marker(c,m);
-
-                /*m->oldphase[0] = m->oldphase[1];
-                m->phase[0] = m->phase[1];
-                m->data[0] = m->data[1];
-                m->bits[0] = m->bits[1];
-                m->mask[0] = m->mask[1];
-                m->orig[0] = m->orig[1];
-                m->data[1] = NULL;
-                m->bits[1] = NULL;
-                m->mask[1] = NULL;
-                m->orig[1] = NULL;*/
 
                 changes += 1;
 
