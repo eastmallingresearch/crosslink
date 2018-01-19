@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Crosslink
-#Copyright (C) 2016  NIAB EMR
+#Copyright (C) 2017  NIAB EMR
 #
 #This program is free software; you can redistribute it and/or modify
 #it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ do
         mkdir -p ${SUBDIR}
         cd ${SUBDIR}
         mkdir -p orig
-        
+
         create_map\
             --random-seed=0\
             --output-file=sample.map\
@@ -79,7 +79,7 @@ do
             --marker-density=${MARKER_DENSITY}\
             --prob-both=${PROB_HK}\
             --prob-maternal=${PROB_LM}
-                   
+
         sample_map\
             --random-seed=0\
             --input-file=sample.map\
@@ -103,7 +103,7 @@ do
             | sed 's/ {..}//g'\
             | tr 'lmnphk' 'ababab'\
             >> sample.tmap
-            
+
         #convert to onemap format
         convert2onemap.py sample.loc ${NMARKERS} ${POP_SIZE} > sample.onemap
 

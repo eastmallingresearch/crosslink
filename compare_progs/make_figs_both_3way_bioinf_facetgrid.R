@@ -9,9 +9,9 @@
 
 library(ggplot2)
 library(scales)
-library(gridExtra)
-library(gtable)
-library(grid) # for R 3.2.3 for gpar
+#library(gridExtra)
+#library(gtable)
+#library(grid) # for R 3.2.3 for gpar
 
 
 lw = 0.2
@@ -60,7 +60,7 @@ median_uq_lq_func <- function(df,response,grp1,grp2)
 {
     df_median <- aggregate(df[[response]],by=list(df[[grp1]],df[[grp2]]),median,na.rm=T)
     colnames(df_median) <- c(grp1,grp2,"median")
-    
+
     df_uq <- aggregate(df[[response]],by=list(df[[grp1]],df[[grp2]]),uq_func,na.rm=T)
     colnames(df_uq) <- c(grp1,grp2,"uq")
 
@@ -70,13 +70,16 @@ median_uq_lq_func <- function(df,response,grp1,grp2)
     df <- merge(df_uq,df_lq)
     df <- merge(df,df_median)
     df$response = response
-    
+
     return(df)
 }
 
 setwd("~/rjv_mnt/cluster/crosslink/ploscompbiol_data/erate_simdata/figs")
 #variable = erate
 dat = read.table("erate_4way",col.names=c("algorithm","variable","t_user","t_sys","corr","missing","expansion"))
+dat$algorithm <- as.character(dat$algorithm)
+dat$algorithm[dat$algorithm=='om_ug'] <- 'onemap'
+dat$algorithm <- as.factor(dat$algorithm)
 dat = subset(dat,algorithm != "cl_redun" & algorithm != "cl_refine" & algorithm != "cl_global")
 
 dat$variable <- dat$variable * 100.0
@@ -96,6 +99,9 @@ erate_brks <- c(1e-1,5e-1,1e0,3e0,6e0)
 setwd("~/rjv_mnt/cluster/crosslink/ploscompbiol_data/mdensity_simdata/figs")
 #variable = mdensity
 dat = read.table("mdensity_4way",col.names=c("algorithm","variable","t_user","t_sys","corr","missing","expansion"))
+dat$algorithm <- as.character(dat$algorithm)
+dat$algorithm[dat$algorithm=='om_ug'] <- 'onemap'
+dat$algorithm <- as.factor(dat$algorithm)
 dat = subset(dat,variable != 1000 & algorithm != "cl_redun" & algorithm != "cl_refine" & algorithm != "cl_global")
 
 dat$t_cpu = dat$t_user + dat$t_sys
@@ -119,7 +125,7 @@ df$line = as.factor(df$alg%%2)
 
 #==== plot
 
-pp <- ggplot(df, aes(x=variable, y=median, shape=algorithm, colour=algorithm)) + 
+pp <- ggplot(df, aes(x=variable, y=median, shape=algorithm, colour=algorithm)) +
     theme_bw() +
     #scale_colour_grey(start=0.0,end=0.7) +
     scale_shape_manual(values=c(15,16,22,1,2,5,6)) +
