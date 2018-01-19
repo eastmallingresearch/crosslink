@@ -1,7 +1,7 @@
 # crosslink
 Genetic mapping software for outbreeding species with additional features suitable for allo-polyploids.
 
-For strawberry disease resistance QTL pipelines using this software see (https://github.com/harrisonlab/ananassa_qtl).
+For strawberry disease resistance QTL pipelines using this software see [here](https://github.com/harrisonlab/ananassa_qtl).
 
 Available as a [VirtualBox](https://www.virtualbox.org) virtual machine image for cross-platform usage.
 
